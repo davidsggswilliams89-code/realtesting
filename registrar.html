@@ -67,24 +67,6 @@ tr:last-child td{border-bottom:0}
 .footer{margin-top:25px;color:var(--muted);font-size:10px;text-align:center}
 @media(max-width:1050px){.sidebar{width:205px}.main{margin-left:205px;width:calc(100% - 205px)}.grid{grid-template-columns:repeat(2,1fr)}.quick{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.sidebar{position:relative;width:100%;height:auto;max-height:none}.app{display:block}.main{margin-left:0;width:100%;padding:0 14px 30px}.topbar{margin:0 -14px 18px;padding:12px 14px}.grid,.quick,.form-grid,.settings-grid{grid-template-columns:1fr}.menu{display:grid;grid-template-columns:1fr 1fr}.menu-title{grid-column:1/-1}.titleblock h1{font-size:18px}.top-actions .badge{display:none}}
-
-/* Registrar embedded Course Registration container */
-.course-tools{display:grid;grid-template-columns:2fr repeat(4,1fr) auto;gap:10px;margin:14px 0;align-items:center}
-.course-tools input,.course-tools select{width:100%;min-height:42px;padding:9px 11px;border:1px solid #d1e4d8;border-radius:9px;background:#fff}
-.course-action{border:0;border-radius:7px;padding:7px 9px;margin:2px;font-weight:700;cursor:pointer}
-.course-edit{background:#e7f3ef;color:#075b4b}.course-delete{background:#fdeaea;color:#9b1c1c}
-.course-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:9999}
-.course-modal.show{display:flex}.course-modal-box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:14px;padding:20px}
-.course-modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
-.course-modal-head h3{margin:0}.course-modal-close{border:0;background:#eee;border-radius:8px;padding:8px 11px;cursor:pointer}
-.course-edit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.course-edit-grid label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
-.course-edit-grid input,.course-edit-grid select{width:100%;padding:10px;border:1px solid #ccdcd7;border-radius:8px}
-.course-modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:16px}
-.firebase-course-status{margin-top:14px;padding:11px 12px;border-radius:9px;font-size:11px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
-.firebase-course-status.error{background:#fef2f2;color:#991b1b;border-color:#fecaca}
-@media(max-width:900px){.course-tools{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.course-tools{grid-template-columns:1fr}.course-edit-grid{grid-template-columns:1fr}}
-
 </style>
 
 <style id="complete-registrar-css">
@@ -103,6 +85,18 @@ tr:last-child td{border-bottom:0}
 <style id="uniform-registrar-logo">
 .topbar .brand-logo{width:40px;height:40px;border-radius:11px;object-fit:contain;background:#fff;display:block}
 </style>
+
+<style id="registrar-course-css">
+.course-section{margin-top:24px}
+.course-box{background:#fff;border:1px solid #dce7e1;border-radius:18px;padding:24px;box-shadow:0 4px 14px rgba(18,64,45,.06)}
+.course-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}.course-head-icon{width:46px;height:46px;border-radius:12px;background:#0d8b57;color:#fff;display:grid;place-items:center;font-size:23px}.course-head h2{margin:0 0 4px;color:#163c2c}.course-head p{margin:0;color:#66756f}
+.course-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.course-field label{display:block;font-weight:700;color:#27483b;margin-bottom:7px;font-size:14px}.course-field input,.course-field select{width:100%;box-sizing:border-box;padding:12px 13px;border:1px solid #cfddd6;border-radius:9px;background:#fff;font:inherit;color:#243a32}.course-field select:disabled{background:#f3f6f4;color:#8a9791}
+.course-actions{display:flex;gap:10px;margin-top:18px}.course-btn{border:0;border-radius:9px;padding:11px 20px;font-weight:700;cursor:pointer}.course-btn.primary{background:#0d8b57;color:#fff}.course-btn.secondary{background:#eef4f1;color:#29463a}.course-btn:disabled{opacity:.6;cursor:not-allowed}
+.course-list{margin-top:22px;border-top:1px solid #e5ece8;padding-top:20px}.course-list-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.course-list-head h3{margin:0;color:#163c2c}.course-search{width:280px;max-width:100%;padding:10px 12px;border:1px solid #cfddd6;border-radius:9px;box-sizing:border-box}.course-table-wrap{overflow:auto;border:1px solid #e0e8e4;border-radius:10px}.course-table{width:100%;border-collapse:collapse;min-width:850px}.course-table th,.course-table td{padding:11px 10px;border-bottom:1px solid #e8eeeb;text-align:left;font-size:13px}.course-table th{background:#f3f7f5;color:#345347}.course-table tr:last-child td{border-bottom:0}.course-edit-btn,.course-delete-btn{border:0;border-radius:7px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer}.course-edit-btn{background:#0d8b57;color:#fff}.course-delete-btn{background:#dc3545;color:#fff;margin-left:5px}.course-status{margin:14px 0 0;padding:10px 12px;border-radius:8px;background:#f4f8f6;color:#496058;font-size:13px}.course-status.error{background:#fff4e5;color:#8a5a00}
+.course-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:9999;align-items:center;justify-content:center;padding:18px}.course-modal.show{display:flex}.course-modal-box{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:15px;padding:22px}.course-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.course-modal-head h3{margin:0;color:#163c2c}.course-modal-close{border:0;background:#eef4f1;border-radius:8px;padding:8px 11px;cursor:pointer}.course-modal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.course-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+@media(max-width:800px){.course-form-grid{grid-template-columns:1fr}.course-list-head{align-items:stretch;flex-direction:column}.course-search{width:100%}.course-modal-grid{grid-template-columns:1fr}.course-box{padding:18px}}
+</style>
+
 </head>
 <body>
 <div class="app">
@@ -174,6 +168,33 @@ tr:last-child td{border-bottom:0}
     <div class="card"><h3>Registry Requests</h3><p class="small">Process student requests and official registry documents.</p><button data-go="registry">Open Registry</button></div>
     <div class="card"><h3>Reports</h3><p class="small">Institution-wide admission, student and academic reports.</p><button data-go="reports">Open Reports</button></div>
   </div></div>
+
+  <div class="section course-section" id="registrarCourseSection">
+    <div class="course-box">
+      <div class="course-head">
+        <div class="course-head-icon">📋</div>
+        <div><h2>Course Creation</h2><p>Create and manage courses from the Registrar portal.</p></div>
+      </div>
+      <form id="registrarCourseForm">
+        <div class="course-form-grid">
+          <div class="course-field"><label for="rcCourseName">Course Name *</label><input id="rcCourseName" required placeholder="e.g. Health Information Systems"></div>
+          <div class="course-field"><label for="rcCourseCode">Course Code *</label><input id="rcCourseCode" required placeholder="e.g. HIM 201"></div>
+          <div class="course-field"><label for="rcCreditUnit">Credit Unit *</label><input id="rcCreditUnit" type="number" min="1" max="12" step="1" required placeholder="e.g. 3"></div>
+          <div class="course-field"><label for="rcFaculty">Faculty *</label><select id="rcFaculty" required><option value="">Select faculty</option><option>Faculty of Health Sciences</option><option>Faculty of Health Technology</option><option>Faculty of Science</option><option>Faculty of Basic Medical Sciences</option></select></div>
+          <div class="course-field"><label for="rcDepartment">Department *</label><select id="rcDepartment" required disabled><option value="">Select faculty first</option></select></div>
+          <div class="course-field"><label for="rcLevel">Level *</label><select id="rcLevel" required><option value="">Select level</option><option>100 Level</option><option>200 Level</option><option>300 Level</option><option>400 Level</option><option>500 Level</option></select></div>
+          <div class="course-field"><label for="rcSession">Academic Session *</label><select id="rcSession" required><option value="">Select session</option><option>2026/2027</option><option>2025/2026</option><option>2024/2025</option></select></div>
+        </div>
+        <div class="course-actions"><button class="course-btn secondary" type="reset">Clear</button><button class="course-btn primary" id="rcSaveBtn" type="submit">Save Course</button></div>
+      </form>
+      <div class="course-status" id="rcStatus">Connecting to the shared Firebase course database…</div>
+      <div class="course-list">
+        <div class="course-list-head"><div><h3>Course List</h3><p class="small">Courses created here are shared with the standalone Course Registration page.</p></div><input class="course-search" id="rcSearch" type="search" placeholder="Search course name or code"></div>
+        <div class="course-table-wrap"><table class="course-table"><thead><tr><th>#</th><th>Course Name</th><th>Code</th><th>Unit</th><th>Faculty</th><th>Department</th><th>Level</th><th>Session</th><th>Actions</th></tr></thead><tbody id="rcRows"><tr><td colspan="9">Loading courses…</td></tr></tbody></table></div>
+      </div>
+    </div>
+  </div>
+
   <div class="section panel"><h2>Attention Required</h2>
     <div class="info">12 admission applications have completed document uploads and are ready for Registrar review.</div>
     <div class="notice">8 student registry requests are awaiting action. 5 graduation candidates still have outstanding clearance items.</div>
@@ -553,330 +574,47 @@ setupTabs();renderApplications();renderStudents();renderAcademics();renderGradua
 </script>
 <script>document.addEventListener('DOMContentLoaded',function(){var m=document.getElementById('menu');if(m&&!document.querySelector('#menu button[data-view=\"timetable\"]')){var b=document.createElement('button');b.dataset.view='timetable';b.innerHTML='<span class=\"icon\">🗓</span>Timetable';m.insertBefore(b,m.children[4]||null);b.onclick=function(){show('timetable')};} pageNames.timetable='Timetable Management';});</script>
 
-<script type="module">
+<div class="course-modal" id="rcModal" aria-hidden="true">
+  <div class="course-modal-box">
+    <div class="course-modal-head"><h3>Edit Course</h3><button class="course-modal-close" type="button" id="rcCloseModal">✕</button></div>
+    <form id="rcEditForm"><input type="hidden" id="rcEditId">
+      <div class="course-modal-grid">
+        <div class="course-field"><label for="rcEditName">Course Name *</label><input id="rcEditName" required></div>
+        <div class="course-field"><label for="rcEditCode">Course Code *</label><input id="rcEditCode" required></div>
+        <div class="course-field"><label for="rcEditUnit">Credit Unit *</label><input id="rcEditUnit" type="number" min="1" max="12" required></div>
+        <div class="course-field"><label for="rcEditFaculty">Faculty *</label><select id="rcEditFaculty" required></select></div>
+        <div class="course-field"><label for="rcEditDepartment">Department *</label><select id="rcEditDepartment" required></select></div>
+        <div class="course-field"><label for="rcEditLevel">Level *</label><select id="rcEditLevel" required></select></div>
+        <div class="course-field"><label for="rcEditSession">Academic Session *</label><select id="rcEditSession" required></select></div>
+      </div>
+      <div class="course-modal-actions"><button class="course-btn secondary" type="button" id="rcCancelEdit">Cancel</button><button class="course-btn primary" type="submit" id="rcUpdateBtn">Update Course</button></div>
+    </form>
+  </div>
+</div>
+
+
+<script type="module" id="registrar-course-firebase">
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-
-const firebaseConfig={
-  apiKey:"AIzaSyAoT3LGcdw3A0F3HDrPEuhTNCnfiTklGXY",
-  authDomain:"ggchst-sms-new.firebaseapp.com",
-  projectId:"ggchst-sms-new",
-  storageBucket:"ggchst-sms-new.firebasestorage.app",
-  messagingSenderId:"942770190211",
-  appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
-};
-const app=getApps().length?getApp():initializeApp(firebaseConfig);
-const db=getFirestore(app);
-
-const departments={
-  "Faculty of Health Sciences":["Health Information Management","Community Health","Public Health"],
-  "Faculty of Health Technology":["Environmental Health","Health Education","Dental Therapy"],
-  "Faculty of Science":["Science Laboratory Technology","Computer Science","Statistics"],
-  "Faculty of Basic Medical Sciences":["Medical Laboratory Technology","Pharmacy Technician","Biomedical Technology"]
-};
-const levels=["100 Level","200 Level","300 Level","400 Level","500 Level"];
-const sessions=["2026/2027","2025/2026","2024/2025"];
-const $=id=>document.getElementById(id);
-
-const courseHTML = `&lt;section class=&quot;panel&quot;&gt;
-    &lt;div class=&quot;panel-head&quot;&gt;&lt;div&gt;&lt;h2&gt;Create New Course&lt;/h2&gt;&lt;p&gt;Enter the academic details for a course.&lt;/p&gt;&lt;/div&gt;&lt;span class=&quot;step&quot;&gt;STEP 1 • COURSE DETAILS&lt;/span&gt;&lt;/div&gt;
-    &lt;div class=&quot;info&quot;&gt;Courses created here will later be saved to the shared Firebase course collection so Admin and Registrar can use the same course records, while HOD portals can view courses matching their faculty, department and level.&lt;/div&gt;
-    &lt;form id=&quot;courseForm&quot;&gt;
-      &lt;div class=&quot;form-grid&quot;&gt;
-        &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;courseName&quot;&gt;Course Name *&lt;/label&gt;&lt;input id=&quot;courseName&quot; name=&quot;courseName&quot; type=&quot;text&quot; placeholder=&quot;e.g. Health Information Systems&quot; required&gt;&lt;/div&gt;
-        &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;courseCode&quot;&gt;Course Code *&lt;/label&gt;&lt;input id=&quot;courseCode&quot; name=&quot;courseCode&quot; type=&quot;text&quot; placeholder=&quot;e.g. HIM 201&quot; required&gt;&lt;/div&gt;
-        &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;creditUnit&quot;&gt;Credit Unit *&lt;/label&gt;&lt;input id=&quot;creditUnit&quot; name=&quot;creditUnit&quot; type=&quot;number&quot; min=&quot;1&quot; max=&quot;12&quot; step=&quot;1&quot; placeholder=&quot;e.g. 3&quot; required&gt;&lt;/div&gt;
-        &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;faculty&quot;&gt;Faculty *&lt;/label&gt;&lt;select id=&quot;faculty&quot; name=&quot;faculty&quot; required onchange=&quot;updateDepartments()&quot;&gt;&lt;option value=&quot;&quot;&gt;Select faculty&lt;/option&gt;&lt;option&gt;Faculty of Health Sciences&lt;/option&gt;&lt;option&gt;Faculty of Health Technology&lt;/option&gt;&lt;option&gt;Faculty of Science&lt;/option&gt;&lt;option&gt;Faculty of Basic Medical Sciences&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
-        &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;department&quot;&gt;Department *&lt;/label&gt;&lt;select id=&quot;department&quot; name=&quot;department&quot; required disabled&gt;&lt;option value=&quot;&quot;&gt;Select faculty first&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
-        &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;level&quot;&gt;Level *&lt;/label&gt;&lt;select id=&quot;level&quot; name=&quot;level&quot; required&gt;&lt;option value=&quot;&quot;&gt;Select level&lt;/option&gt;&lt;option&gt;100 Level&lt;/option&gt;&lt;option&gt;200 Level&lt;/option&gt;&lt;option&gt;300 Level&lt;/option&gt;&lt;option&gt;400 Level&lt;/option&gt;&lt;option&gt;500 Level&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
-        &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;session&quot;&gt;Academic Session *&lt;/label&gt;&lt;select id=&quot;session&quot; name=&quot;session&quot; required&gt;&lt;option value=&quot;&quot;&gt;Select session&lt;/option&gt;&lt;option&gt;2026/2027&lt;/option&gt;&lt;option&gt;2025/2026&lt;/option&gt;&lt;option&gt;2024/2025&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;actions&quot;&gt;&lt;button class=&quot;btn&quot; type=&quot;reset&quot; onclick=&quot;resetDepartments()&quot;&gt;Clear&lt;/button&gt;&lt;button class=&quot;btn primary&quot; id=&quot;saveBtn&quot; type=&quot;submit&quot;&gt;Save Course&lt;/button&gt;&lt;/div&gt;
-    &lt;/form&gt;
-    &lt;div class=&quot;preview&quot;&gt;&lt;h3 id=&quot;statusTitle&quot;&gt;Firebase Course Management&lt;/h3&gt;&lt;p id=&quot;statusText&quot;&gt;Connecting to your Firebase project…&lt;/p&gt;&lt;/div&gt;
-&lt;section class=&quot;panel&quot; style=&quot;margin-top:18px&quot;&gt;
-  &lt;div class=&quot;panel-head&quot;&gt;
-    &lt;div&gt;&lt;h2&gt;Course Management&lt;/h2&gt;&lt;p&gt;Create, edit, delete, search and filter courses from the shared Firebase database.&lt;/p&gt;&lt;/div&gt;
-    &lt;span class=&quot;step&quot; id=&quot;courseCount&quot;&gt;0 COURSES&lt;/span&gt;
-  &lt;/div&gt;
-
-  &lt;div class=&quot;course-tools&quot;&gt;
-    &lt;input id=&quot;courseSearch&quot; type=&quot;search&quot; placeholder=&quot;Search course name or code&quot;&gt;
-    &lt;select id=&quot;filterFaculty&quot;&gt;&lt;option value=&quot;&quot;&gt;All Faculties&lt;/option&gt;&lt;/select&gt;
-    &lt;select id=&quot;filterDepartment&quot;&gt;&lt;option value=&quot;&quot;&gt;All Departments&lt;/option&gt;&lt;/select&gt;
-    &lt;select id=&quot;filterLevel&quot;&gt;&lt;option value=&quot;&quot;&gt;All Levels&lt;/option&gt;&lt;/select&gt;
-    &lt;select id=&quot;filterSession&quot;&gt;&lt;option value=&quot;&quot;&gt;All Sessions&lt;/option&gt;&lt;/select&gt;
-    &lt;button class=&quot;btn&quot; type=&quot;button&quot; id=&quot;clearFilters&quot;&gt;Clear Filters&lt;/button&gt;
-  &lt;/div&gt;
-
-  &lt;div class=&quot;table-wrap&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;
-    &lt;th&gt;#&lt;/th&gt;&lt;th&gt;Course Name&lt;/th&gt;&lt;th&gt;Code&lt;/th&gt;&lt;th&gt;Unit&lt;/th&gt;&lt;th&gt;Faculty&lt;/th&gt;&lt;th&gt;Department&lt;/th&gt;&lt;th&gt;Level&lt;/th&gt;&lt;th&gt;Session&lt;/th&gt;&lt;th&gt;Actions&lt;/th&gt;
-  &lt;/tr&gt;&lt;/thead&gt;&lt;tbody id=&quot;courseRows&quot;&gt;&lt;tr&gt;&lt;td colspan=&quot;9&quot; class=&quot;empty&quot;&gt;Loading courses…&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;
-&lt;/section&gt;
-  &lt;/section&gt;`;
-const modalHTML = `&lt;div class=&quot;course-modal&quot; id=&quot;courseEditModal&quot; aria-hidden=&quot;true&quot;&gt;
-  &lt;div class=&quot;course-modal-box&quot;&gt;
-    &lt;div class=&quot;course-modal-head&quot;&gt;
-      &lt;h3&gt;Edit Course&lt;/h3&gt;
-      &lt;button class=&quot;course-modal-close&quot; type=&quot;button&quot; id=&quot;closeCourseModal&quot;&gt;✕&lt;/button&gt;
-    &lt;/div&gt;
-    &lt;form id=&quot;courseEditForm&quot;&gt;
-      &lt;input type=&quot;hidden&quot; id=&quot;editCourseId&quot;&gt;
-      &lt;div class=&quot;course-edit-grid&quot;&gt;
-        &lt;div&gt;&lt;label for=&quot;editCourseName&quot;&gt;Course Name&lt;/label&gt;&lt;input id=&quot;editCourseName&quot; required&gt;&lt;/div&gt;
-        &lt;div&gt;&lt;label for=&quot;editCourseCode&quot;&gt;Course Code&lt;/label&gt;&lt;input id=&quot;editCourseCode&quot; required&gt;&lt;/div&gt;
-        &lt;div&gt;&lt;label for=&quot;editCreditUnit&quot;&gt;Credit Unit&lt;/label&gt;&lt;input id=&quot;editCreditUnit&quot; type=&quot;number&quot; min=&quot;1&quot; max=&quot;12&quot; step=&quot;1&quot; required&gt;&lt;/div&gt;
-        &lt;div&gt;&lt;label for=&quot;editFaculty&quot;&gt;Faculty&lt;/label&gt;&lt;select id=&quot;editFaculty&quot; required&gt;&lt;/select&gt;&lt;/div&gt;
-        &lt;div&gt;&lt;label for=&quot;editDepartment&quot;&gt;Department&lt;/label&gt;&lt;select id=&quot;editDepartment&quot; required&gt;&lt;/select&gt;&lt;/div&gt;
-        &lt;div&gt;&lt;label for=&quot;editLevel&quot;&gt;Level&lt;/label&gt;&lt;select id=&quot;editLevel&quot; required&gt;&lt;/select&gt;&lt;/div&gt;
-        &lt;div&gt;&lt;label for=&quot;editSession&quot;&gt;Academic Session&lt;/label&gt;&lt;select id=&quot;editSession&quot; required&gt;&lt;/select&gt;&lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div class=&quot;course-modal-actions&quot;&gt;
-        &lt;button class=&quot;btn&quot; type=&quot;button&quot; id=&quot;cancelCourseEdit&quot;&gt;Cancel&lt;/button&gt;
-        &lt;button class=&quot;btn primary&quot; type=&quot;submit&quot; id=&quot;updateCourseBtn&quot;&gt;Update Course&lt;/button&gt;
-      &lt;/div&gt;
-    &lt;/form&gt;
-  &lt;/div&gt;
-&lt;/div&gt;`;
-
-function decodeHTML(s) {
-  const t=document.createElement("textarea");
-  t.innerHTML=s;
-  return t.value;
-}
-
-function mountCourseContainer() {
-  const sec=$("courseReg");
-  if(!sec) return;
-  sec.innerHTML="";
-  const holder=document.createElement("div");
-  holder.innerHTML=decodeHTML(courseHTML);
-  sec.appendChild(holder);
-  const modal=document.createElement("div");
-  modal.innerHTML=decodeHTML(modalHTML);
-  sec.appendChild(modal);
-  initCourseManager();
-}
-
-function updateDepartments() {
-  const f=$("faculty"), d=$("department");
-  if(!f||!d) return;
-  d.innerHTML='<option value="">Select department</option>';
-  (departments[f.value]||[]).forEach(x=>{
-    const o=document.createElement("option"); o.value=x; o.textContent=x; d.appendChild(o);
-  });
-  d.disabled=!f.value;
-}
-window.updateDepartments=updateDepartments;
-window.resetDepartments=()=>setTimeout(()=>{
-  const d=$("department");
-  if(d){d.innerHTML='<option value="">Select faculty first</option>';d.disabled=true;}
-},0);
-
-function initCourseManager(){
-  const form=$("courseForm"),saveBtn=$("saveBtn"),statusText=$("statusText"),statusTitle=$("statusTitle"),
-        rows=$("courseRows"),count=$("courseCount");
-  if(!form||!rows) return;
-  let allCourses=[];
-
-  // Add a visible Firebase status line without changing the Registrar design.
-  const statusBox=document.createElement("div");
-  statusBox.className="firebase-course-status";
-  statusBox.id="courseFirebaseStatus";
-  statusBox.textContent="Connecting to the shared Firebase course collection…";
-  rows.closest(".table-wrap").parentElement.appendChild(statusBox);
-
-  function message(text,error=false){
-    if(statusText) statusText.textContent=text;
-    if(statusTitle) {
-      statusTitle.textContent=error?"Firebase Error":"Firebase Course Management";
-      statusTitle.style.color=error?"#991b1b":"";
-    }
-    statusBox.textContent=text;
-    statusBox.classList.toggle("error",error);
-  }
-  function esc(v){return String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));}
-  function timeValue(v){return v?.seconds||0;}
-
-  function populateFilterOptions(){
-    const values=key=>[...new Set(allCourses.map(c=>String(c[key]||"")).filter(Boolean))].sort();
-    const fill=(id,items,label)=>{
-      const el=$(id),old=el.value;
-      el.innerHTML=`<option value="">${label}</option>`+items.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
-      if(items.includes(old)) el.value=old;
-    };
-    fill("filterFaculty",values("faculty"),"All Faculties");
-    fill("filterDepartment",values("department"),"All Departments");
-    fill("filterLevel",values("level"),"All Levels");
-    fill("filterSession",values("session"),"All Sessions");
-  }
-
-  function renderCourses(){
-    const q=$("courseSearch").value.trim().toLowerCase();
-    const faculty=$("filterFaculty").value, department=$("filterDepartment").value;
-    const level=$("filterLevel").value, session=$("filterSession").value;
-    const list=allCourses.filter(c=>{
-      const hay=`${c.courseName||""} ${c.courseCode||""}`.toLowerCase();
-      return (!q||hay.includes(q))&&(!faculty||c.faculty===faculty)&&(!department||c.department===department)&&(!level||c.level===level)&&(!session||c.session===session);
-    }).sort((a,b)=>timeValue(b.createdAt)-timeValue(a.createdAt));
-    count.textContent=`${list.length} COURSE${list.length===1?"":"S"}`;
-    if(!list.length){
-      rows.innerHTML='<tr><td colspan="9" class="empty">No matching courses found.</td></tr>';
-      return;
-    }
-    rows.innerHTML=list.map((c,i)=>`<tr>
-      <td>${i+1}</td><td>${esc(c.courseName)}</td><td>${esc(c.courseCode)}</td><td>${esc(c.creditUnit)}</td>
-      <td>${esc(c.faculty)}</td><td>${esc(c.department)}</td><td>${esc(c.level)}</td><td>${esc(c.session)}</td>
-      <td><button type="button" class="course-action course-edit" data-edit="${esc(c.id)}">Edit</button>
-      <button type="button" class="course-action course-delete" data-delete="${esc(c.id)}">Delete</button></td>
-    </tr>`).join("");
-  }
-
-  async function loadCourses(){
-    try{
-      rows.innerHTML='<tr><td colspan="9" class="empty">Loading courses…</td></tr>';
-      const snap=await getDocs(collection(db,"courses"));
-      allCourses=snap.docs.map(d=>({id:d.id,...d.data()}));
-      populateFilterOptions();
-      renderCourses();
-      message("Courses loaded from the shared Firebase database.");
-    }catch(e){
-      console.error(e);
-      message(e.message||"Could not load courses from Firebase.",true);
-      rows.innerHTML='<tr><td colspan="9" class="empty">Could not load courses.</td></tr>';
-    }
-  }
-
-  function setSelectOptions(id,items,selected=""){
-    const el=$(id);
-    el.innerHTML=items.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
-    if(selected) el.value=selected;
-  }
-
-  function prepareEditForm(c){
-    $("editCourseId").value=c.id;
-    $("editCourseName").value=c.courseName||"";
-    $("editCourseCode").value=c.courseCode||"";
-    $("editCreditUnit").value=c.creditUnit||"";
-    const faculties=Object.keys(departments);
-    setSelectOptions("editFaculty",faculties,c.faculty);
-    setSelectOptions("editDepartment",departments[c.faculty]||[],c.department);
-    setSelectOptions("editLevel",levels,c.level);
-    setSelectOptions("editSession",sessions,c.session);
-    $("courseEditModal").classList.add("show");
-    $("courseEditModal").setAttribute("aria-hidden","false");
-  }
-  function closeEditModal(){
-    $("courseEditModal").classList.remove("show");
-    $("courseEditModal").setAttribute("aria-hidden","true");
-  }
-
-  $("editFaculty").addEventListener("change",()=>setSelectOptions("editDepartment",departments[$("editFaculty").value]||[]));
-  $("closeCourseModal").onclick=closeEditModal;
-  $("cancelCourseEdit").onclick=closeEditModal;
-  $("courseEditModal").addEventListener("click",e=>{if(e.target.id==="courseEditModal")closeEditModal();});
-
-  rows.addEventListener("click",async e=>{
-    const editId=e.target.dataset.edit, deleteId=e.target.dataset.delete;
-    if(editId){
-      const c=allCourses.find(x=>x.id===editId);
-      if(c) prepareEditForm(c);
-    }
-    if(deleteId){
-      const c=allCourses.find(x=>x.id===deleteId);
-      if(!c) return;
-      if(!confirm(`Delete "${c.courseName}" (${c.courseCode})? This cannot be undone.`)) return;
-      try{
-        await deleteDoc(doc(db,"courses",deleteId));
-        message("Course deleted successfully.");
-        await loadCourses();
-      }catch(e){
-        console.error(e);
-        message(e.message||"Could not delete course.",true);
-      }
-    }
-  });
-
-  $("courseEditForm").addEventListener("submit",async e=>{
-    e.preventDefault();
-    const id=$("editCourseId").value;
-    const course={
-      courseName:$("editCourseName").value.trim(),
-      courseCode:$("editCourseCode").value.trim().toUpperCase(),
-      creditUnit:Number($("editCreditUnit").value),
-      faculty:$("editFaculty").value,
-      department:$("editDepartment").value,
-      level:$("editLevel").value,
-      session:$("editSession").value,
-      updatedAt:serverTimestamp()
-    };
-    if(!course.courseName||!course.courseCode||!course.creditUnit||!course.faculty||!course.department||!course.level||!course.session){
-      message("Please complete all course fields.",true); return;
-    }
-    const btn=$("updateCourseBtn");
-    btn.disabled=true; btn.textContent="Updating…";
-    try{
-      const duplicate=allCourses.find(c=>c.id!==id&&String(c.courseCode||"").toUpperCase()===course.courseCode&&c.department===course.department&&c.level===course.level&&c.session===course.session);
-      if(duplicate){message("Another course already uses this code for the same department, level and session.",true);return;}
-      await updateDoc(doc(db,"courses",id),course);
-      closeEditModal();
-      message("Course updated successfully.");
-      await loadCourses();
-    }catch(e){
-      console.error(e);
-      message(e.message||"Could not update course.",true);
-    }finally{
-      btn.disabled=false; btn.textContent="Update Course";
-    }
-  });
-
-  form.addEventListener("submit",async e=>{
-    e.preventDefault();
-    saveBtn.disabled=true; saveBtn.textContent="Saving…";
-    try{
-      const course={
-        courseName:$("courseName").value.trim(),
-        courseCode:$("courseCode").value.trim().toUpperCase(),
-        creditUnit:Number($("creditUnit").value),
-        faculty:$("faculty").value,
-        department:$("department").value,
-        level:$("level").value,
-        session:$("session").value,
-        createdAt:serverTimestamp(),
-        updatedAt:serverTimestamp()
-      };
-      if(!course.courseName||!course.courseCode||!course.creditUnit||!course.faculty||!course.department||!course.level||!course.session){
-        message("Please complete all required fields.",true); return;
-      }
-      const duplicate=allCourses.find(c=>String(c.courseCode||"").toUpperCase()===course.courseCode&&c.department===course.department&&c.level===course.level&&c.session===course.session);
-      if(duplicate){message("A course with this code already exists for the same department, level and session.",true);return;}
-      await addDoc(collection(db,"courses"),course);
-      form.reset();
-      window.resetDepartments();
-      message("Course saved successfully to Firebase.");
-      await loadCourses();
-    }catch(e){
-      console.error(e);
-      message(e.message||"Could not save course to Firebase. Check your Firestore Security Rules and Firebase configuration.",true);
-    }finally{
-      saveBtn.disabled=false; saveBtn.textContent="Save Course";
-    }
-  });
-
-  $("courseSearch").addEventListener("input",renderCourses);
-  ["filterFaculty","filterDepartment","filterLevel","filterSession"].forEach(id=>$(id).addEventListener("change",renderCourses));
-  $("clearFilters").onclick=()=>{
-    $("courseSearch").value="";
-    ["filterFaculty","filterDepartment","filterLevel","filterSession"].forEach(id=>$(id).value="");
-    renderCourses();
-  };
-  loadCourses();
-}
-
-// The original Registrar script creates the Course Registration nav/section.
-// Mount the full course-registration container into that existing section.
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",mountCourseContainer);
-else mountCourseContainer();
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyAoT3LGcdw3A0fHDrPeuhTNCnfiTklGXY",authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
+const app=getApps().length?getApp():initializeApp(firebaseConfig),db=getFirestore(app);
+const $=id=>document.getElementById(id); const departments={"Faculty of Health Sciences":["Health Information Management","Community Health","Public Health"],"Faculty of Health Technology":["Environmental Health","Health Education","Dental Therapy"],"Faculty of Science":["Science Laboratory Technology","Computer Science","Statistics"],"Faculty of Basic Medical Sciences":["Medical Laboratory Technology","Pharmacy Technician","Biomedical Technology"]};
+const levels=["100 Level","200 Level","300 Level","400 Level","500 Level"],sessions=["2026/2027","2025/2026","2024/2025"];
+let courses=[];
+function esc(v){return String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));}
+function status(t,error=false){$("rcStatus").textContent=t;$("rcStatus").classList.toggle("error",error)}
+function fill(id,items,selected=""){const e=$(id);e.innerHTML='<option value="">Select</option>'+items.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(selected)e.value=selected;}
+function updateDept(selectId,deptId){const f=$(selectId).value,d=$(deptId);d.innerHTML='<option value="">Select department</option>'+(departments[f]||[]).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");d.disabled=!f;}
+function render(){const q=$("rcSearch").value.trim().toLowerCase();const list=courses.filter(c=>!q||`${c.courseName||""} ${c.courseCode||""}`.toLowerCase().includes(q));$("rcRows").innerHTML=list.length?list.map((c,i)=>`<tr><td>${i+1}</td><td>${esc(c.courseName)}</td><td>${esc(c.courseCode)}</td><td>${esc(c.creditUnit)}</td><td>${esc(c.faculty)}</td><td>${esc(c.department)}</td><td>${esc(c.level)}</td><td>${esc(c.session)}</td><td><button class="course-edit-btn" data-edit="${esc(c.id)}" type="button">Edit</button><button class="course-delete-btn" data-delete="${esc(c.id)}" type="button">Delete</button></td></tr>`).join(""): '<tr><td colspan="9">No courses found.</td></tr>';}
+function closeModal(){$("rcModal").classList.remove("show");$("rcModal").setAttribute("aria-hidden","true");}
+function openEdit(c){$("rcEditId").value=c.id;$("rcEditName").value=c.courseName||"";$("rcEditCode").value=c.courseCode||"";$("rcEditUnit").value=c.creditUnit||"";fill("rcEditFaculty",Object.keys(departments),c.faculty);fill("rcEditDepartment",departments[c.faculty]||[],c.department);fill("rcEditLevel",levels,c.level);fill("rcEditSession",sessions,c.session);$("rcModal").classList.add("show");$("rcModal").setAttribute("aria-hidden","false");}
+$("rcFaculty").addEventListener("change",()=>updateDept("rcFaculty","rcDepartment"));$("rcEditFaculty").addEventListener("change",()=>fill("rcEditDepartment",departments[$("rcEditFaculty").value]||[]));$("rcSearch").addEventListener("input",render);
+$("rcCloseModal").onclick=closeModal;$("rcCancelEdit").onclick=closeModal;$("rcModal").addEventListener("click",e=>{if(e.target.id==="rcModal")closeModal()});
+$("registrarCourseForm").addEventListener("reset",()=>setTimeout(()=>{$("rcDepartment").innerHTML='<option value="">Select faculty first</option>';$('rcDepartment').disabled=true},0));
+$("registrarCourseForm").addEventListener("submit",async e=>{e.preventDefault();const btn=$("rcSaveBtn");const c={courseName:$("rcCourseName").value.trim(),courseCode:$("rcCourseCode").value.trim().toUpperCase(),creditUnit:Number($("rcCreditUnit").value),faculty:$("rcFaculty").value,department:$("rcDepartment").value,level:$("rcLevel").value,session:$("rcSession").value};if(Object.values(c).some(v=>v===""||v===0)){status("Please complete all required course fields.",true);return}if(courses.some(x=>String(x.courseCode||"").toUpperCase()===c.courseCode&&x.department===c.department&&x.level===c.level&&x.session===c.session)){status("A course with this code already exists for the same department, level and session.",true);return}btn.disabled=true;btn.textContent="Saving…";try{await addDoc(collection(db,"courses"),{...c,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});e.target.reset();status("Course saved successfully to the shared Firebase database.");}catch(err){console.error(err);status(err.message||"Could not save course. Check Firestore Security Rules.",true)}finally{btn.disabled=false;btn.textContent="Save Course"}});
+$("rcRows").addEventListener("click",async e=>{const edit=e.target.dataset.edit,del=e.target.dataset.delete;if(edit){const c=courses.find(x=>x.id===edit);if(c)openEdit(c)}if(del){const c=courses.find(x=>x.id===del);if(!c||!confirm(`Delete "${c.courseName}" (${c.courseCode})? This cannot be undone.`))return;try{await deleteDoc(doc(db,"courses",del));status("Course deleted successfully.");}catch(err){console.error(err);status(err.message||"Could not delete course.",true)}}});
+$("rcEditForm").addEventListener("submit",async e=>{e.preventDefault();const id=$("rcEditId").value,c={courseName:$("rcEditName").value.trim(),courseCode:$("rcEditCode").value.trim().toUpperCase(),creditUnit:Number($("rcEditUnit").value),faculty:$("rcEditFaculty").value,department:$("rcEditDepartment").value,level:$("rcEditLevel").value,session:$("rcEditSession").value};if(Object.values(c).some(v=>v===""||v===0)){status("Please complete all required course fields.",true);return}if(courses.some(x=>x.id!==id&&String(x.courseCode||"").toUpperCase()===c.courseCode&&x.department===c.department&&x.level===c.level&&x.session===c.session)){status("Another course already uses this code for the same department, level and session.",true);return}const b=$("rcUpdateBtn");b.disabled=true;b.textContent="Updating…";try{await updateDoc(doc(db,"courses",id),{...c,updatedAt:serverTimestamp()});closeModal();status("Course updated successfully.");}catch(err){console.error(err);status(err.message||"Could not update course.",true)}finally{b.disabled=false;b.textContent="Update Course"}});
+try{onSnapshot(collection(db,"courses"),snap=>{courses=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));render();status(`Connected. ${courses.length} course${courses.length===1?"":"s"} in the shared Firebase collection.`)},err=>{console.error(err);status(err.message||"Could not read the shared courses collection.",true)})}catch(err){console.error(err);status(err.message||"Firebase could not be initialized.",true)}
 </script>
 
 </body>
