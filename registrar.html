@@ -853,5 +853,102 @@ if(db){
 }
 </script>
 
+
+<script type="module" id="ggchst-shared-student-sync">
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAoT3LGcdw3A0fHDrPEuhTNCnfiTklGXY",
+  authDomain: "ggchst-sms-new.firebaseapp.com",
+  projectId: "ggchst-sms-new",
+  storageBucket: "ggchst-sms-new.firebasestorage.app",
+  messagingSenderId: "942770190211",
+  appId: "1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+const app=getApps().length?getApp():initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const norm=v=>String(v??"").trim().toLowerCase();
+
+function studentObject(matric,name,programme,level,session,phone,status="Active"){
+  return {
+    studentId:matric,
+    matricNo:matric,
+    admissionNo:matric,
+    registrationNumber:matric,
+    studentName:name,
+    fullName:name,
+    programme:programme||"",
+    courseOfStudy:programme||"",
+    level:level||"",
+    session:session||"2026/2027",
+    academicSession:session||"2026/2027",
+    phone:phone||"",
+    phoneNumber:phone||"",
+    status:status||"Active",
+    source:"registrar.html",
+    updatedAt:serverTimestamp()
+  };
+}
+
+/* Registrar's existing Create Student button is intercepted so the record
+   is written to the shared /students collection instead of only staying in memory. */
+document.addEventListener("click", async e=>{
+  const btn=e.target.closest('button[onclick="saveStudent()"]');
+  if(!btn) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  const clean=v=>String(v??"").trim();
+  const name=clean(document.getElementById("newName")?.value);
+  const matric=clean(document.getElementById("newMatric")?.value);
+  const programme=clean(document.getElementById("newProgramme")?.value);
+  const level=clean(document.getElementById("newLevel")?.value);
+  const phone=clean(document.getElementById("newPhone")?.value);
+  const session="2026/2027";
+
+  if(!name){alert("Enter student name.");return}
+  if(!matric){alert("Enter matric number.");return}
+
+  btn.disabled=true;
+  btn.textContent="Saving to Firebase…";
+  try{
+    await addDoc(collection(db,"students"),studentObject(matric,name,programme,level,session,phone));
+    document.getElementById("modal")?.classList.remove("show");
+    alert("Student record saved to the shared Firebase database.");
+  }catch(err){
+    console.error(err);
+    alert(err.message||"Could not save the student record. Check Firestore Rules.");
+  }finally{
+    btn.disabled=false;
+    btn.textContent="Create Student Record";
+  }
+},true);
+
+/* Registrar also receives student changes made by Admin/HOD. */
+onSnapshot(collection(db,"students"),snap=>{
+  if(!window.__GGCHST_getStudents) return;
+  const rows=snap.docs.map(d=>{
+    const x=d.data();
+    const matric=x.matricNo||x.studentId||x.admissionNo||d.id;
+    return [
+      matric,
+      x.studentName||x.fullName||x.name||"Unnamed Student",
+      x.programme||x.courseOfStudy||"",
+      x.level||"",
+      x.session||x.academicSession||"2026/2027",
+      x.phone||x.phoneNumber||"Not provided",
+      x.status||"Active"
+    ];
+  });
+  window.__GGCHST_sharedStudents=rows;
+  if(typeof renderStudents==="function"){
+    try{ students.splice(0,students.length,...rows); renderStudents(); }catch(err){console.warn(err); }
+  }
+},err=>console.error("Shared students listener:",err));
+</script>
+
 </body>
 </html>
