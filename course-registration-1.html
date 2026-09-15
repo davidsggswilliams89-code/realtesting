@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GGCHST | Course Management</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f7f6;color:#17231f}
+header{background:#087443;color:#fff;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+header h1{margin:0;font-size:22px}
+header p{margin:5px 0 0;font-size:13px;opacity:.9}
+.back{background:#fff;color:#087443;text-decoration:none;padding:10px 15px;border-radius:8px;font-weight:700}
+.container{max-width:1400px;margin:25px auto;padding:0 16px}
+.grid{display:grid;grid-template-columns:390px 1fr;gap:20px}
+.card{background:#fff;border:1px solid #dce6e1;border-radius:12px;padding:20px;box-shadow:0 3px 12px rgba(0,0,0,.05)}
+.card h2{font-size:18px;margin:0 0 18px;color:#087443}
+label{display:block;font-weight:700;font-size:13px;margin:13px 0 6px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid #cbd8d2;border-radius:8px;font-size:14px;background:#fff}
+textarea{min-height:75px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#087443;box-shadow:0 0 0 2px rgba(8,116,67,.1)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btns{display:flex;gap:10px;margin-top:18px}
+button{border:0;border-radius:8px;padding:11px 15px;font-weight:700;cursor:pointer}
+.primary{background:#087443;color:#fff;flex:1}
+.secondary{background:#e9efec;color:#17362a}
+.danger{background:#c62828;color:#fff}
+.message{display:none;margin:12px 0;padding:10px;border-radius:8px;font-size:13px}
+.success{background:#e5f6ec;color:#126238}
+.error{background:#fde8e8;color:#a51d1d}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:15px;flex-wrap:wrap}
+.toolbar input{flex:1;min-width:210px}
+.count{background:#edf5f1;color:#087443;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:700}
+.table-wrap{overflow:auto;border:1px solid #e1e8e4;border-radius:9px}
+table{width:100%;border-collapse:collapse;min-width:980px}
+th,td{padding:11px 10px;border-bottom:1px solid #e7ece9;text-align:left;font-size:13px;vertical-align:top}
+th{background:#f0f5f2;color:#24533e;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.badge{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.active{background:#e3f6ea;color:#11733f}
+.inactive{background:#eee;color:#666}
+.actions{display:flex;gap:6px}
+.actions button{padding:7px 9px;font-size:12px}
+.edit{background:#e8f0ff;color:#225aa0}
+.del{background:#fde8e8;color:#a51d1d}
+.empty{text-align:center;padding:35px;color:#718078}
+.small{font-size:12px;color:#6b7872;margin-top:5px}
+.required{color:#c62828}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;z-index:20}
+.modal-box{background:#fff;border-radius:12px;padding:22px;max-width:430px;width:100%}
+.modal-box h3{margin-top:0}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+@media(max-width:500px){.row{grid-template-columns:1fr}header{padding:15px}.container{margin-top:15px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>GGCHST | Course Management</h1>
+    <p>Green Garden College of Health Sciences &amp; Technology, Gusau</p>
+  </div>
+  <a class="back" href="admin.html">← Back to Admin</a>
+</header>
+
+<div class="container">
+  <div class="grid">
+    <section class="card">
+      <h2 id="formTitle">Add Course</h2>
+      <div id="message" class="message"></div>
+
+      <form id="courseForm">
+        <label>Course Code <span class="required">*</span></label>
+        <input id="courseCode" required placeholder="e.g. HEM 101">
+
+        <label>Course Title <span class="required">*</span></label>
+        <input id="courseTitle" required placeholder="e.g. Introduction to Health Education">
+
+        <div class="row">
+          <div>
+            <label>Course Unit <span class="required">*</span></label>
+            <input id="courseUnit" type="number" min="0" step="1" required placeholder="3">
+          </div>
+          <div>
+            <label>Semester <span class="required">*</span></label>
+            <select id="semester" required>
+              <option value="">Select semester</option>
+              <option value="First">First</option>
+              <option value="Second">Second</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Faculty <span class="required">*</span></label>
+        <select id="facultyId" required>
+          <option value="">Loading faculties...</option>
+        </select>
+
+        <label>Department <span class="required">*</span></label>
+        <select id="departmentId" required disabled>
+          <option value="">Select faculty first</option>
+        </select>
+
+        <label>Programme <span class="required">*</span></label>
+        <select id="programmeId" required disabled>
+          <option value="">Select department first</option>
+        </select>
+
+        <label>Academic Level <span class="required">*</span></label>
+        <select id="levelId" required>
+          <option value="">Loading levels...</option>
+        </select>
+
+        <label>Course Type</label>
+        <select id="courseType">
+          <option value="Core">Core</option>
+          <option value="Elective">Elective</option>
+          <option value="General">General</option>
+          <option value="Practical">Practical</option>
+        </select>
+
+        <label>Description</label>
+        <textarea id="description" placeholder="Optional course description"></textarea>
+
+        <label>Status</label>
+        <select id="status">
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+
+        <div class="btns">
+          <button class="primary" type="submit" id="saveBtn">Save Course</button>
+          <button class="secondary" type="button" id="cancelBtn" style="display:none">Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Courses</h2>
+      <div class="toolbar">
+        <input id="search" placeholder="Search by course code, title, faculty, department, programme...">
+        <span class="count" id="courseCount">0 courses</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Course Title</th>
+              <th>Unit</th>
+              <th>Semester</th>
+              <th>Faculty</th>
+              <th>Department</th>
+              <th>Programme</th>
+              <th>Level</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="courseTable">
+            <tr><td colspan="11" class="empty">Loading courses...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="modal" id="deleteModal">
+  <div class="modal-box">
+    <h3>Delete Course?</h3>
+    <p id="deleteText">This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="secondary" id="closeModal">Cancel</button>
+      <button class="danger" id="confirmDelete">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
+  onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+  authDomain: "ggchst-sms-new.firebaseapp.com",
+  projectId: "ggchst-sms-new",
+  storageBucket: "ggchst-sms-new.firebasestorage.app",
+  messagingSenderId: "942770190211",
+  appId: "1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const facultySelect = document.getElementById("facultyId");
+const departmentSelect = document.getElementById("departmentId");
+const programmeSelect = document.getElementById("programmeId");
+const levelSelect = document.getElementById("levelId");
+const form = document.getElementById("courseForm");
+const table = document.getElementById("courseTable");
+const searchInput = document.getElementById("search");
+const countEl = document.getElementById("courseCount");
+const messageEl = document.getElementById("message");
+const formTitle = document.getElementById("formTitle");
+const saveBtn = document.getElementById("saveBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+
+let faculties = [];
+let departments = [];
+let programmes = [];
+let levels = [];
+let courses = [];
+let editingId = null;
+let pendingDeleteId = null;
+
+function showMessage(text, type="success") {
+  messageEl.textContent = text;
+  messageEl.className = "message " + type;
+  messageEl.style.display = "block";
+  clearTimeout(window.msgTimer);
+  window.msgTimer = setTimeout(() => messageEl.style.display = "none", 4000);
+}
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
+}
+
+function normalize(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function sortByName(a,b) {
+  return normalize(a.name || a.title || a.code).localeCompare(normalize(b.name || b.title || b.code));
+}
+
+function fillFaculties() {
+  facultySelect.innerHTML = '<option value="">Select faculty</option>';
+  [...faculties].sort(sortByName).forEach(f => {
+    const o = document.createElement("option");
+    o.value = f.id;
+    o.textContent = f.name + (f.code ? ` (${f.code})` : "");
+    facultySelect.appendChild(o);
+  });
+}
+
+function fillDepartments(facultyId, selectedId="") {
+  departmentSelect.innerHTML = '<option value="">Select department</option>';
+  const list = departments.filter(d => d.facultyId === facultyId).sort(sortByName);
+  list.forEach(d => {
+    const o = document.createElement("option");
+    o.value = d.id;
+    o.textContent = d.name + (d.code ? ` (${d.code})` : "");
+    departmentSelect.appendChild(o);
+  });
+  departmentSelect.disabled = !facultyId || !list.length;
+  if (selectedId && list.some(d => d.id === selectedId)) departmentSelect.value = selectedId;
+}
+
+function fillProgrammes(departmentId, selectedId="") {
+  programmeSelect.innerHTML = '<option value="">Select programme</option>';
+  const list = programmes.filter(p => p.departmentId === departmentId).sort(sortByName);
+  list.forEach(p => {
+    const o = document.createElement("option");
+    o.value = p.id;
+    o.textContent = p.name + (p.code ? ` (${p.code})` : "");
+    programmeSelect.appendChild(o);
+  });
+  programmeSelect.disabled = !departmentId || !list.length;
+  if (selectedId && list.some(p => p.id === selectedId)) programmeSelect.value = selectedId;
+}
+
+function fillLevels(selectedId="") {
+  levelSelect.innerHTML = '<option value="">Select academic level</option>';
+  [...levels].sort((a,b) => (Number(a.displayOrder)||9999)-(Number(b.displayOrder)||9999))
+    .forEach(l => {
+      const o = document.createElement("option");
+      o.value = l.id;
+      o.textContent = l.name + (l.code ? ` (${l.code})` : "");
+      levelSelect.appendChild(o);
+    });
+  if (selectedId) levelSelect.value = selectedId;
+}
+
+facultySelect.addEventListener("change", () => {
+  fillDepartments(facultySelect.value);
+  fillProgrammes("");
+});
+
+departmentSelect.addEventListener("change", () => {
+  fillProgrammes(departmentSelect.value);
+});
+
+function getNames(course) {
+  const faculty = faculties.find(x => x.id === course.facultyId);
+  const department = departments.find(x => x.id === course.departmentId);
+  const programme = programmes.find(x => x.id === course.programmeId);
+  const level = levels.find(x => x.id === course.levelId);
+  return {
+    faculty: faculty?.name || course.facultyName || "—",
+    department: department?.name || course.departmentName || "—",
+    programme: programme?.name || course.programmeName || "—",
+    level: level?.name || course.levelName || "—"
+  };
+}
+
+function renderCourses() {
+  const term = normalize(searchInput.value);
+  const filtered = courses.filter(c => {
+    const n = getNames(c);
+    return [
+      c.courseCode, c.courseTitle, c.semester, c.courseType, c.status,
+      n.faculty, n.department, n.programme, n.level
+    ].some(v => normalize(v).includes(term));
+  });
+
+  countEl.textContent = `${filtered.length} course${filtered.length === 1 ? "" : "s"}`;
+
+  if (!filtered.length) {
+    table.innerHTML = '<tr><td colspan="11" class="empty">No courses found.</td></tr>';
+    return;
+  }
+
+  table.innerHTML = filtered.map(c => {
+    const n = getNames(c);
+    return `
+      <tr>
+        <td><strong>${esc(c.courseCode)}</strong></td>
+        <td>${esc(c.courseTitle)}</td>
+        <td>${esc(c.courseUnit)}</td>
+        <td>${esc(c.semester)}</td>
+        <td>${esc(n.faculty)}</td>
+        <td>${esc(n.department)}</td>
+        <td>${esc(n.programme)}</td>
+        <td>${esc(n.level)}</td>
+        <td>${esc(c.courseType || "Core")}</td>
+        <td><span class="badge ${c.status === "Active" ? "active" : "inactive"}">${esc(c.status || "Active")}</span></td>
+        <td>
+          <div class="actions">
+            <button class="edit" data-edit="${c.id}">Edit</button>
+            <button class="del" data-delete="${c.id}">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function resetForm() {
+  editingId = null;
+  form.reset();
+  formTitle.textContent = "Add Course";
+  saveBtn.textContent = "Save Course";
+  cancelBtn.style.display = "none";
+  departmentSelect.innerHTML = '<option value="">Select faculty first</option>';
+  departmentSelect.disabled = true;
+  programmeSelect.innerHTML = '<option value="">Select department first</option>';
+  programmeSelect.disabled = true;
+  if (facultySelect.options.length) facultySelect.value = "";
+  if (levelSelect.options.length) levelSelect.value = "";
+  document.getElementById("courseType").value = "Core";
+  document.getElementById("status").value = "Active";
+}
+
+function startEdit(id) {
+  const c = courses.find(x => x.id === id);
+  if (!c) return;
+
+  editingId = id;
+  formTitle.textContent = "Edit Course";
+  saveBtn.textContent = "Update Course";
+  cancelBtn.style.display = "block";
+
+  document.getElementById("courseCode").value = c.courseCode || "";
+  document.getElementById("courseTitle").value = c.courseTitle || "";
+  document.getElementById("courseUnit").value = c.courseUnit ?? "";
+  document.getElementById("semester").value = c.semester || "";
+  facultySelect.value = c.facultyId || "";
+  fillDepartments(c.facultyId || "", c.departmentId || "");
+  fillProgrammes(c.departmentId || "", c.programmeId || "");
+  fillLevels(c.levelId || "");
+  document.getElementById("courseType").value = c.courseType || "Core";
+  document.getElementById("description").value = c.description || "";
+  document.getElementById("status").value = c.status || "Active";
+
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const courseCode = document.getElementById("courseCode").value.trim().toUpperCase();
+  const courseTitle = document.getElementById("courseTitle").value.trim();
+  const courseUnit = Number(document.getElementById("courseUnit").value);
+  const semester = document.getElementById("semester").value;
+  const facultyId = facultySelect.value;
+  const departmentId = departmentSelect.value;
+  const programmeId = programmeSelect.value;
+  const levelId = levelSelect.value;
+  const courseType = document.getElementById("courseType").value;
+  const description = document.getElementById("description").value.trim();
+  const status = document.getElementById("status").value;
+
+  if (!courseCode || !courseTitle || !courseUnit || !semester || !facultyId || !departmentId || !programmeId || !levelId) {
+    showMessage("Please complete all required fields.", "error");
+    return;
+  }
+
+  const department = departments.find(d => d.id === departmentId);
+  const programme = programmes.find(p => p.id === programmeId);
+
+  if (!department || department.facultyId !== facultyId) {
+    showMessage("The selected department does not belong to the selected faculty.", "error");
+    return;
+  }
+  if (!programme || programme.departmentId !== departmentId || programme.facultyId !== facultyId) {
+    showMessage("The selected programme does not belong to the selected department/faculty.", "error");
+    return;
+  }
+
+  const duplicate = courses.find(c =>
+    normalize(c.courseCode) === normalize(courseCode) &&
+    c.id !== editingId &&
+    c.departmentId === departmentId &&
+    c.programmeId === programmeId &&
+    c.levelId === levelId &&
+    c.semester === semester
+  );
+  if (duplicate) {
+    showMessage("A course with this code already exists for the selected programme, level and semester.", "error");
+    return;
+  }
+
+  const payload = {
+    courseCode,
+    courseTitle,
+    courseUnit,
+    semester,
+    facultyId,
+    departmentId,
+    programmeId,
+    levelId,
+    courseType,
+    description,
+    status,
+    facultyName: faculties.find(f => f.id === facultyId)?.name || "",
+    departmentName: department.name,
+    programmeName: programme.name,
+    levelName: levels.find(l => l.id === levelId)?.name || "",
+    updatedAt: serverTimestamp()
+  };
+
+  try {
+    saveBtn.disabled = true;
+    if (editingId) {
+      await updateDoc(doc(db, "courses", editingId), payload);
+      showMessage("Course updated successfully.");
+    } else {
+      payload.createdAt = serverTimestamp();
+      await addDoc(collection(db, "courses"), payload);
+      showMessage("Course added successfully.");
+    }
+    resetForm();
+  } catch (err) {
+    console.error(err);
+    showMessage("Could not save course. Check Firebase permissions and try again.", "error");
+  } finally {
+    saveBtn.disabled = false;
+  }
+});
+
+cancelBtn.addEventListener("click", resetForm);
+searchInput.addEventListener("input", renderCourses);
+
+table.addEventListener("click", e => {
+  const editBtn = e.target.closest("[data-edit]");
+  const deleteBtn = e.target.closest("[data-delete]");
+  if (editBtn) startEdit(editBtn.dataset.edit);
+  if (deleteBtn) openDelete(deleteBtn.dataset.delete);
+});
+
+function openDelete(id) {
+  const c = courses.find(x => x.id === id);
+  if (!c) return;
+  pendingDeleteId = id;
+  document.getElementById("deleteText").textContent =
+    `Delete "${c.courseCode} - ${c.courseTitle}"? This action cannot be undone.`;
+  document.getElementById("deleteModal").style.display = "flex";
+}
+
+function closeDelete() {
+  pendingDeleteId = null;
+  document.getElementById("deleteModal").style.display = "none";
+}
+
+document.getElementById("closeModal").addEventListener("click", closeDelete);
+document.getElementById("deleteModal").addEventListener("click", e => {
+  if (e.target.id === "deleteModal") closeDelete();
+});
+
+document.getElementById("confirmDelete").addEventListener("click", async () => {
+  if (!pendingDeleteId) return;
+  try {
+    await deleteDoc(doc(db, "courses", pendingDeleteId));
+    closeDelete();
+    showMessage("Course deleted successfully.");
+  } catch (err) {
+    console.error(err);
+    showMessage("Could not delete course. Check Firebase permissions.", "error");
+  }
+});
+
+onSnapshot(collection(db, "faculties"), snap => {
+  faculties = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  fillFaculties();
+  if (editingId) {
+    const c = courses.find(x => x.id === editingId);
+    if (c) facultySelect.value = c.facultyId || "";
+  }
+  renderCourses();
+}, err => {
+  console.error(err);
+  showMessage("Could not load faculties from Firebase.", "error");
+});
+
+onSnapshot(collection(db, "departments"), snap => {
+  departments = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  renderCourses();
+  if (editingId) {
+    const c = courses.find(x => x.id === editingId);
+    if (c) fillDepartments(c.facultyId || "", c.departmentId || "");
+  }
+}, err => {
+  console.error(err);
+  showMessage("Could not load departments from Firebase.", "error");
+});
+
+onSnapshot(collection(db, "programmes"), snap => {
+  programmes = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  renderCourses();
+  if (editingId) {
+    const c = courses.find(x => x.id === editingId);
+    if (c) fillProgrammes(c.departmentId || "", c.programmeId || "");
+  }
+}, err => {
+  console.error(err);
+  showMessage("Could not load programmes from Firebase.", "error");
+});
+
+onSnapshot(collection(db, "academicLevels"), snap => {
+  levels = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  fillLevels();
+  renderCourses();
+}, err => {
+  console.error(err);
+  showMessage("Could not load academic levels from Firebase.", "error");
+});
+
+onSnapshot(collection(db, "courses"), snap => {
+  courses = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  renderCourses();
+}, err => {
+  console.error(err);
+  table.innerHTML = '<tr><td colspan="11" class="empty">Could not load courses.</td></tr>';
+  showMessage("Could not load courses from Firebase. Check Firebase permissions.", "error");
+});
+</script>
+</body>
+</html>
