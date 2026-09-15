@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GGCHST | Programme Management</title>
+<style>
+:root{--green:#08783f;--dark:#07552f;--light:#eef8f2;--border:#dce8e1;--danger:#c62828;--text:#17221c;--muted:#66736b}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f8f6;color:var(--text)}
+header{background:linear-gradient(135deg,var(--dark),var(--green));color:#fff;padding:18px 20px;position:sticky;top:0;z-index:10;box-shadow:0 3px 12px rgba(0,0,0,.15)}
+.header-inner{max-width:1250px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.brand h1{margin:0;font-size:20px}.brand p{margin:5px 0 0;font-size:12px;opacity:.9}
+.back-btn{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.5);padding:10px 14px;border-radius:8px;font-size:13px;white-space:nowrap}
+main{max-width:1250px;margin:25px auto;padding:0 15px}.intro{margin-bottom:20px}
+.intro h2{margin:0 0 6px;color:var(--dark)}.intro p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.08);padding:20px}
+.card h3{margin:0 0 16px;color:var(--dark)}
+label{display:block;font-size:13px;font-weight:700;margin:13px 0 6px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid #cbd8d0;border-radius:8px;outline:none;font-size:14px;background:#fff}
+input:focus,select:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(8,120,63,.1)}
+.actions{display:flex;gap:8px;margin-top:18px}
+button{border:0;border-radius:8px;padding:11px 14px;cursor:pointer;font-weight:700;font-size:13px}
+.primary{background:var(--green);color:#fff}.secondary{background:#e9f0ec;color:var(--dark)}.danger{background:#fdecec;color:var(--danger)}
+button:disabled{opacity:.6;cursor:not-allowed}
+.toolbar{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap}.toolbar input{flex:1;min-width:200px}
+.count{background:var(--light);color:var(--dark);border-radius:8px;padding:10px 12px;font-size:13px;font-weight:700}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:850px}
+th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13px}
+th{background:#f3f7f4;color:var(--dark)}
+.badge{display:inline-block;padding:5px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.active{background:#e3f5ea;color:#08783f}.inactive{background:#eee;color:#666}
+.empty{text-align:center;padding:35px 10px;color:var(--muted)}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap}.row-actions button{padding:7px 9px;font-size:11px}
+.status{margin-top:12px;padding:10px 12px;border-radius:8px;display:none;font-size:13px}
+.status.success{display:block;background:#e8f7ed;color:#126237}.status.error{display:block;background:#fdeaea;color:#a51e1e}.status.info{display:block;background:#edf4ff;color:#24578f}
+.hint{margin-top:8px;color:var(--muted);font-size:11px;line-height:1.5}
+.loading{color:var(--muted);font-size:12px;margin-top:6px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center;padding:15px}
+.modal.show{display:flex}.modal-box{width:100%;max-width:460px;background:#fff;border-radius:14px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.2)}
+.modal-box h3{margin-top:0;color:var(--dark)}
+footer{text-align:center;padding:25px 15px;color:var(--muted);font-size:12px}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.header-inner{align-items:flex-start}.brand h1{font-size:17px}}
+</style>
+</head>
+<body>
+
+<header>
+<div class="header-inner">
+  <div class="brand">
+    <h1>GGCHST | Programme Management</h1>
+    <p>Green Garden College of Health Sciences &amp; Technology, Gusau</p>
+  </div>
+  <a class="back-btn" href="admin.html">← Back to Admin</a>
+</div>
+</header>
+
+<main>
+<section class="intro">
+  <h2>Programme Management</h2>
+  <p>Create programmes and connect every programme to its correct faculty and department.</p>
+</section>
+
+<div class="grid">
+<section class="card">
+<h3 id="formTitle">Add Programme</h3>
+
+<form id="programmeForm">
+<input type="hidden" id="programmeId">
+
+<label for="programmeName">Programme Name *</label>
+<input id="programmeName" type="text" placeholder="e.g. National Diploma Community Health" required>
+
+<label for="programmeCode">Programme Code</label>
+<input id="programmeCode" type="text" placeholder="e.g. NDCH" maxlength="30">
+
+<label for="facultySelect">Faculty *</label>
+<select id="facultySelect" required>
+<option value="">Loading faculties...</option>
+</select>
+
+<label for="departmentSelect">Department *</label>
+<select id="departmentSelect" required disabled>
+<option value="">Select faculty first</option>
+</select>
+<div id="structureLoading" class="loading"></div>
+
+<label for="programmeType">Programme Type</label>
+<select id="programmeType">
+<option value="">Select type</option>
+<option value="Certificate">Certificate</option>
+<option value="Diploma">Diploma</option>
+<option value="National Diploma">National Diploma</option>
+<option value="Higher National Diploma">Higher National Diploma</option>
+<option value="Degree">Degree</option>
+<option value="Other">Other</option>
+</select>
+
+<label for="duration">Duration</label>
+<input id="duration" type="text" placeholder="e.g. 2 Years">
+
+<label for="description">Description</label>
+<textarea id="description" rows="3" placeholder="Optional programme description"></textarea>
+
+<label for="status">Status</label>
+<select id="status">
+<option value="active">Active</option>
+<option value="inactive">Inactive</option>
+</select>
+
+<div class="actions">
+<button class="primary" id="saveBtn" type="submit">Save Programme</button>
+<button class="secondary" id="cancelBtn" type="button" style="display:none">Cancel</button>
+</div>
+</form>
+
+<div id="formStatus" class="status"></div>
+<div class="hint">
+The programme stores both <b>facultyId</b> and <b>departmentId</b>.
+Courses created later can therefore be filtered by programme and department.
+</div>
+</section>
+
+<section class="card">
+<h3>Programme List</h3>
+<div class="toolbar">
+<input id="searchInput" type="search" placeholder="Search programme, code, department or faculty...">
+<div class="count" id="programmeCount">0 Programmes</div>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Programme</th>
+<th>Code</th>
+<th>Faculty</th>
+<th>Department</th>
+<th>Type</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="programmeTableBody">
+<tr><td colspan="7" class="empty">Loading programmes...</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+
+<div class="modal" id="deleteModal">
+<div class="modal-box">
+<h3>Delete Programme?</h3>
+<p id="deleteMessage">This action cannot be undone.</p>
+<div class="actions">
+<button class="danger" id="confirmDelete">Delete</button>
+<button class="secondary" id="closeDelete">Cancel</button>
+</div>
+</div>
+</div>
+
+<footer>GGCHST Student &amp; Management System</footer>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,query,orderBy,serverTimestamp}
+from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+authDomain:"ggchst-sms-new.firebaseapp.com",
+projectId:"ggchst-sms-new",
+storageBucket:"ggchst-sms-new.firebasestorage.app",
+messagingSenderId:"942770190211",
+appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+
+const programmeForm=document.getElementById("programmeForm");
+const programmeId=document.getElementById("programmeId");
+const programmeName=document.getElementById("programmeName");
+const programmeCode=document.getElementById("programmeCode");
+const facultySelect=document.getElementById("facultySelect");
+const departmentSelect=document.getElementById("departmentSelect");
+const programmeType=document.getElementById("programmeType");
+const duration=document.getElementById("duration");
+const description=document.getElementById("description");
+const status=document.getElementById("status");
+const formTitle=document.getElementById("formTitle");
+const saveBtn=document.getElementById("saveBtn");
+const cancelBtn=document.getElementById("cancelBtn");
+const formStatus=document.getElementById("formStatus");
+const searchInput=document.getElementById("searchInput");
+const tableBody=document.getElementById("programmeTableBody");
+const programmeCount=document.getElementById("programmeCount");
+const structureLoading=document.getElementById("structureLoading");
+const deleteModal=document.getElementById("deleteModal");
+const deleteMessage=document.getElementById("deleteMessage");
+const confirmDelete=document.getElementById("confirmDelete");
+const closeDelete=document.getElementById("closeDelete");
+
+let faculties=[];
+let departments=[];
+let programmes=[];
+let pendingDeleteId=null;
+
+function showStatus(message,type="info"){
+formStatus.textContent=message;
+formStatus.className="status "+type;
+}
+function clearStatus(){
+formStatus.textContent="";
+formStatus.className="status";
+}
+function escapeHTML(value){
+return String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;")
+.replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+function formatDate(timestamp){
+if(!timestamp)return "—";
+try{
+const date=timestamp.toDate?timestamp.toDate():new Date(timestamp);
+return date.toLocaleDateString("en-NG",{day:"2-digit",month:"short",year:"numeric"});
+}catch{return "—";}
+}
+function getFaculty(id){
+return faculties.find(x=>x.id===id);
+}
+function getDepartment(id){
+return departments.find(x=>x.id===id);
+}
+function facultyName(id){
+const item=getFaculty(id);
+return item?item.name:"Faculty not found";
+}
+function departmentName(id){
+const item=getDepartment(id);
+return item?item.name:"Department not found";
+}
+
+function populateFacultySelect(selected=""){
+const active=faculties.filter(f=>f.status!=="inactive");
+facultySelect.innerHTML='<option value="">Select Faculty</option>'+
+active.map(f=>`<option value="${escapeHTML(f.id)}">${escapeHTML(f.name)}${f.code?" ("+escapeHTML(f.code)+")":""}</option>`).join("");
+if(selected)facultySelect.value=selected;
+populateDepartmentSelect(departmentSelect.dataset.selected||"");
+}
+
+function populateDepartmentSelect(selected=""){
+const facultyIdValue=facultySelect.value;
+const active=departments.filter(d=>d.status!=="inactive" && d.facultyId===facultyIdValue);
+departmentSelect.innerHTML=facultyIdValue
+?'<option value="">Select Department</option>'+
+active.map(d=>`<option value="${escapeHTML(d.id)}">${escapeHTML(d.name)}${d.code?" ("+escapeHTML(d.code)+")":""}</option>`).join("")
+:'<option value="">Select faculty first</option>';
+departmentSelect.disabled=!facultyIdValue;
+if(selected && active.some(d=>d.id===selected))departmentSelect.value=selected;
+structureLoading.textContent=facultyIdValue
+?(active.length?"Select the department under this faculty.":"No active departments exist under this faculty.")
+:"Select a faculty to load its departments.";
+}
+
+facultySelect.addEventListener("change",()=>{
+departmentSelect.dataset.selected="";
+populateDepartmentSelect();
+});
+
+function resetForm(){
+programmeForm.reset();
+programmeId.value="";
+departmentSelect.dataset.selected="";
+formTitle.textContent="Add Programme";
+saveBtn.textContent="Save Programme";
+cancelBtn.style.display="none";
+facultySelect.value="";
+populateDepartmentSelect();
+clearStatus();
+}
+
+function startEdit(id){
+const item=programmes.find(x=>x.id===id);
+if(!item)return;
+
+programmeId.value=item.id;
+programmeName.value=item.name||"";
+programmeCode.value=item.code||"";
+programmeType.value=item.programmeType||"";
+duration.value=item.duration||"";
+description.value=item.description||"";
+status.value=item.status||"active";
+
+facultySelect.value=item.facultyId||"";
+departmentSelect.dataset.selected=item.departmentId||"";
+populateDepartmentSelect(item.departmentId||"");
+
+formTitle.textContent="Edit Programme";
+saveBtn.textContent="Update Programme";
+cancelBtn.style.display="inline-block";
+clearStatus();
+window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function renderProgrammes(){
+const term=searchInput.value.trim().toLowerCase();
+const filtered=programmes.filter(p=>{
+const name=String(p.name||"").toLowerCase();
+const code=String(p.code||"").toLowerCase();
+const faculty=facultyName(p.facultyId).toLowerCase();
+const department=departmentName(p.departmentId).toLowerCase();
+const type=String(p.programmeType||"").toLowerCase();
+return name.includes(term)||code.includes(term)||faculty.includes(term)||department.includes(term)||type.includes(term);
+});
+
+programmeCount.textContent=`${filtered.length} ${filtered.length===1?"Programme":"Programmes"}`;
+
+if(!filtered.length){
+tableBody.innerHTML=`<tr><td colspan="7" class="empty">${term?"No programme matches your search.":"No programmes have been created yet."}</td></tr>`;
+return;
+}
+
+tableBody.innerHTML=filtered.map(p=>{
+const active=p.status!=="inactive";
+return `<tr>
+<td>
+<strong>${escapeHTML(p.name||"Unnamed Programme")}</strong>
+${p.duration?`<div style="font-size:11px;color:#66736b;margin-top:4px">${escapeHTML(p.duration)}</div>`:""}
+</td>
+<td>${escapeHTML(p.code||"—")}</td>
+<td>${escapeHTML(facultyName(p.facultyId))}</td>
+<td>${escapeHTML(departmentName(p.departmentId))}</td>
+<td>${escapeHTML(p.programmeType||"—")}</td>
+<td><span class="badge ${active?"active":"inactive"}">${active?"Active":"Inactive"}</span></td>
+<td><div class="row-actions">
+<button class="secondary" data-edit="${escapeHTML(p.id)}">Edit</button>
+<button class="danger" data-delete="${escapeHTML(p.id)}">Delete</button>
+</div></td>
+</tr>`;
+}).join("");
+
+tableBody.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>startEdit(b.dataset.edit)));
+tableBody.querySelectorAll("[data-delete]").forEach(b=>b.addEventListener("click",()=>openDelete(b.dataset.delete)));
+}
+
+function openDelete(id){
+const item=programmes.find(x=>x.id===id);
+if(!item)return;
+pendingDeleteId=id;
+deleteMessage.textContent=`You are about to delete "${item.name}". Courses linked to this programme may lose their programme reference.`;
+deleteModal.classList.add("show");
+}
+function closeDeleteModal(){
+pendingDeleteId=null;
+deleteModal.classList.remove("show");
+}
+
+programmeForm.addEventListener("submit",async e=>{
+e.preventDefault();
+
+const name=programmeName.value.trim();
+const code=programmeCode.value.trim().toUpperCase();
+const facultyIdValue=facultySelect.value;
+const departmentIdValue=departmentSelect.value;
+const type=programmeType.value;
+const durationValue=duration.value.trim();
+const desc=description.value.trim();
+const selectedStatus=status.value;
+const id=programmeId.value;
+
+if(!name){showStatus("Programme name is required.","error");return;}
+if(!facultyIdValue){showStatus("Please select a faculty.","error");return;}
+if(!departmentIdValue){showStatus("Please select a department.","error");return;}
+
+const selectedDepartment=getDepartment(departmentIdValue);
+if(!selectedDepartment || selectedDepartment.facultyId!==facultyIdValue){
+showStatus("The selected department does not belong to the selected faculty.","error");
+return;
+}
+
+saveBtn.disabled=true;
+showStatus(id?"Updating programme...":"Saving programme...","info");
+
+try{
+const data={
+name,
+code,
+facultyId:facultyIdValue,
+departmentId:departmentIdValue,
+programmeType:type,
+duration:durationValue,
+description:desc,
+status:selectedStatus,
+updatedAt:serverTimestamp()
+};
+
+if(id){
+await updateDoc(doc(db,"programmes",id),data);
+showStatus("Programme updated successfully.","success");
+}else{
+await addDoc(collection(db,"programmes"),{...data,createdAt:serverTimestamp()});
+showStatus("Programme created successfully.","success");
+}
+resetForm();
+}catch(error){
+console.error(error);
+showStatus("Could not save the programme. Check your Firebase configuration and Firestore rules.","error");
+}finally{
+saveBtn.disabled=false;
+}
+});
+
+cancelBtn.addEventListener("click",resetForm);
+searchInput.addEventListener("input",renderProgrammes);
+
+confirmDelete.addEventListener("click",async()=>{
+if(!pendingDeleteId)return;
+confirmDelete.disabled=true;
+try{
+await deleteDoc(doc(db,"programmes",pendingDeleteId));
+closeDeleteModal();
+showStatus("Programme deleted successfully.","success");
+}catch(error){
+console.error(error);
+closeDeleteModal();
+showStatus("Could not delete the programme. Check your Firestore rules.","error");
+}finally{
+confirmDelete.disabled=false;
+}
+});
+closeDelete.addEventListener("click",closeDeleteModal);
+deleteModal.addEventListener("click",e=>{if(e.target===deleteModal)closeDeleteModal();});
+
+onSnapshot(query(collection(db,"faculties"),orderBy("name","asc")),snapshot=>{
+faculties=snapshot.docs.map(x=>({id:x.id,...x.data()}));
+const currentFaculty=facultySelect.value;
+populateFacultySelect(currentFaculty);
+renderProgrammes();
+},error=>{
+console.error(error);
+facultySelect.innerHTML='<option value="">Unable to load faculties</option>';
+departmentSelect.innerHTML='<option value="">Unable to load departments</option>';
+departmentSelect.disabled=true;
+structureLoading.textContent="Check Firestore permissions and your Firebase connection.";
+showStatus("Firebase could not load faculties.","error");
+});
+
+onSnapshot(query(collection(db,"departments"),orderBy("name","asc")),snapshot=>{
+departments=snapshot.docs.map(x=>({id:x.id,...x.data()}));
+const selected=departmentSelect.value;
+populateDepartmentSelect(selected);
+renderProgrammes();
+},error=>{
+console.error(error);
+departmentSelect.innerHTML='<option value="">Unable to load departments</option>';
+departmentSelect.disabled=true;
+structureLoading.textContent="Check Firestore permissions and your Firebase connection.";
+showStatus("Firebase could not load departments.","error");
+});
+
+onSnapshot(query(collection(db,"programmes"),orderBy("name","asc")),snapshot=>{
+programmes=snapshot.docs.map(x=>({id:x.id,...x.data()}));
+renderProgrammes();
+},error=>{
+console.error(error);
+tableBody.innerHTML='<tr><td colspan="7" class="empty">Unable to load programmes. Check Firestore permissions and Firebase connection.</td></tr>';
+showStatus("Firebase could not load the programme list.","error");
+});
+</script>
+</body>
+</html>
