@@ -218,6 +218,7 @@ tr:last-child td{border-bottom:0}
 </section>
 
 <section id="students" class="view">
+  <div style="display:flex;justify-content:flex-end;margin:0 0 12px"><a class="btn" href="student.html" style="text-decoration:none">🎓 Open Central Student Management</a></div>
 <div class="panel"><h2>Student Registry</h2><div class="small">Institution-wide student biodata, registration, documents and status.</div><br>
 <div class="toolbar"><input id="studentSearch" placeholder="Search matric no., name, programme..."><select id="studentProgramme"><option value="">All programmes</option><option>Health Information Management</option><option>Community Health Extension Worker</option><option>Medical Laboratory Technician</option><option>Dental Therapy</option><option>Dental Surgery Technology</option><option>Pharmacy Technician</option></select><select id="studentStatus"><option value="">All status</option><option>Active</option><option>Graduating</option><option>Deferred</option></select><button class="btn" id="addStudent">+ Register Student</button></div>
 <div class="table-wrap"><table><thead><tr><th>Matric No.</th><th>Student</th><th>Programme</th><th>Level</th><th>Session</th><th>Phone</th><th>Status</th><th>Action</th></tr></thead><tbody id="studentRows"></tbody></table></div>
@@ -576,7 +577,8 @@ $("gradSearch").oninput=renderGraduation;$("gradStatus").onchange=renderGraduati
 $("staffSearch").oninput=renderStaff;$("requestSearch").oninput=renderRegistry;$("requestStatus").onchange=renderRegistry;
 $("auditSearch").oninput=renderAudit;$("auditModule").onchange=renderAudit;
 
-$("addStudent").onclick=()=>openModal("Register New Student",`<div class="form-grid"><div class="field"><label>Full Name</label><input id="newName" required></div><div class="field"><label>Matric No.</label><input id="newMatric" value="GGCHST/NEW/"></div><div class="field"><label>Programme</label><select id="newProgramme">${programmes.map(x=>`<option>${x[0]}</option>`).join("")}</select></div><div class="field"><label>Level</label><select id="newLevel"><option>100</option><option>200</option><option>300</option></select></div><div class="field"><label>Session</label><input value="2026/2027" readonly></div><div class="field"><label>Phone</label><input id="newPhone"></div></div><br><button class="btn" onclick="saveStudent()">Create Student Record</button>`);
+$("addStudent").onclick=()=>{location.href="student.html"};
+function legacyAddStudentModal(){openModal("Register New Student",`<div class="form-grid"><div class="field"><label>Full Name</label><input id="newName" required></div><div class="field"><label>Matric No.</label><input id="newMatric" value="GGCHST/NEW/"></div><div class="field"><label>Programme</label><select id="newProgramme">${programmes.map(x=>`<option>${x[0]}</option>`).join("")}</select></div><div class="field"><label>Level</label><select id="newLevel"><option>100</option><option>200</option><option>300</option></select></div><div class="field"><label>Session</label><input value="2026/2027" readonly></div><div class="field"><label>Phone</label><input id="newPhone"></div></div><br><button class="btn" onclick="saveStudent()">Create Student Record</button>`);}
 function saveStudent(){let name=$("newName").value.trim();if(!name){alert("Enter student name.");return}students.push([$("newMatric").value+String(students.length+1).padStart(3,"0"),name,$("newProgramme").value,$("newLevel").value,"2026/2027",$("newPhone").value||"Not provided","Active"]);closeModal();renderStudents();addAudit("Students","Created student registry record",students[students.length-1][0]);alert("Student record created successfully.");}
 
 $("addStaff").onclick=()=>openModal("Add Staff",`<div class="form-grid"><div class="field"><label>Full Name</label><input id="staffName"></div><div class="field"><label>Staff ID</label><input id="staffId" value="GGCHST/STAFF/"></div><div class="field"><label>Department</label><input id="staffDept"></div><div class="field"><label>Rank / Role</label><input id="staffRank"></div><div class="field"><label>Qualification</label><input id="staffQual"></div><div class="field"><label>Phone</label><input id="staffPhone"></div></div><br><button class="btn" onclick="saveStaff()">Save Staff</button>`);
@@ -772,7 +774,7 @@ async function saveRegistration(){
       const key=norm(code)+"|"+norm(session);if(existingKeys.has(key))continue;
       const c=coursesFS.find(x=>norm(x.courseCode)===norm(code));
       await addDoc(collection(db,"courseRegistrations"),{
-        matricNo:s.matricNo,admissionNo:s.matricNo,studentName:s.studentName||s.name,fullName:s.studentName||s.name,
+        matricNo:s.matricNo||s.studentId,studentId:s.studentId||s.matricNo,studentDocId:s.id||null,studentUid:s.studentUid||s.authUid||s.firebaseUid||s.uid||"",admissionNo:s.admissionNo||s.matricNo,studentName:s.studentName||s.fullName||s.name,fullName:s.studentName||s.fullName||s.name,
         programme:s.programme||"",level:s.level||c?.level||"",session,courseCode:code,courseName:c?.courseName||"",
         department:c?.department||s.programme||"",status:"Registered",source:"registrar.html",createdAt:serverTimestamp(),updatedAt:serverTimestamp()
       });
@@ -889,6 +891,7 @@ const norm=v=>String(v??"").trim().toLowerCase();
 function studentObject(matric,name,programme,level,session,phone,status="Active"){
   return {
     studentId:matric,
+    studentID:matric,
     matricNo:matric,
     admissionNo:matric,
     registrationNumber:matric,
@@ -901,6 +904,8 @@ function studentObject(matric,name,programme,level,session,phone,status="Active"
     academicSession:session||"2026/2027",
     phone:phone||"",
     phoneNumber:phone||"",
+    studentUid:"",
+    authUid:"",
     status:status||"Active",
     source:"registrar.html",
     updatedAt:serverTimestamp()

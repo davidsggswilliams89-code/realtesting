@@ -248,6 +248,7 @@ main{position:relative;z-index:1}
 */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
   getFirestore,
   collection,
@@ -270,6 +271,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const arr=v=>Array.isArray(v)?v:[]; 
@@ -283,6 +285,7 @@ const requestedStudentId=params.get("studentId")||params.get("id")||localStorage
 if(requestedStudentId) localStorage.setItem("studentId",requestedStudentId);
 
 let currentStudentId=requestedStudentId;
+let currentStudentUid=params.get("uid")||localStorage.getItem("studentUid")||"";
 let unsubscribeFns=[];
 
 function normal(v){
@@ -348,6 +351,8 @@ function buildStudent(raw){
   d.gpa=firstValue(raw,["gpa","GPA"]);
   d.attendanceRate=firstValue(raw,["attendanceRate","attendance","overallAttendance"],undefined);
   d.status=firstValue(raw,["status","studentStatus"],"ACTIVE STUDENT");
+  d.studentUid=firstValue(raw,["studentUid","authUid","firebaseUid","uid"],"");
+  d.studentDocId=raw.id||"";
   d.photo=firstValue(raw,["photo","photoUrl","photoURL","image","imageUrl","profilePhoto"]);
   return d;
 }
@@ -471,6 +476,14 @@ function showError(message){
 }
 
 async function getStudent(){
+  if(!currentStudentUid) currentStudentUid=auth.currentUser?.uid||window.GGCHST_UID?.()||"";
+  if(currentStudentUid){
+    for(const name of COLLECTIONS.students){
+      for(const field of ["studentUid","authUid","firebaseUid","uid"]){
+        try{const byUid=await getDocs(query(collection(db,name),where(field,"==",currentStudentUid),limit(1)));if(!byUid.empty){const s=normalizeDoc(byUid.docs[0]);currentStudentId=firstValue(s,["studentId","studentID","matricNo","matricNumber","registrationNumber"],byUid.docs[0].id);localStorage.setItem("studentId",currentStudentId);localStorage.setItem("studentUid",currentStudentUid);return s}}catch(e){console.warn("Student UID lookup skipped:",field,e)}
+      }
+    }
+  }
   if(currentStudentId){
     for(const name of COLLECTIONS.students){
       try{
@@ -547,7 +560,9 @@ async function start(){
       return;
     }
     currentStudentId=firstValue(student,["studentId","studentID","matricNo","matricNumber","registrationNumber"],currentStudentId||student.id);
+    currentStudentUid=firstValue(student,["studentUid","authUid","firebaseUid","uid"],currentStudentUid||"");
     localStorage.setItem("studentId",currentStudentId);
+    if(currentStudentUid)localStorage.setItem("studentUid",currentStudentUid);
     data=buildStudent(student);
     render(data);
 

@@ -181,7 +181,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
 
 <section id="students" class="view hidden"><div class="panel"><h2>Department Students</h2>
 <div class="toolbar"><input id="studentSearch" placeholder="Search name, matric no. or programme..."><select id="studentLevel"><option value="">All levels</option><option>100</option><option>200</option><option>300</option><option>400</option></select></div>
-<div class="table-wrap"><table><thead><tr><th>Matric No.</th><th>Student</th><th>Level</th><th>Programme</th><th>Phone</th><th>Email</th><th>Status</th></tr></thead><tbody id="studentRows"></tbody></table></div></div></section>
+<div class="table-wrap"><table><thead><tr><th>Matric No.</th><th>Student</th><th>Level</th><th>Programme</th><th>Phone</th><th>Email</th><th>Status</th><th>UID</th><th>Profile</th></tr></thead><tbody id="studentRows"></tbody></table></div></div></section>
 
 <section id="lecturers" class="view hidden"><div class="panel">
 <div class="toolbar">
@@ -729,7 +729,9 @@ function renderSharedStudents(){
       <td>${esc(x.phone||x.phoneNumber||"—")}</td>
       <td>${esc(x.email||"—")}</td>
       <td>${esc(x.status||"Active")}</td>
-    </tr>`).join(""):'<tr><td colspan="7" class="empty">No live student records found for this department.</td></tr>';
+      <td>${x.studentUid||x.authUid||x.firebaseUid||x.uid?esc(String(x.studentUid||x.authUid||x.firebaseUid||x.uid).slice(0,12))+"…":"—"}</td>
+      <td><a class="action" href="student-profile.html?studentId=${encodeURIComponent(studentMatric(x))}">Profile</a></td>
+    </tr>`).join(""):'<tr><td colspan="9" class="empty">No live student records found for this department.</td></tr>';
   if($("studentCount"))$("studentCount").textContent=String(list.length);
 }
 
