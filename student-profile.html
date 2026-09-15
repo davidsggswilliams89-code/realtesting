@@ -581,4 +581,24 @@ $("logout").onclick=()=>{
 };
 
 start();
-</script></body></html>
+</script><script type="module" id="ggchst-auth-uid">
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+const GGCHST_CONFIG = {
+  apiKey: "AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+  authDomain: "ggchst-sms-new.firebaseapp.com",
+  projectId: "ggchst-sms-new",
+  storageBucket: "ggchst-sms-new.firebasestorage.app",
+  messagingSenderId: "942770190211",
+  appId: "1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+const app=getApps().length?getApp():initializeApp(GGCHST_CONFIG);
+const auth=getAuth(app);
+window.GGCHST_FIREBASE_APP=app; window.GGCHST_FIREBASE_AUTH=auth; window.GGCHST_FIREBASE_CONFIG=GGCHST_CONFIG;
+const ready=setPersistence(auth,browserLocalPersistence).catch(e=>console.warn("Firebase Auth persistence:",e));
+window.GGCHST_AUTH_READY=ready;
+window.GGCHST_UID=()=>auth.currentUser?.uid||null;
+window.GGCHST_CURRENT_USER=()=>auth.currentUser||null;
+onAuthStateChanged(auth,async user=>{await ready; window.GGCHST_AUTH_USER=user||null; window.GGCHST_AUTH_UID=user?.uid||null; window.dispatchEvent(new CustomEvent("ggchst-auth-changed",{detail:{user,uid:user?.uid||null}}));});
+</script>
+</body></html>
