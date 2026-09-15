@@ -1,0 +1,3609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>GGCHST | Attendance Management</title>
+
+<style>
+:root{
+    --green:#087f5b;
+    --dark:#075c45;
+    --soft:#e9f7f1;
+    --line:#dfeae5;
+    --text:#163b31;
+    --muted:#6b817a;
+    --red:#b42318;
+    --yellow:#a15c00;
+    --bg:#f5f9f7;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+}
+
+/* HEADER */
+
+header{
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    z-index:20;
+}
+
+.top{
+    padding:14px 18px;
+}
+
+.head{
+    max-width:1180px;
+    margin:auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.logo{
+    width:48px;
+    height:48px;
+    border-radius:12px;
+    background:var(--soft);
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+    color:var(--green);
+    font-weight:800;
+}
+
+.logo img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
+.brand h1{
+    font-size:16px;
+    margin:0;
+    color:var(--dark);
+}
+
+.brand p{
+    font-size:11px;
+    margin:4px 0 0;
+    color:var(--muted);
+}
+
+.actions{
+    display:flex;
+    gap:8px;
+}
+
+.btn{
+    border:0;
+    border-radius:9px;
+    padding:10px 14px;
+    font-weight:750;
+    text-decoration:none;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+}
+
+.btn.back{
+    background:#fff;
+    border:1px solid var(--line);
+    color:var(--dark);
+}
+
+.btn.primary{
+    background:var(--green);
+    color:#fff;
+}
+
+.btn.primary:hover{
+    background:var(--dark);
+}
+
+.btn.secondary{
+    background:#fff;
+    border:1px solid var(--line);
+    color:#536a65;
+}
+
+.btn.danger{
+    background:#fff0ef;
+    color:var(--red);
+    border:1px solid #f4cfcb;
+}
+
+.btn:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+/* TITLE */
+
+.middle{
+    background:linear-gradient(120deg,#075c45,#087f5b);
+    color:#fff;
+    padding:22px 18px;
+}
+
+.middle>*{
+    max-width:1180px;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+.middle h2{
+    margin:0;
+    font-size:22px;
+}
+
+.middle p{
+    margin:5px auto 0;
+    opacity:.88;
+    font-size:12px;
+}
+
+/* NAVIGATION */
+
+.nav{
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    overflow:auto;
+}
+
+.nav-inner{
+    max-width:1180px;
+    margin:auto;
+    display:flex;
+    gap:7px;
+    padding:8px 18px;
+}
+
+.nav a{
+    white-space:nowrap;
+    text-decoration:none;
+    color:#4f6b63;
+    font-size:12px;
+    font-weight:700;
+    padding:8px 11px;
+    border-radius:8px;
+}
+
+.nav a:hover,
+.nav a.active{
+    background:var(--soft);
+    color:var(--green);
+}
+
+/* MAIN */
+
+main{
+    max-width:1180px;
+    margin:20px auto;
+    padding:0 18px;
+}
+
+.notice{
+    padding:12px 14px;
+    border-radius:10px;
+    background:var(--soft);
+    color:#236553;
+    font-size:12px;
+    margin-bottom:14px;
+}
+
+.notice.error{
+    background:#fff0ef;
+    color:var(--red);
+}
+
+/* PANELS */
+
+.panel{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px;
+    box-shadow:0 5px 18px #0f493a08;
+    margin-bottom:18px;
+}
+
+.panel h3{
+    margin:0;
+    color:var(--dark);
+    font-size:17px;
+}
+
+.sub{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:4px;
+}
+
+/* FORM */
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;
+}
+
+.field label{
+    display:block;
+    font-size:11px;
+    font-weight:750;
+    color:#31534a;
+    margin-bottom:6px;
+}
+
+.field input,
+.field select{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid var(--line);
+    border-radius:9px;
+    background:#fff;
+    color:var(--text);
+    outline:none;
+}
+
+.field input:focus,
+.field select:focus{
+    border-color:var(--green);
+    box-shadow:0 0 0 3px #087f5b12;
+}
+
+.field input[readonly]{
+    background:#f5f8f7;
+}
+
+.actions-row{
+    display:flex;
+    justify-content:flex-end;
+    gap:9px;
+    margin-top:14px;
+    flex-wrap:wrap;
+}
+
+/* STATISTICS */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.stat{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+}
+
+.stat small{
+    display:block;
+    color:var(--muted);
+    font-size:11px;
+}
+
+.stat b{
+    display:block;
+    font-size:24px;
+    margin-top:5px;
+    color:var(--dark);
+}
+
+/* ATTENDANCE LIST */
+
+.att-head{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:center;
+    margin-bottom:14px;
+}
+
+.att-head h3{
+    margin:0;
+}
+
+.summary{
+    font-size:12px;
+    color:var(--muted);
+}
+
+.student-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.student-card{
+    border:1px solid var(--line);
+    border-radius:15px;
+    padding:10px 12px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:#fff;
+    transition:.15s;
+}
+
+.student-card.marked{
+    border-color:#8bd5bc;
+    background:#f5fcf8;
+}
+
+.student-photo{
+    width:58px;
+    height:58px;
+    border-radius:12px;
+    object-fit:cover;
+    background:var(--soft);
+    flex:0 0 58px;
+}
+
+.photo-placeholder{
+    width:58px;
+    height:58px;
+    border-radius:12px;
+    background:var(--soft);
+    display:grid;
+    place-items:center;
+    color:var(--green);
+    font-size:20px;
+    font-weight:800;
+    flex:0 0 58px;
+}
+
+.student-info{
+    min-width:0;
+    flex:1;
+}
+
+.student-name{
+    font-size:14px;
+    font-weight:800;
+    color:var(--dark);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.student-meta{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:4px;
+    display:flex;
+    gap:9px;
+    flex-wrap:wrap;
+}
+
+.status-pill{
+    display:inline-flex;
+    align-items:center;
+    padding:4px 7px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:800;
+}
+
+.status-present{
+    background:#dff7eb;
+    color:#087f5b;
+}
+
+.status-absent{
+    background:#fff0ef;
+    color:#a61b16;
+}
+
+.status-unmarked{
+    background:#f1f4f3;
+    color:#697873;
+}
+
+.mark-btn{
+    border:0;
+    border-radius:10px;
+    padding:12px 20px;
+    min-width:104px;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+    background:#087f5b;
+    color:#fff;
+}
+
+.mark-btn.marked{
+    background:#dff7eb;
+    color:#087f5b;
+    border:1px solid #9edbc3;
+}
+
+.mark-btn:hover{
+    filter:brightness(.97);
+}
+
+.empty{
+    padding:35px 15px;
+    text-align:center;
+    color:var(--muted);
+    border:1px dashed var(--line);
+    border-radius:12px;
+    font-size:12px;
+}
+
+/* SEARCH */
+
+.search-row{
+    display:flex;
+    gap:9px;
+    margin-bottom:12px;
+}
+
+.search-row input{
+    flex:1;
+    padding:11px 12px;
+    border:1px solid var(--line);
+    border-radius:9px;
+    outline:none;
+}
+
+/* SAVE BAR */
+
+.save-bar{
+    position:sticky;
+    bottom:0;
+    background:#ffffffef;
+    backdrop-filter:blur(8px);
+    border:1px solid var(--line);
+    padding:12px;
+    border-radius:13px;
+    margin-top:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+}
+
+.save-info{
+    font-size:11px;
+    color:var(--muted);
+}
+
+/* HISTORY */
+
+.history-table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:900px;
+}
+
+.table-wrap{
+    overflow:auto;
+    border:1px solid var(--line);
+    border-radius:10px;
+}
+
+.history-table th{
+    background:#f1f6f4;
+    color:#526b64;
+    text-align:left;
+    font-size:11px;
+    padding:11px;
+}
+
+.history-table td{
+    padding:10px;
+    border-top:1px solid #edf2ef;
+    font-size:11px;
+}
+
+.tag{
+    padding:5px 8px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:800;
+}
+
+.tag.present{
+    background:#dff7eb;
+    color:#087f5b;
+}
+
+.tag.absent{
+    background:#fff0ef;
+    color:#a61b16;
+}
+
+.tag.late{
+    background:#fff4df;
+    color:#8a4d00;
+}
+
+.tag.excused{
+    background:#edf5ff;
+    color:#1d5d93;
+}
+
+/* MOBILE */
+
+@media(max-width:900px){
+
+    .grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
+
+@media(max-width:600px){
+
+    .head{
+        align-items:flex-start;
+    }
+
+    .brand h1{
+        font-size:13px;
+    }
+
+    .actions .back{
+        display:none;
+    }
+
+    .grid,
+    .stats{
+        grid-template-columns:1fr;
+    }
+
+    .student-card{
+        padding:9px;
+    }
+
+    .student-photo,
+    .photo-placeholder{
+        width:50px;
+        height:50px;
+        flex-basis:50px;
+    }
+
+    .mark-btn{
+        min-width:86px;
+        padding:11px 12px;
+    }
+
+    .save-bar{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .save-bar .btn{
+        width:100%;
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="top">
+
+        <div class="head">
+
+            <div class="brand">
+
+                <div class="logo">
+                    <span>G</span>
+                </div>
+
+                <div>
+                    <h1>
+                        Green Garden College of Health Sciences &amp; Technology
+                    </h1>
+
+                    <p>
+                        Gusau • Zannah Road, Gada Biyu, Zamfara State
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="actions">
+
+                <a
+                    class="btn back"
+                    href="admin-fixed.html"
+                >
+                    ← Admin
+                </a>
+
+                <a
+                    class="btn primary"
+                    href="index.html"
+                >
+                    Home
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="middle">
+
+        <h2>
+            Attendance Management
+        </h2>
+
+        <p>
+            Prepare class attendance and automatically record unmarked students as absent.
+        </p>
+
+    </div>
+
+
+    <nav class="nav">
+
+        <div class="nav-inner">
+
+            <a href="admin-fixed.html">
+                Admin Home
+            </a>
+
+            <a
+                class="active"
+                href="attendance.html"
+            >
+                Attendance
+            </a>
+
+            <a href="timetable.html">
+                Timetable
+            </a>
+
+            <a href="course-registration.html">
+                Courses
+            </a>
+
+            <a href="results.html">
+                Results
+            </a>
+
+            <a href="examination.html">
+                Examinations
+            </a>
+
+        </div>
+
+    </nav>
+
+</header>
+
+
+<main>
+
+    <div
+        id="firebaseStatus"
+        class="notice"
+    >
+        Connecting to Firebase…
+    </div>
+
+
+    <!-- ATTENDANCE PREPARATION -->
+
+    <section class="panel">
+
+        <h3>
+            Prepare Attendance
+        </h3>
+
+        <div class="sub">
+            Select the class information. The student list will be loaded from Firebase.
+        </div>
+
+
+        <div
+            class="grid"
+            style="margin-top:14px"
+        >
+
+            <!-- SESSION -->
+
+            <div class="field">
+
+                <label>
+                    Academic Session *
+                </label>
+
+                <select id="sessionId">
+
+                    <option value="">
+                        Select session
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- SEMESTER -->
+
+            <div class="field">
+
+                <label>
+                    Semester *
+                </label>
+
+                <select id="semesterId">
+
+                    <option value="">
+                        Select semester
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- COURSE -->
+
+            <div class="field">
+
+                <label>
+                    Course *
+                </label>
+
+                <select id="courseId">
+
+                    <option value="">
+                        Select course
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- LECTURER -->
+
+            <div class="field">
+
+                <label>
+                    Lecturer
+                </label>
+
+                <select id="lecturerId">
+
+                    <option value="">
+                        Select lecturer
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- DATE -->
+
+            <div class="field">
+
+                <label>
+                    Attendance Date *
+                </label>
+
+                <input
+                    type="date"
+                    id="attendanceDate"
+                >
+
+            </div>
+
+
+            <!-- TIMETABLE -->
+
+            <div class="field">
+
+                <label>
+                    Timetable / Class
+                </label>
+
+                <select id="timetableId">
+
+                    <option value="">
+                        Select timetable (optional)
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- VENUE -->
+
+            <div class="field">
+
+                <label>
+                    Venue
+                </label>
+
+                <input
+                    id="venue"
+                    readonly
+                    placeholder="Auto from timetable"
+                >
+
+            </div>
+
+
+            <!-- LEVEL -->
+
+            <div class="field">
+
+                <label>
+                    Class / Level
+                </label>
+
+                <input
+                    id="level"
+                    readonly
+                    placeholder="Auto from course"
+                >
+
+            </div>
+
+
+            <!-- DEPARTMENT -->
+
+            <div class="field">
+
+                <label>
+                    Department
+                </label>
+
+                <input
+                    id="department"
+                    readonly
+                    placeholder="Auto from course"
+                >
+
+            </div>
+
+
+            <!-- PROGRAMME -->
+
+            <div class="field">
+
+                <label>
+                    Programme
+                </label>
+
+                <input
+                    id="programme"
+                    readonly
+                    placeholder="Auto from course"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="actions-row">
+
+            <button
+                class="btn secondary"
+                id="loadBtn"
+                type="button"
+            >
+                Load Students
+            </button>
+
+            <button
+                class="btn primary"
+                id="resetBtn"
+                type="button"
+            >
+                Reset
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- STATISTICS -->
+
+    <section class="stats">
+
+        <div class="stat">
+
+            <small>
+                Total Students
+            </small>
+
+            <b id="statTotal">
+                0
+            </b>
+
+        </div>
+
+
+        <div class="stat">
+
+            <small>
+                Marked Present
+            </small>
+
+            <b id="statPresent">
+                0
+            </b>
+
+        </div>
+
+
+        <div class="stat">
+
+            <small>
+                Unmarked → Absent
+            </small>
+
+            <b id="statAbsent">
+                0
+            </b>
+
+        </div>
+
+
+        <div class="stat">
+
+            <small>
+                Attendance %
+            </small>
+
+            <b id="statRate">
+                0%
+            </b>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- STUDENT ATTENDANCE -->
+
+    <section class="panel">
+
+        <div class="att-head">
+
+            <div>
+
+                <h3>
+                    Student Attendance List
+                </h3>
+
+                <div class="sub">
+
+                    Press
+                    <b>MARK</b>
+                    for students who are present.
+
+                    Any student left
+                    <b>unmarked</b>
+                    becomes
+                    <b>Absent</b>
+                    when saved.
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="summary"
+                id="listSummary"
+            >
+                No class loaded
+            </div>
+
+        </div>
+
+
+        <!-- SEARCH -->
+
+        <div class="search-row">
+
+            <input
+                id="studentSearch"
+                placeholder="Search student by full name or Admin No..."
+            >
+
+        </div>
+
+
+        <!-- STUDENT LIST -->
+
+        <div
+            id="studentList"
+            class="student-list"
+        >
+
+            <div class="empty">
+
+                Select a session, semester and course,
+                then press
+                <b>Load Students</b>.
+
+            </div>
+
+        </div>
+
+
+        <!-- SAVE -->
+
+        <div class="save-bar">
+
+            <div class="save-info">
+
+                Unmarked students are automatically saved as
+                <b>Absent</b>.
+
+                Present students are those you marked.
+
+            </div>
+
+
+            <button
+                class="btn primary"
+                id="saveBtn"
+                type="button"
+            >
+
+                ✓ SAVE ATTENDANCE
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ATTENDANCE HISTORY -->
+
+    <section class="panel">
+
+        <h3>
+            Attendance History
+        </h3>
+
+        <div class="sub">
+
+            Saved attendance records from the shared
+            <b>attendance</b>
+            collection.
+
+        </div>
+
+
+        <div
+            class="table-wrap"
+            style="margin-top:13px"
+        >
+
+            <table class="history-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Date
+                        </th>
+
+                        <th>
+                            Student
+                        </th>
+
+                        <th>
+                            Admin No.
+                        </th>
+
+                        <th>
+                            Course
+                        </th>
+
+                        <th>
+                            Session
+                        </th>
+
+                        <th>
+                            Semester
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="historyRows">
+
+                    <tr>
+
+                        <td colspan="7">
+
+                            <div class="empty">
+                                Loading attendance...
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+
+<script type="module">
+
+/* ============================================================
+   FIREBASE
+============================================================ */
+
+import {
+    initializeApp
+}
+from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+
+
+import {
+    getFirestore,
+    collection,
+    onSnapshot,
+    addDoc,
+    query,
+    orderBy,
+    limit,
+    serverTimestamp,
+    doc,
+    setDoc,
+    getDocs
+}
+from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+
+
+/* ============================================================
+   FIREBASE CONFIG
+============================================================ */
+
+const firebaseConfig = {
+
+    apiKey:
+        "AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+
+    authDomain:
+        "ggchst-sms-new.firebaseapp.com",
+
+    projectId:
+        "ggchst-sms-new",
+
+    storageBucket:
+        "ggchst-sms-new.firebasestorage.app",
+
+    messagingSenderId:
+        "942770190211",
+
+    appId:
+        "1:942770190211:web:aa9a085a38aaa517b368b6"
+
+};
+
+
+
+const app =
+    initializeApp(firebaseConfig);
+
+
+const db =
+    getFirestore(app);
+
+
+
+/* ============================================================
+   HELPERS
+============================================================ */
+
+const $ = id =>
+    document.getElementById(id);
+
+
+
+function esc(value){
+
+    return String(value ?? "")
+        .replace(
+            /[&<>"']/g,
+            m => ({
+                "&":"&amp;",
+                "<":"&lt;",
+                ">":"&gt;",
+                '"':"&quot;",
+                "'":"&#39;"
+            }[m])
+        );
+
+}
+
+
+
+function normalizeSemester(value){
+
+    value =
+        String(value || "")
+        .toLowerCase()
+        .trim();
+
+
+    if(
+        value.includes("first") ||
+        value === "1" ||
+        value === "1st"
+    ){
+
+        return "First";
+
+    }
+
+
+    if(
+        value.includes("second") ||
+        value === "2" ||
+        value === "2nd"
+    ){
+
+        return "Second";
+
+    }
+
+
+    return value;
+
+}
+
+
+
+function studentName(student){
+
+    return (
+        student.fullName ||
+        student.studentName ||
+        student.name ||
+        [
+            student.firstName,
+            student.middleName,
+            student.lastName
+        ]
+        .filter(Boolean)
+        .join(" ") ||
+        "Unnamed Student"
+    );
+
+}
+
+
+
+function adminNumber(student){
+
+    return (
+        student.adminNo ||
+        student.admissionNo ||
+        student.matricNo ||
+        student.registrationNumber ||
+        student.studentId ||
+        ""
+    );
+
+}
+
+
+
+function courseName(course){
+
+    return (
+        course.courseTitle ||
+        course.courseName ||
+        course.name ||
+        course.title ||
+        ""
+    );
+
+}
+
+
+
+function courseUnit(course){
+
+    return Number(
+        course.courseUnit ??
+        course.creditUnit ??
+        course.unit ??
+        0
+    ) || 0;
+
+}
+
+
+
+/* ============================================================
+   DATA
+============================================================ */
+
+let sessions = [];
+
+let semesters = [];
+
+let courses = [];
+
+let lecturers = [];
+
+let timetables = [];
+
+let students = [];
+
+let history = [];
+
+
+/*
+    Students currently loaded for attendance.
+*/
+
+let loadedStudents = [];
+
+
+/*
+    Student IDs marked PRESENT.
+*/
+
+let marks = new Set();
+
+
+/*
+    Existing attendance records for selected class/date.
+*/
+
+let existingToday = new Map();
+
+
+
+/* ============================================================
+   DEFAULT DATE
+============================================================ */
+
+$("attendanceDate").value =
+    new Date()
+    .toISOString()
+    .slice(0,10);
+
+
+
+/* ============================================================
+   FIREBASE MESSAGE
+============================================================ */
+
+function firebaseMessage(
+    text,
+    error = false
+){
+
+    $("firebaseStatus").textContent =
+        text;
+
+    $("firebaseStatus").className =
+        "notice" +
+        (
+            error
+            ? " error"
+            : ""
+        );
+
+}
+
+
+
+/* ============================================================
+   DROPDOWN BUILDER
+============================================================ */
+
+function fillSelect(
+    id,
+    items,
+    placeholder,
+    labelFunction
+){
+
+    const select =
+        $(id);
+
+
+    const previous =
+        select.value;
+
+
+    select.innerHTML =
+        `<option value="">
+            ${esc(placeholder)}
+        </option>`;
+
+
+    items.forEach(item => {
+
+        const option =
+            document.createElement("option");
+
+
+        option.value =
+            item.id;
+
+
+        option.textContent =
+            labelFunction(item);
+
+
+        select.appendChild(option);
+
+    });
+
+
+    if(
+        items.some(
+            item =>
+                item.id === previous
+        )
+    ){
+
+        select.value =
+            previous;
+
+    }
+
+}
+
+
+
+/* ============================================================
+   REFRESH SEMESTERS
+============================================================ */
+
+function refreshSemesters(){
+
+    const sessionId =
+        $("sessionId").value;
+
+
+    const filtered =
+        semesters.filter(
+            semester =>
+                !sessionId ||
+                semester.sessionId === sessionId
+        );
+
+
+    fillSelect(
+        "semesterId",
+        filtered,
+        "Select semester",
+        semester =>
+            semester.name +
+            (
+                semester.status
+                ? ` • ${semester.status}`
+                : ""
+            )
+    );
+
+
+
+    $("semesterId").value =
+        "";
+
+}
+
+
+
+/* ============================================================
+   REFRESH COURSES
+============================================================ */
+
+function refreshCourses(){
+
+    const semesterId =
+        $("semesterId").value;
+
+
+    const semester =
+        semesters.find(
+            item =>
+                item.id === semesterId
+        );
+
+
+    const semesterName =
+        normalizeSemester(
+            semester?.name
+        );
+
+
+    const filtered =
+        courses.filter(course => {
+
+
+            /*
+                Do not show inactive courses.
+            */
+
+            if(
+                course.status &&
+                String(
+                    course.status
+                ).toLowerCase()
+                === "inactive"
+            ){
+
+                return false;
+
+            }
+
+
+            /*
+                When semester is selected,
+                show matching semester courses.
+            */
+
+            if(!semesterName){
+
+                return true;
+
+            }
+
+
+            /*
+                Courses without a semester
+                are still allowed.
+            */
+
+            if(!course.semester){
+
+                return true;
+
+            }
+
+
+            return (
+                normalizeSemester(
+                    course.semester
+                )
+                === semesterName
+            );
+
+        });
+
+
+    fillSelect(
+        "courseId",
+        filtered,
+        "Select course",
+        course =>
+            `${course.courseCode || course.code || ""} — ${courseName(course)}`
+    );
+
+
+    $("courseId").value =
+        "";
+
+}
+
+
+
+/* ============================================================
+   REFRESH TIMETABLES
+============================================================ */
+
+function refreshTimetables(){
+
+    const sessionId =
+        $("sessionId").value;
+
+
+    const semesterId =
+        $("semesterId").value;
+
+
+    const courseId =
+        $("courseId").value;
+
+
+    const filtered =
+        timetables.filter(
+            timetable =>
+
+                (!sessionId ||
+                    timetable.sessionId === sessionId)
+
+                &&
+
+                (!semesterId ||
+                    timetable.semesterId === semesterId)
+
+                &&
+
+                (!courseId ||
+                    timetable.courseId === courseId)
+        );
+
+
+    fillSelect(
+        "timetableId",
+        filtered,
+        "Select timetable (optional)",
+        timetable =>
+            `${timetable.day || ""} ${timetable.startTime || ""}-${timetable.endTime || ""} • ${timetable.venue || ""}`
+    );
+
+
+    $("timetableId").value =
+        "";
+
+}
+
+
+
+/* ============================================================
+   COURSE CHANGED
+============================================================ */
+
+function courseChanged(){
+
+    const course =
+        courses.find(
+            item =>
+                item.id ===
+                $("courseId").value
+        );
+
+
+    if(course){
+
+        $("department").value =
+            course.departmentName ||
+            course.department ||
+            "";
+
+
+        $("programme").value =
+            course.programmeName ||
+            course.programme ||
+            "";
+
+
+        $("level").value =
+            course.levelName ||
+            course.level ||
+            "";
+
+    }
+    else{
+
+        $("department").value =
+            "";
+
+        $("programme").value =
+            "";
+
+        $("level").value =
+            "";
+
+    }
+
+
+    refreshTimetables();
+
+}
+
+
+
+/* ============================================================
+   TIMETABLE CHANGED
+============================================================ */
+
+function timetableChanged(){
+
+    const timetable =
+        timetables.find(
+            item =>
+                item.id ===
+                $("timetableId").value
+        );
+
+
+    if(!timetable){
+
+        return;
+
+    }
+
+
+    $("venue").value =
+        timetable.venue ||
+        "";
+
+
+    if(timetable.lecturerId){
+
+        $("lecturerId").value =
+            timetable.lecturerId;
+
+    }
+
+
+    if(
+        timetable.courseId &&
+        timetable.courseId !==
+        $("courseId").value
+    ){
+
+        $("courseId").value =
+            timetable.courseId;
+
+        courseChanged();
+
+    }
+
+
+    if(timetable.level){
+
+        $("level").value =
+            timetable.level;
+
+    }
+
+
+    if(timetable.department){
+
+        $("department").value =
+            timetable.department;
+
+    }
+
+}
+
+
+
+/* ============================================================
+   STUDENT PHOTO
+============================================================ */
+
+function studentPhoto(student){
+
+    const photo =
+        student.photo ||
+        student.photoUrl ||
+        student.profilePhoto ||
+        student.image ||
+        "";
+
+
+    if(photo){
+
+        return `
+            <img
+                class="student-photo"
+                src="${esc(photo)}"
+                alt=""
+                onerror="this.outerHTML='<div class=&quot;photo-placeholder&quot;>👤</div>'"
+            >
+        `;
+
+    }
+
+
+    const firstLetter =
+        (
+            studentName(student)[0] ||
+            "S"
+        ).toUpperCase();
+
+
+    return `
+        <div class="photo-placeholder">
+            ${esc(firstLetter)}
+        </div>
+    `;
+
+}
+
+
+
+/* ============================================================
+   RENDER STUDENTS
+============================================================ */
+
+function renderStudents(){
+
+    const search =
+        $("studentSearch")
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    const filtered =
+        loadedStudents.filter(
+            student => {
+
+                const name =
+                    studentName(student)
+                    .toLowerCase();
+
+
+                const admin =
+                    adminNumber(student)
+                    .toLowerCase();
+
+
+                return (
+                    !search ||
+                    name.includes(search) ||
+                    admin.includes(search)
+                );
+
+            }
+        );
+
+
+    $("listSummary").textContent =
+        loadedStudents.length
+        ? `${filtered.length} of ${loadedStudents.length} students`
+        : "No class loaded";
+
+
+
+    if(!filtered.length){
+
+        $("studentList").innerHTML = `
+            <div class="empty">
+                No students found for this class.
+            </div>
+        `;
+
+
+        updateStatistics();
+
+        return;
+
+    }
+
+
+
+    $("studentList").innerHTML =
+        filtered.map(student => {
+
+
+            const marked =
+                marks.has(student.id);
+
+
+            return `
+
+                <div
+                    class="student-card ${marked ? "marked" : ""}"
+                    data-id="${esc(student.id)}"
+                >
+
+                    ${studentPhoto(student)}
+
+
+                    <div class="student-info">
+
+                        <div class="student-name">
+                            ${esc(studentName(student))}
+                        </div>
+
+
+                        <div class="student-meta">
+
+                            <span>
+                                Admin No:
+                                <b>
+                                    ${esc(
+                                        adminNumber(student)
+                                        || "—"
+                                    )}
+                                </b>
+                            </span>
+
+
+                            <span
+                                class="status-pill ${
+                                    marked
+                                    ? "status-present"
+                                    : "status-unmarked"
+                                }"
+                            >
+
+                                ${
+                                    marked
+                                    ? "PRESENT"
+                                    : "NOT MARKED"
+                                }
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="mark-btn ${
+                            marked
+                            ? "marked"
+                            : ""
+                        }"
+                        data-mark="${esc(student.id)}"
+                    >
+
+                        ${
+                            marked
+                            ? "✓ PRESENT"
+                            : "MARK"
+                        }
+
+                    </button>
+
+                </div>
+
+            `;
+
+        })
+        .join("");
+
+
+    updateStatistics();
+
+}
+
+
+
+/* ============================================================
+   STATISTICS
+============================================================ */
+
+function updateStatistics(){
+
+    const total =
+        loadedStudents.length;
+
+
+    const present =
+        marks.size;
+
+
+    const absent =
+        Math.max(
+            0,
+            total - present
+        );
+
+
+    $("statTotal").textContent =
+        total;
+
+
+    $("statPresent").textContent =
+        present;
+
+
+    $("statAbsent").textContent =
+        absent;
+
+
+    $("statRate").textContent =
+        total
+        ? Math.round(
+            present / total * 100
+        ) + "%"
+        : "0%";
+
+}
+
+
+
+/* ============================================================
+   FIND STUDENTS FOR COURSE
+============================================================ */
+
+function getCourseStudents(){
+
+    const courseId =
+        $("courseId").value;
+
+
+    const course =
+        courses.find(
+            item =>
+                item.id === courseId
+        );
+
+
+    if(!course){
+
+        return [];
+
+    }
+
+
+    const departmentId =
+        course.departmentId ||
+        "";
+
+
+    const programmeId =
+        course.programmeId ||
+        "";
+
+
+    const levelId =
+        course.levelId ||
+        "";
+
+
+    const department =
+        String(
+            course.departmentName ||
+            course.department ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    const programme =
+        String(
+            course.programmeName ||
+            course.programme ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    const level =
+        String(
+            course.levelName ||
+            course.level ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+
+    return students.filter(
+        student => {
+
+
+            const studentDepartmentId =
+                String(
+                    student.departmentId ||
+                    ""
+                )
+                .trim();
+
+
+            const studentProgrammeId =
+                String(
+                    student.programmeId ||
+                    ""
+                )
+                .trim();
+
+
+            const studentLevelId =
+                String(
+                    student.levelId ||
+                    ""
+                )
+                .trim();
+
+
+            const studentDepartment =
+                String(
+                    student.department ||
+                    ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            const studentProgramme =
+                String(
+                    student.programme ||
+                    student.courseOfStudy ||
+                    ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            const studentLevel =
+                String(
+                    student.level ||
+                    ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+
+            let departmentMatch =
+                true;
+
+
+            let programmeMatch =
+                true;
+
+
+            let levelMatch =
+                true;
+
+
+
+            if(departmentId){
+
+                departmentMatch =
+                    studentDepartmentId ===
+                    departmentId;
+
+            }
+            else if(department){
+
+                departmentMatch =
+                    studentDepartment ===
+                    department;
+
+            }
+
+
+
+            if(programmeId){
+
+                programmeMatch =
+                    studentProgrammeId ===
+                    programmeId;
+
+            }
+            else if(programme){
+
+                programmeMatch =
+                    studentProgramme ===
+                    programme;
+
+            }
+
+
+
+            if(levelId){
+
+                levelMatch =
+                    studentLevelId ===
+                    levelId;
+
+            }
+            else if(level){
+
+                levelMatch =
+                    studentLevel ===
+                    level;
+
+            }
+
+
+
+            const active =
+                String(
+                    student.status ||
+                    "Active"
+                )
+                .toLowerCase()
+                !== "inactive";
+
+
+            return (
+                active &&
+                departmentMatch &&
+                programmeMatch &&
+                levelMatch
+            );
+
+        }
+    );
+
+}
+
+
+
+/* ============================================================
+   LOAD STUDENTS
+============================================================ */
+
+async function loadStudents(){
+
+    const sessionId =
+        $("sessionId").value;
+
+
+    const semesterId =
+        $("semesterId").value;
+
+
+    const courseId =
+        $("courseId").value;
+
+
+    const date =
+        $("attendanceDate").value;
+
+
+
+    if(
+        !sessionId ||
+        !semesterId ||
+        !courseId ||
+        !date
+    ){
+
+        alert(
+            "Please select Academic Session, Semester, Course and Attendance Date."
+        );
+
+        return;
+
+    }
+
+
+
+    loadedStudents =
+        getCourseStudents();
+
+
+    marks =
+        new Set();
+
+
+    existingToday =
+        new Map();
+
+
+
+    /*
+        Find previously saved attendance
+        for the same date/session/semester/course.
+    */
+
+    try{
+
+        const attendanceQuery =
+            query(
+                collection(
+                    db,
+                    "attendance"
+                ),
+                orderBy(
+                    "attendanceDate",
+                    "desc"
+                ),
+                limit(500)
+            );
+
+
+        const snapshot =
+            await getDocs(
+                attendanceQuery
+            );
+
+
+        snapshot.forEach(
+            attendanceDocument => {
+
+                const record = {
+
+                    id:
+                        attendanceDocument.id,
+
+                    ...attendanceDocument.data()
+
+                };
+
+
+                if(
+
+                    record.attendanceDate ===
+                    date
+
+                    &&
+
+                    record.courseId ===
+                    courseId
+
+                    &&
+
+                    record.sessionId ===
+                    sessionId
+
+                    &&
+
+                    record.semesterId ===
+                    semesterId
+
+                ){
+
+                    existingToday.set(
+                        record.studentId,
+                        record
+                    );
+
+                }
+
+            }
+        );
+
+
+        existingToday.forEach(
+            (
+                record,
+                studentId
+            ) => {
+
+                if(
+                    record.status ===
+                    "Present"
+                ){
+
+                    marks.add(
+                        studentId
+                    );
+
+                }
+
+            }
+        );
+
+    }
+    catch(error){
+
+        console.warn(
+            "Could not load existing attendance:",
+            error
+        );
+
+    }
+
+
+
+    renderStudents();
+
+
+
+    firebaseMessage(
+        `Firebase connected. ${loadedStudents.length} student${
+            loadedStudents.length === 1
+            ? ""
+            : "s"
+        } loaded for attendance.`
+    );
+
+}
+
+
+
+/* ============================================================
+   SAVE ATTENDANCE
+============================================================ */
+
+async function saveAttendance(){
+
+    if(
+        !loadedStudents.length
+    ){
+
+        alert(
+            "Load the student list first."
+        );
+
+        return;
+
+    }
+
+
+
+    const sessionId =
+        $("sessionId").value;
+
+
+    const semesterId =
+        $("semesterId").value;
+
+
+    const courseId =
+        $("courseId").value;
+
+
+    const date =
+        $("attendanceDate").value;
+
+
+
+    if(
+        !sessionId ||
+        !semesterId ||
+        !courseId ||
+        !date
+    ){
+
+        alert(
+            "Please complete Session, Semester, Course and Date."
+        );
+
+        return;
+
+    }
+
+
+
+    const session =
+        sessions.find(
+            item =>
+                item.id === sessionId
+        );
+
+
+    const semester =
+        semesters.find(
+            item =>
+                item.id === semesterId
+        );
+
+
+    const course =
+        courses.find(
+            item =>
+                item.id === courseId
+        );
+
+
+    const lecturer =
+        lecturers.find(
+            item =>
+                item.id ===
+                $("lecturerId").value
+        );
+
+
+    const timetable =
+        timetables.find(
+            item =>
+                item.id ===
+                $("timetableId").value
+        );
+
+
+
+    const saveButton =
+        $("saveBtn");
+
+
+    saveButton.disabled =
+        true;
+
+
+    saveButton.textContent =
+        "Saving…";
+
+
+
+    try{
+
+        let savedCount =
+            0;
+
+
+
+        /*
+            IMPORTANT RULE:
+
+            MARKED = PRESENT
+
+            NOT MARKED = ABSENT
+        */
+
+        for(
+            const student
+            of loadedStudents
+        ){
+
+            const present =
+                marks.has(
+                    student.id
+                );
+
+
+            const status =
+                present
+                ? "Present"
+                : "Absent";
+
+
+
+            const payload = {
+
+                studentId:
+                    student.id,
+
+                studentName:
+                    studentName(student),
+
+                adminNo:
+                    adminNumber(student),
+
+                photo:
+                    student.photo ||
+                    student.photoUrl ||
+                    student.profilePhoto ||
+                    student.image ||
+                    "",
+
+
+
+                sessionId:
+                    sessionId,
+
+                sessionName:
+                    session?.name ||
+                    "",
+
+
+
+                semesterId:
+                    semesterId,
+
+                semesterName:
+                    semester?.name ||
+                    "",
+
+
+
+                courseId:
+                    courseId,
+
+                courseCode:
+                    course?.courseCode ||
+                    course?.code ||
+                    "",
+
+                courseName:
+                    courseName(course),
+
+                courseUnit:
+                    courseUnit(course),
+
+
+
+                lecturerId:
+                    lecturer?.id ||
+                    "",
+
+                lecturerName:
+                    lecturer?.fullName ||
+                    lecturer?.name ||
+                    lecturer?.lecturerName ||
+                    "",
+
+
+
+                departmentId:
+                    course?.departmentId ||
+                    "",
+
+                department:
+                    course?.departmentName ||
+                    course?.department ||
+                    "",
+
+
+
+                programmeId:
+                    course?.programmeId ||
+                    "",
+
+                programme:
+                    course?.programmeName ||
+                    course?.programme ||
+                    "",
+
+
+
+                levelId:
+                    course?.levelId ||
+                    "",
+
+                level:
+                    course?.levelName ||
+                    course?.level ||
+                    "",
+
+
+
+                attendanceDate:
+                    date,
+
+                day:
+                    timetable?.day ||
+                    "",
+
+                startTime:
+                    timetable?.startTime ||
+                    "",
+
+                endTime:
+                    timetable?.endTime ||
+                    "",
+
+
+
+                venueId:
+                    timetable?.venueId ||
+                    "",
+
+                venue:
+                    $("venue").value ||
+                    timetable?.venue ||
+                    "",
+
+
+
+                status:
+                    status,
+
+
+
+                /*
+                    Admin currently records
+                    the attendance.
+                */
+
+                markedBy:
+                    "Admin",
+
+
+
+                markedAt:
+                    present
+                    ? serverTimestamp()
+                    : null,
+
+
+
+                updatedAt:
+                    serverTimestamp(),
+
+                createdAt:
+                    serverTimestamp()
+
+            };
+
+
+
+            const existing =
+                existingToday.get(
+                    student.id
+                );
+
+
+
+            /*
+                If attendance already exists
+                for this student/class/date,
+                update it.
+
+                Otherwise create a new record.
+            */
+
+            if(
+                existing?.id
+            ){
+
+                await setDoc(
+                    doc(
+                        db,
+                        "attendance",
+                        existing.id
+                    ),
+                    payload,
+                    {
+                        merge:true
+                    }
+                );
+
+            }
+            else{
+
+                await addDoc(
+                    collection(
+                        db,
+                        "attendance"
+                    ),
+                    payload
+                );
+
+            }
+
+
+            savedCount++;
+
+        }
+
+
+
+        alert(
+            `Attendance saved successfully.\n\n` +
+            `Present: ${marks.size}\n` +
+            `Absent: ${
+                loadedStudents.length -
+                marks.size
+            }`
+        );
+
+
+
+        firebaseMessage(
+            `Attendance saved successfully. ${
+                marks.size
+            } present and ${
+                loadedStudents.length -
+                marks.size
+            } absent.`
+        );
+
+
+
+        /*
+            Reload the list so saved records
+            become available immediately.
+        */
+
+        await loadStudents();
+
+    }
+    catch(error){
+
+        console.error(
+            error
+        );
+
+
+        alert(
+            error.message ||
+            "Could not save attendance."
+        );
+
+
+        firebaseMessage(
+            "Attendance save failed: " +
+            (
+                error.message ||
+                "Unknown error"
+            ),
+            true
+        );
+
+    }
+    finally{
+
+        saveButton.disabled =
+            false;
+
+        saveButton.textContent =
+            "✓ SAVE ATTENDANCE";
+
+    }
+
+}
+
+
+
+/* ============================================================
+   RESET
+============================================================ */
+
+function resetForm(){
+
+    $("sessionId").value =
+        "";
+
+    $("semesterId").innerHTML =
+        `
+        <option value="">
+            Select semester
+        </option>
+        `;
+
+
+    $("courseId").innerHTML =
+        `
+        <option value="">
+            Select course
+        </option>
+        `;
+
+
+    $("lecturerId").innerHTML =
+        `
+        <option value="">
+            Select lecturer
+        </option>
+        `;
+
+
+    $("timetableId").innerHTML =
+        `
+        <option value="">
+            Select timetable (optional)
+        </option>
+        `;
+
+
+
+    $("venue").value =
+        "";
+
+    $("level").value =
+        "";
+
+    $("department").value =
+        "";
+
+    $("programme").value =
+        "";
+
+
+
+    loadedStudents =
+        [];
+
+
+    marks =
+        new Set();
+
+
+    existingToday =
+        new Map();
+
+
+
+    $("attendanceDate").value =
+        new Date()
+        .toISOString()
+        .slice(0,10);
+
+
+
+    renderStudents();
+
+}
+
+
+
+/* ============================================================
+   HISTORY
+============================================================ */
+
+function renderHistory(){
+
+    const records =
+        history.slice(
+            0,
+            100
+        );
+
+
+    if(!records.length){
+
+        $("historyRows").innerHTML = `
+
+            <tr>
+
+                <td colspan="7">
+
+                    <div class="empty">
+                        No attendance records yet.
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+
+    $("historyRows").innerHTML =
+        records
+        .map(record => {
+
+            const status =
+                String(
+                    record.status ||
+                    ""
+                ).toLowerCase();
+
+
+            return `
+
+                <tr>
+
+                    <td>
+                        ${esc(
+                            record.attendanceDate ||
+                            "—"
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${esc(
+                            record.studentName ||
+                            "—"
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${esc(
+                            record.adminNo ||
+                            "—"
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${esc(
+                            (
+                                record.courseCode ||
+                                ""
+                            )
+                            +
+                            " " +
+                            (
+                                record.courseName ||
+                                ""
+                            )
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${esc(
+                            record.sessionName ||
+                            "—"
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${esc(
+                            record.semesterName ||
+                            "—"
+                        )}
+                    </td>
+
+
+                    <td>
+
+                        <span
+                            class="tag ${status}"
+                        >
+
+                            ${esc(
+                                record.status ||
+                                "—"
+                            )}
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        })
+        .join("");
+
+}
+
+
+
+/* ============================================================
+   EVENT HANDLERS
+============================================================ */
+
+$("sessionId").onchange =
+    () => {
+
+        refreshSemesters();
+
+        refreshCourses();
+
+        refreshTimetables();
+
+    };
+
+
+
+$("semesterId").onchange =
+    () => {
+
+        refreshCourses();
+
+        refreshTimetables();
+
+    };
+
+
+
+$("courseId").onchange =
+    courseChanged;
+
+
+
+$("timetableId").onchange =
+    timetableChanged;
+
+
+
+$("loadBtn").onclick =
+    loadStudents;
+
+
+
+$("saveBtn").onclick =
+    saveAttendance;
+
+
+
+$("resetBtn").onclick =
+    resetForm;
+
+
+
+$("studentSearch").oninput =
+    renderStudents;
+
+
+
+/*
+    MARK BUTTON
+
+    Clicking MARK toggles:
+
+    NOT MARKED
+       ↓
+    PRESENT
+
+    Clicking again:
+
+    PRESENT
+       ↓
+    NOT MARKED
+
+    If it remains NOT MARKED when
+    SAVE ATTENDANCE is pressed,
+    it will be saved as ABSENT.
+*/
+
+$("studentList").onclick =
+    event => {
+
+        const button =
+            event.target.closest(
+                "[data-mark]"
+            );
+
+
+        if(!button){
+
+            return;
+
+        }
+
+
+        const studentId =
+            button.dataset.mark;
+
+
+        if(
+            marks.has(
+                studentId
+            )
+        ){
+
+            marks.delete(
+                studentId
+            );
+
+        }
+        else{
+
+            marks.add(
+                studentId
+            );
+
+        }
+
+
+        renderStudents();
+
+    };
+
+
+
+/* ============================================================
+   FIREBASE LISTENERS
+============================================================ */
+
+
+/*
+    Academic Sessions
+*/
+
+onSnapshot(
+
+    collection(
+        db,
+        "academicSessions"
+    ),
+
+    snapshot => {
+
+        sessions =
+            snapshot.docs
+            .map(
+                document => ({
+                    id:
+                        document.id,
+
+                    ...document.data()
+                })
+            )
+            .sort(
+                (a,b) =>
+                    String(
+                        a.name || ""
+                    )
+                    .localeCompare(
+                        String(
+                            b.name || ""
+                        )
+                    )
+            );
+
+
+        fillSelect(
+            "sessionId",
+            sessions,
+            "Select session",
+            session =>
+                session.name ||
+                session.id
+        );
+
+
+        firebaseMessage(
+            "Firebase connected. Live data is ready."
+        );
+
+    },
+
+    error => {
+
+        firebaseMessage(
+            "Firebase error: " +
+            error.message,
+            true
+        );
+
+    }
+
+);
+
+
+
+/*
+    Semesters
+*/
+
+onSnapshot(
+
+    collection(
+        db,
+        "semesters"
+    ),
+
+    snapshot => {
+
+        semesters =
+            snapshot.docs.map(
+                document => ({
+                    id:
+                        document.id,
+
+                    ...document.data()
+                })
+            );
+
+
+        refreshSemesters();
+
+    },
+
+    error => {
+
+        console.warn(
+            "Semester loading error:",
+            error
+        );
+
+    }
+
+);
+
+
+
+/*
+    Courses
+*/
+
+onSnapshot(
+
+    collection(
+        db,
+        "courses"
+    ),
+
+    snapshot => {
+
+        courses =
+            snapshot.docs.map(
+                document => ({
+                    id:
+                        document.id,
+
+                    ...document.data()
+                })
+            );
+
+
+        refreshCourses();
+
+    },
+
+    error => {
+
+        console.warn(
+            "Course loading error:",
+            error
+        );
+
+    }
+
+);
+
+
+
+/*
+    Lecturers
+*/
+
+onSnapshot(
+
+    collection(
+        db,
+        "lecturers"
+    ),
+
+    snapshot => {
+
+        lecturers =
+            snapshot.docs.map(
+                document => ({
+                    id:
+                        document.id,
+
+                    ...document.data()
+                })
+            );
+
+
+        fillSelect(
+            "lecturerId",
+            lecturers,
+            "Select lecturer",
+            lecturer =>
+                lecturer.fullName ||
+                lecturer.name ||
+                lecturer.lecturerName ||
+                lecturer.staffId ||
+                lecturer.id
+        );
+
+    },
+
+    error => {
+
+        console.warn(
+            "Lecturer loading error:",
+            error
+        );
+
+    }
+
+);
+
+
+
+/*
+    Timetable
+*/
+
+onSnapshot(
+
+    collection(
+        db,
+        "timetables"
+    ),
+
+    snapshot => {
+
+        timetables =
+            snapshot.docs.map(
+                document => ({
+                    id:
+                        document.id,
+
+                    ...document.data()
+                })
+            );
+
+
+        refreshTimetables();
+
+    },
+
+    error => {
+
+        console.warn(
+            "Timetable loading error:",
+            error
+        );
+
+    }
+
+);
+
+
+
+/*
+    Students
+*/
+
+onSnapshot(
+
+    collection(
+        db,
+        "students"
+    ),
+
+    snapshot => {
+
+        students =
+            snapshot.docs.map(
+                document => ({
+                    id:
+                        document.id,
+
+                    ...document.data()
+                })
+            );
+
+
+        if(
+            $("courseId").value
+        ){
+
+            renderStudents();
+
+        }
+
+    },
+
+    error => {
+
+        firebaseMessage(
+            "Could not load students: " +
+            error.message,
+            true
+        );
+
+    }
+
+);
+
+
+
+/*
+    Attendance history
+*/
+
+onSnapshot(
+
+    query(
+        collection(
+            db,
+            "attendance"
+        ),
+
+        orderBy(
+            "attendanceDate",
+            "desc"
+        ),
+
+        limit(100)
+
+    ),
+
+    snapshot => {
+
+        history =
+            snapshot.docs.map(
+                document => ({
+                    id:
+                        document.id,
+
+                    ...document.data()
+                })
+            );
+
+
+        renderHistory();
+
+    },
+
+    error => {
+
+        console.warn(
+            "Attendance history error:",
+            error
+        );
+
+
+        $("historyRows").innerHTML = `
+
+            <tr>
+
+                <td colspan="7">
+
+                    <div class="empty">
+
+                        Attendance history is not available yet.
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+);
+
+
+
+/* ============================================================
+   GLOBAL ERROR DISPLAY
+============================================================ */
+
+window.addEventListener(
+    "error",
+    event => {
+
+        firebaseMessage(
+            "Page error: " +
+            event.message,
+            true
+        );
+
+    }
+);
+
+
+
+window.addEventListener(
+    "unhandledrejection",
+    event => {
+
+        firebaseMessage(
+            "Page error: " +
+            (
+                event.reason?.message ||
+                event.reason ||
+                "Unknown error"
+            ),
+            true
+        );
+
+    }
+);
+
+</script>
+
+</body>
+</html>
