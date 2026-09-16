@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin Home | GGCHST Admin</title>
+<title>Finance & Fees | GGCHST Admin</title>
 <style>
 :root{--bg:#f3f8f5;--card:#fff;--text:#15352b;--muted:#668078;--line:#dce9e3;--brand:#087443;--brand2:#075c45;--soft:#e7f4ee;--danger:#b42318;}
 *{box-sizing:border-box} body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -46,20 +46,18 @@ window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':
 <a href="admin.html">Dashboard</a><a href="admin-users.html">1 Users</a><a href="admin-dashboard.html">2 Overview</a><a href="admin-notes.html">3 Notes</a><a href="admin-assignments.html">4 Assignments</a><a href="admin-finance.html">5 Finance</a><a href="admin-notices.html">6 Notices</a><a href="admin-calendar.html">7 Calendar</a><a href="admin-settings.html">8 Settings</a><a href="admin-audit.html">9 Audit</a><a href="admin-reports.html">10 Reports</a>
 </div></nav>
 <main>
-<section class="hero"><h2>GGCHST Admin — 10 Function Suite</h2><p class="muted">A modular administration layer covering the ten requested functions. Existing academic modules remain linked from this hub.</p></section>
-<div class="grid">
-<div class="card"><h3>1. User & Role Management</h3><p class="muted">User records, roles, account status and permission profiles.</p><a class="btn" href="admin-users.html">Open</a></div>
-<div class="card"><h3>2. Admin Dashboard</h3><p class="muted">Institution-wide counts, pending work and recent activity.</p><a class="btn" href="admin-dashboard.html">Open</a></div>
-<div class="card"><h3>3. Lecture Notes</h3><p class="muted">Create and manage course learning materials.</p><a class="btn" href="admin-notes.html">Open</a></div>
-<div class="card"><h3>4. Assignments</h3><p class="muted">Create assignments, deadlines, marks and publication status.</p><a class="btn" href="admin-assignments.html">Open</a></div>
-<div class="card"><h3>5. Finance & Fees</h3><p class="muted">Fee structures, invoices, payments, balances and waivers.</p><a class="btn" href="admin-finance.html">Open</a></div>
-<div class="card"><h3>6. Notices & Announcements</h3><p class="muted">Institutional notices with audience and publication status.</p><a class="btn" href="admin-notices.html">Open</a></div>
-<div class="card"><h3>7. Academic Calendar</h3><p class="muted">Academic events, deadlines, registration and examination dates.</p><a class="btn" href="admin-calendar.html">Open</a></div>
-<div class="card"><h3>8. System Settings</h3><p class="muted">School identity, grading, academic and notification configuration.</p><a class="btn" href="admin-settings.html">Open</a></div>
-<div class="card"><h3>9. Audit & Activity Logs</h3><p class="muted">Searchable record-sensitive and security-sensitive activity.</p><a class="btn" href="admin-audit.html">Open</a></div>
-<div class="card"><h3>10. Reports & Export</h3><p class="muted">Generate filtered CSV reports from core Firestore collections.</p><a class="btn" href="admin-reports.html">Open</a></div>
-</div>
-<section class="panel"><h3>Existing academic modules</h3><div class="actions">
-<a class="btn secondary" href="student.html">Students</a><a class="btn secondary" href="academic-session.html">Sessions</a><a class="btn secondary" href="venue.html">Venues</a><a class="btn secondary" href="examination.html">Examinations</a><a class="btn secondary" href="grade-settings.html">Grade Settings</a><a class="btn secondary" href="course-registration.html">Courses</a><a class="btn secondary" href="results.html">Results</a><a class="btn secondary" href="attendance.html">Attendance</a><a class="btn secondary" href="user-management.html">Existing User Management</a></div></section>
+<section class="hero"><h2>5. Finance & Fees</h2><p class="muted">Fee structures, student charges/invoices, payment records, waivers and balances. This is a Firestore administration layer and does not itself process card/bank payments.</p></section>
+<form id="f"><div class="fields">
+<div><label>Student ID / Matric *</label><input id="studentId" required></div><div><label>Student name</label><input id="studentName"></div>
+<div><label>Fee category *</label><input id="category" placeholder="Tuition / Registration / Hostel" required></div><div><label>Amount</label><input id="amount" type="number" min="0" required></div>
+<div><label>Reference</label><input id="reference"></div><div><label>Payment status</label><select id="status"><option>Unpaid</option><option>Pending</option><option>Paid</option><option>Waived</option><option>Verified</option></select></div>
+<div><label>Academic session</label><input id="session"></div><div><label>Semester</label><input id="semester"></div>
+</div><div class="actions"><button>Save Finance Record</button></div></form>
+<div class="tablewrap"><table><thead><tr><th>Student</th><th>Category</th><th>Amount</th><th>Reference</th><th>Status</th><th>Action</th></tr></thead><tbody id="rows"></tbody></table></div>
+<script type="module">
+const {{db,collection,addDoc,deleteDoc,doc,onSnapshot}}=window.GG;f.onsubmit=async e=>{{e.preventDefault();await addDoc(collection(db,'payments'),{{studentId:studentId.value,studentName:studentName.value,category:category.value,amount:Number(amount.value||0),reference:reference.value,status:status.value,session:session.value,semester:semester.value,createdAt:new Date().toISOString()}});f.reset();toast('Finance record saved')}};
+onSnapshot(collection(db,'payments'),s=>{{rows.innerHTML='';s.forEach(x=>{{const d=x.data();rows.innerHTML+=`<tr><td>${esc(d.studentId)}<br>${esc(d.studentName)}</td><td>${esc(d.category)}</td><td>₦${Number(d.amount||0).toLocaleString()}</td><td>${esc(d.reference)}</td><td>${esc(d.status)}</td><td><button class="danger" onclick="del('${x.id}')">Delete</button></td></tr>`}})}});
+window.del=async id=>{{if(confirm('Delete payment record?'))await deleteDoc(doc(db,'payments',id))}};
+</script>
 </main><div id="toast" class="toast"></div>
 </body></html>
