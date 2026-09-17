@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GGCHST | Course Management</title>
+
+<style>
+:root{
+  --green:#08783f;
+  --dark:#07552f;
+  --light:#eef8f2;
+  --border:#dce8e1;
+  --danger:#c62828;
+  --text:#17221c;
+  --muted:#66736b;
+}
+*{box-sizing:border-box}
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f8f6;color:var(--text)}
+
+.school-header{
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  box-shadow:0 2px 10px rgba(0,0,0,.06);
+  position:sticky;
+  top:0;
+  z-index:20;
+}
+.school-header-inner{
+  width:100%;
+  max-width:1180px;
+  margin:0 auto;
+  padding:10px 18px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  min-height:76px;
+}
+.school-logo{
+  width:62px;
+  height:62px;
+  flex:0 0 62px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #e1eee7;
+  background:#fff;
+}
+.school-title{
+  min-width:0;
+  flex:1;
+  text-align:center;
+}
+.school-title h1{
+  margin:0;
+  color:var(--dark);
+  font-size:18px;
+  line-height:1.25;
+  font-weight:800;
+}
+.school-title p{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:12px;
+}
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  background:var(--green);
+  text-decoration:none;
+  border:0;
+  padding:9px 13px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:700;
+  white-space:nowrap;
+  flex:0 0 auto;
+}
+
+main{
+  width:100%;
+  max-width:1180px;
+  margin:22px auto;
+  padding:0 16px;
+}
+.intro{
+  margin-bottom:20px;
+  background:linear-gradient(135deg,#08783f,#0b8f4d);
+  color:#fff;
+  border-radius:28px;
+  padding:30px 34px;
+  text-align:center;
+  box-shadow:0 8px 24px rgba(8,120,63,.16);
+}
+.intro h2{
+  margin:0 0 12px;
+  color:#fff;
+  font-size:28px;
+  line-height:1.2;
+  font-weight:800;
+}
+.intro p{
+  margin:0;
+  color:#fff;
+  font-size:17px;
+  line-height:1.55;
+  opacity:.98;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:minmax(300px,360px) minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+.card{
+  min-width:0;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:0 6px 20px rgba(0,0,0,.06);
+  padding:18px;
+}
+.card h2{
+  margin:0 0 14px;
+  color:var(--dark);
+  font-size:17px;
+}
+label{
+  display:block;
+  font-size:13px;
+  font-weight:700;
+  margin:12px 0 6px;
+}
+input,select,textarea{
+  display:block;
+  width:100%;
+  max-width:100%;
+  padding:11px 12px;
+  border:1px solid #cbd8d0;
+  border-radius:8px;
+  outline:none;
+  font-size:14px;
+  background:#fff;
+}
+textarea{
+  resize:vertical;
+  min-height:84px;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--green);
+  box-shadow:0 0 0 3px rgba(8,120,63,.1);
+}
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.btns{
+  display:flex;
+  gap:8px;
+  margin-top:16px;
+  flex-wrap:wrap;
+}
+button{
+  border:0;
+  border-radius:8px;
+  padding:11px 14px;
+  cursor:pointer;
+  font-weight:700;
+  font-size:13px;
+}
+.primary{background:var(--green);color:#fff}
+.secondary{background:#e9f0ec;color:var(--dark)}
+.danger{background:#fdecec;color:var(--danger)}
+button:disabled{opacity:.6;cursor:not-allowed}
+
+.message{
+  display:none;
+  margin:0 0 12px;
+  padding:10px 12px;
+  border-radius:8px;
+  font-size:13px;
+}
+.success{background:#e8f7ed;color:#126237}
+.error{background:#fdeaea;color:#a51e1e}
+
+.toolbar{
+  display:flex;
+  gap:10px;
+  margin-bottom:14px;
+  align-items:center;
+}
+.toolbar input{
+  flex:1;
+  min-width:0;
+}
+.count{
+  background:var(--light);
+  color:var(--dark);
+  border-radius:8px;
+  padding:10px 12px;
+  font-size:13px;
+  font-weight:700;
+  white-space:nowrap;
+}
+.table-wrap{
+  width:100%;
+  max-width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:900px;
+}
+th,td{
+  text-align:left;
+  padding:11px 10px;
+  border-bottom:1px solid var(--border);
+  vertical-align:middle;
+  font-size:13px;
+}
+th{
+  background:#f3f7f4;
+  color:var(--dark);
+  white-space:nowrap;
+}
+tr:last-child td{border-bottom:0}
+.badge{
+  display:inline-block;
+  padding:5px 8px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:700;
+}
+.active{background:#e3f5ea;color:#08783f}
+.inactive{background:#eee;color:#666}
+.actions{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.actions button{
+  padding:7px 9px;
+  font-size:11px;
+}
+.edit{
+  background:#e8f0ff;
+  color:#225aa0;
+}
+.del{
+  background:#fdecec;
+  color:var(--danger);
+}
+.empty{
+  text-align:center;
+  padding:32px 10px;
+  color:var(--muted);
+}
+.required{color:var(--danger)}
+.hint{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  z-index:50;
+  align-items:center;
+  justify-content:center;
+  padding:15px;
+}
+.modal-box{
+  width:100%;
+  max-width:460px;
+  background:#fff;
+  border-radius:14px;
+  padding:22px;
+  box-shadow:0 20px 50px rgba(0,0,0,.2);
+}
+.modal-box h3{
+  margin-top:0;
+  color:var(--dark);
+}
+.modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:18px;
+}
+footer{
+  text-align:center;
+  padding:24px 15px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .school-header-inner{
+    min-height:66px;
+    padding:7px 10px;
+    gap:9px;
+  }
+  .school-logo{
+    width:48px;
+    height:48px;
+    flex-basis:48px;
+  }
+  .school-title h1{
+    font-size:14px;
+    line-height:1.18;
+  }
+  .school-title p{
+    font-size:10px;
+    margin-top:2px;
+  }
+  .back-btn{
+    padding:8px 9px;
+    font-size:11px;
+  }
+  main{
+    margin:16px auto;
+    padding:0 10px;
+  }
+  .intro{
+    margin-bottom:14px;
+    padding:22px 16px;
+    border-radius:22px;
+  }
+  .intro h2{
+    font-size:20px;
+    line-height:1.25;
+    margin-bottom:8px;
+  }
+  .intro p{
+    font-size:13px;
+    line-height:1.5;
+  }
+  .card{
+    padding:14px;
+    border-radius:12px;
+  }
+  .card h2{font-size:16px}
+  .row{grid-template-columns:1fr}
+  .toolbar{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .toolbar input{width:100%}
+  .count{text-align:center}
+  .btns button{
+    flex:1;
+    min-width:120px;
+  }
+}
+@media(max-width:380px){
+  .school-header-inner{
+    padding-left:7px;
+    padding-right:7px;
+    gap:6px;
+  }
+  .school-logo{
+    width:44px;
+    height:44px;
+    flex-basis:44px;
+  }
+  .school-title h1{font-size:12px}
+  .school-title p{display:none}
+  .back-btn{
+    font-size:10px;
+    padding:7px 8px;
+  }
+  main{padding:0 8px}
+}
+
+.course-hero{
+  margin-bottom:20px;
+  background:linear-gradient(135deg,#08783f,#0a9850);
+  color:#fff;
+  border-radius:30px;
+  padding:40px 52px 42px;
+  box-shadow:0 8px 24px rgba(8,120,63,.14);
+}
+.course-hero h2{
+  margin:0 0 18px;
+  color:#fff;
+  font-size:38px;
+  line-height:1.12;
+  font-weight:800;
+}
+.course-hero p{
+  margin:0;
+  color:#fff;
+  font-size:21px;
+  line-height:1.65;
+  font-weight:400;
+  max-width:1050px;
+}
+@media(max-width:600px){
+  .course-hero{padding:25px 20px 27px;border-radius:22px;margin-bottom:14px}
+  .course-hero h2{font-size:26px;margin-bottom:11px}
+  .course-hero p{font-size:15px;line-height:1.55}
+}
+@media(max-width:380px){
+  .course-hero{padding:21px 16px 23px;border-radius:19px}
+  .course-hero h2{font-size:23px}
+  .course-hero p{font-size:14px}
+}
+
+</style>
+
+<body>
+<header class="school-header">
+  <div class="school-header-inner">
+    <img src="logo.png" alt="Green Garden College of Health Sciences & Technology logo" class="school-logo">
+    <div class="school-title">
+      <h1>Green Garden College of Health Sciences &amp; Technology, Gusau</h1>
+      <p>Course Management</p>
+    </div>
+    <a class="back-btn" href="admin.html">← Back</a>
+  </div>
+</header>
+
+<main>
+  <section class="course-hero">
+    <h2>Course Management</h2>
+    <p>Create and manage GGCHST academic courses.</p>
+    <p>Courses are linked directly to departments, programmes, academic levels and semesters.</p>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2 id="formTitle">Add Course</h2>
+      <div id="message" class="message"></div>
+
+      <form id="courseForm">
+        <label for="courseCode">Course Code <span class="required">*</span></label>
+        <input id="courseCode" type="text" required maxlength="30" placeholder="e.g. HIM 101">
+
+        <label for="courseTitle">Course Title <span class="required">*</span></label>
+        <input id="courseTitle" type="text" required placeholder="e.g. Introduction to Health Information Management">
+
+        <div class="row">
+          <div>
+            <label for="courseUnit">Course Unit <span class="required">*</span></label>
+            <input id="courseUnit" type="number" min="1" max="12" step="1" required placeholder="3">
+          </div>
+          <div>
+            <label for="semester">Semester <span class="required">*</span></label>
+            <select id="semester" required>
+              <option value="">Select semester</option>
+              <option value="First">First</option>
+              <option value="Second">Second</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="departmentId">Department <span class="required">*</span></label>
+        <select id="departmentId" required disabled>
+          <option value="">Loading departments...</option>
+        </select>
+
+        <label for="programmeId">Programme <span class="required">*</span></label>
+        <select id="programmeId" required disabled>
+          <option value="">Select department first</option>
+        </select>
+
+        <label for="levelId">Academic Level <span class="required">*</span></label>
+        <select id="levelId" required disabled>
+          <option value="">Loading levels...</option>
+        </select>
+
+        <label for="courseType">Course Type</label>
+        <select id="courseType">
+          <option value="Core">Core</option>
+          <option value="Elective">Elective</option>
+          <option value="General">General</option>
+          <option value="Practical">Practical</option>
+        </select>
+
+        <label for="description">Description</label>
+        <textarea id="description" placeholder="Optional course description"></textarea>
+
+        <label for="status">Status</label>
+        <select id="status">
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+
+        <div class="btns">
+          <button class="primary" type="submit" id="saveBtn">Save Course</button>
+          <button class="secondary" type="button" id="cancelBtn" style="display:none">Cancel</button>
+        </div>
+      </form>
+
+      <div class="hint">
+        Courses are master records and will be reused by course registration, attendance, examinations, results and lecturer workflows.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Course List</h2>
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="Search course, code, department, programme or level...">
+        <span class="count" id="courseCount">0 Courses</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Course Title</th>
+              <th>Unit</th>
+              <th>Semester</th>
+              <th>Department</th>
+              <th>Programme</th>
+              <th>Level</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="courseTable">
+            <tr><td colspan="10" class="empty">Loading courses...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="modal" id="deleteModal">
+  <div class="modal-box">
+    <h3>Delete Course?</h3>
+    <p id="deleteText">This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="secondary" id="closeModal">Cancel</button>
+      <button class="danger" id="confirmDelete">Delete</button>
+    </div>
+  </div>
+</div>
+
+<footer>GGCHST Student &amp; Management System</footer>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,query,orderBy,serverTimestamp}
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
+  authDomain:"ggchst-sms-new.firebaseapp.com",
+  projectId:"ggchst-sms-new",
+  storageBucket:"ggchst-sms-new.firebasestorage.app",
+  messagingSenderId:"942770190211",
+  appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+
+const form=document.getElementById("courseForm");
+const courseCode=document.getElementById("courseCode");
+const courseTitle=document.getElementById("courseTitle");
+const courseUnit=document.getElementById("courseUnit");
+const semester=document.getElementById("semester");
+const departmentSelect=document.getElementById("departmentId");
+const programmeSelect=document.getElementById("programmeId");
+const levelSelect=document.getElementById("levelId");
+const courseType=document.getElementById("courseType");
+const description=document.getElementById("description");
+const status=document.getElementById("status");
+const table=document.getElementById("courseTable");
+const searchInput=document.getElementById("search");
+const countEl=document.getElementById("courseCount");
+const messageEl=document.getElementById("message");
+const formTitle=document.getElementById("formTitle");
+const saveBtn=document.getElementById("saveBtn");
+const cancelBtn=document.getElementById("cancelBtn");
+
+let departments=[];
+let programmes=[];
+let levels=[];
+let courses=[];
+let editingId=null;
+let pendingDeleteId=null;
+
+function showMessage(text,type="success"){
+  messageEl.textContent=text;
+  messageEl.className="message "+type;
+  messageEl.style.display="block";
+  clearTimeout(window.messageTimer);
+  window.messageTimer=setTimeout(()=>messageEl.style.display="none",4000);
+}
+
+function esc(value){
+  return String(value??"").replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
+}
+
+function normalize(value){
+  return String(value??"").trim().toLowerCase();
+}
+
+function sortByName(a,b){
+  return normalize(a.name||a.title||a.code).localeCompare(
+    normalize(b.name||b.title||b.code)
+  );
+}
+
+function activeItems(items){
+  return items.filter(x=>String(x.status||"").toLowerCase()!=="inactive");
+}
+
+function fillDepartments(selectedId=""){
+  const list=activeItems(departments).sort(sortByName);
+  departmentSelect.innerHTML='<option value="">Select department</option>';
+  list.forEach(d=>{
+    const o=document.createElement("option");
+    o.value=d.id;
+    o.textContent=d.name+(d.code?` (${d.code})`:"");
+    departmentSelect.appendChild(o);
+  });
+  departmentSelect.disabled=!list.length;
+  if(selectedId && list.some(d=>d.id===selectedId)){
+    departmentSelect.value=selectedId;
+  }
+}
+
+function fillProgrammes(departmentId,selectedId=""){
+  const list=activeItems(programmes)
+    .filter(p=>p.departmentId===departmentId)
+    .sort(sortByName);
+
+  programmeSelect.innerHTML='<option value="">Select programme</option>';
+  list.forEach(p=>{
+    const o=document.createElement("option");
+    o.value=p.id;
+    o.textContent=p.name+(p.code?` (${p.code})`:"");
+    programmeSelect.appendChild(o);
+  });
+  programmeSelect.disabled=!departmentId || !list.length;
+  if(selectedId && list.some(p=>p.id===selectedId)){
+    programmeSelect.value=selectedId;
+  }
+}
+
+function fillLevels(selectedId=""){
+  const list=activeItems(levels).sort((a,b)=>
+    (Number(a.displayOrder)||9999)-(Number(b.displayOrder)||9999)
+  );
+
+  levelSelect.innerHTML='<option value="">Select academic level</option>';
+  list.forEach(l=>{
+    const o=document.createElement("option");
+    o.value=l.id;
+    o.textContent=l.name+(l.code?` (${l.code})`:"");
+    levelSelect.appendChild(o);
+  });
+  levelSelect.disabled=!list.length;
+  if(selectedId) levelSelect.value=selectedId;
+}
+
+departmentSelect.addEventListener("change",()=>{
+  fillProgrammes(departmentSelect.value);
+});
+
+function getNames(course){
+  const d=departments.find(x=>x.id===course.departmentId);
+  const p=programmes.find(x=>x.id===course.programmeId);
+  const l=levels.find(x=>x.id===course.levelId);
+  return {
+    department:d?.name||course.departmentName||"—",
+    programme:p?.name||course.programmeName||"—",
+    level:l?.name||course.levelName||"—"
+  };
+}
+
+function renderCourses(){
+  const term=normalize(searchInput.value);
+
+  const filtered=courses.filter(c=>{
+    const n=getNames(c);
+    return [
+      c.courseCode,
+      c.courseTitle,
+      c.semester,
+      c.courseType,
+      c.status,
+      n.department,
+      n.programme,
+      n.level
+    ].some(v=>normalize(v).includes(term));
+  });
+
+  countEl.textContent=`${filtered.length} ${filtered.length===1?"Course":"Courses"}`;
+
+  if(!filtered.length){
+    table.innerHTML='<tr><td colspan="10" class="empty">No courses found.</td></tr>';
+    return;
+  }
+
+  table.innerHTML=filtered.map(c=>{
+    const n=getNames(c);
+    const active=String(c.status||"Active").toLowerCase()!=="inactive";
+
+    return `<tr>
+      <td><strong>${esc(c.courseCode||"—")}</strong></td>
+      <td>${esc(c.courseTitle||"—")}</td>
+      <td>${esc(c.courseUnit??"—")}</td>
+      <td>${esc(c.semester||"—")}</td>
+      <td>${esc(n.department)}</td>
+      <td>${esc(n.programme)}</td>
+      <td>${esc(n.level)}</td>
+      <td>${esc(c.courseType||"Core")}</td>
+      <td><span class="badge ${active?"active":"inactive"}">${active?"Active":"Inactive"}</span></td>
+      <td>
+        <div class="actions">
+          <button class="edit" data-edit="${esc(c.id)}">Edit</button>
+          <button class="del" data-delete="${esc(c.id)}">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+function resetForm(){
+  editingId=null;
+  form.reset();
+
+  formTitle.textContent="Add Course";
+  saveBtn.textContent="Save Course";
+  cancelBtn.style.display="none";
+
+  departmentSelect.innerHTML='<option value="">Select department</option>';
+  departmentSelect.disabled=true;
+
+  programmeSelect.innerHTML='<option value="">Select department first</option>';
+  programmeSelect.disabled=true;
+
+  fillDepartments();
+  fillLevels();
+
+  courseType.value="Core";
+  status.value="Active";
+}
+
+function startEdit(id){
+  const c=courses.find(x=>x.id===id);
+  if(!c)return;
+
+  editingId=id;
+  formTitle.textContent="Edit Course";
+  saveBtn.textContent="Update Course";
+  cancelBtn.style.display="inline-block";
+
+  courseCode.value=c.courseCode||"";
+  courseTitle.value=c.courseTitle||"";
+  courseUnit.value=c.courseUnit??"";
+  semester.value=c.semester||"";
+
+  fillDepartments(c.departmentId||"");
+  fillProgrammes(c.departmentId||"",c.programmeId||"");
+  fillLevels(c.levelId||"");
+
+  courseType.value=c.courseType||"Core";
+  description.value=c.description||"";
+  status.value=c.status||"Active";
+
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+form.addEventListener("submit",async e=>{
+  e.preventDefault();
+
+  const code=courseCode.value.trim().toUpperCase();
+  const title=courseTitle.value.trim();
+  const unit=Number(courseUnit.value);
+  const sem=semester.value;
+  const departmentId=departmentSelect.value;
+  const programmeId=programmeSelect.value;
+  const levelId=levelSelect.value;
+  const type=courseType.value;
+  const desc=description.value.trim();
+  const selectedStatus=status.value;
+
+  if(!code||!title||!unit||!sem||!departmentId||!programmeId||!levelId){
+    showMessage("Please complete all required fields.","error");
+    return;
+  }
+
+  const department=departments.find(d=>d.id===departmentId);
+  const programme=programmes.find(p=>p.id===programmeId);
+  const level=levels.find(l=>l.id===levelId);
+
+  if(!department || String(department.status||"").toLowerCase()==="inactive"){
+    showMessage("The selected department is not active.","error");
+    return;
+  }
+
+  if(!programme || programme.departmentId!==departmentId ||
+     String(programme.status||"").toLowerCase()==="inactive"){
+    showMessage("The selected programme does not belong to the selected department.","error");
+    return;
+  }
+
+  if(!level || String(level.status||"").toLowerCase()==="inactive"){
+    showMessage("The selected academic level is not active.","error");
+    return;
+  }
+
+  const duplicate=courses.find(c=>
+    c.id!==editingId &&
+    normalize(c.courseCode)===normalize(code) &&
+    c.departmentId===departmentId &&
+    c.programmeId===programmeId &&
+    c.levelId===levelId &&
+    c.semester===sem
+  );
+
+  if(duplicate){
+    showMessage("A course with this code already exists for the selected programme, level and semester.","error");
+    return;
+  }
+
+  saveBtn.disabled=true;
+  saveBtn.textContent=editingId?"Updating...":"Saving...";
+
+  try{
+    const payload={
+      courseCode:code,
+      courseTitle:title,
+      courseUnit:unit,
+      semester:sem,
+      departmentId,
+      programmeId,
+      levelId,
+      courseType:type,
+      description:desc,
+      status:selectedStatus,
+      departmentName:department.name||"",
+      programmeName:programme.name||"",
+      levelName:level.name||"",
+      updatedAt:serverTimestamp()
+    };
+
+    if(editingId){
+      await updateDoc(doc(db,"courses",editingId),payload);
+      showMessage("Course updated successfully.");
+    }else{
+      await addDoc(collection(db,"courses"),{
+        ...payload,
+        createdAt:serverTimestamp()
+      });
+      showMessage("Course created successfully.");
+    }
+
+    resetForm();
+  }catch(error){
+    console.error(error);
+    showMessage("Could not save course. Check Firebase permissions and try again.","error");
+  }finally{
+    saveBtn.disabled=false;
+    saveBtn.textContent=editingId?"Update Course":"Save Course";
+  }
+});
+
+cancelBtn.addEventListener("click",resetForm);
+searchInput.addEventListener("input",renderCourses);
+
+table.addEventListener("click",e=>{
+  const edit=e.target.closest("[data-edit]");
+  const del=e.target.closest("[data-delete]");
+  if(edit) startEdit(edit.dataset.edit);
+  if(del) openDelete(del.dataset.delete);
+});
+
+function openDelete(id){
+  const c=courses.find(x=>x.id===id);
+  if(!c)return;
+
+  pendingDeleteId=id;
+  document.getElementById("deleteText").textContent=
+    `Delete "${c.courseCode||""} - ${c.courseTitle||""}"? This action cannot be undone.`;
+  document.getElementById("deleteModal").style.display="flex";
+}
+
+function closeDelete(){
+  pendingDeleteId=null;
+  document.getElementById("deleteModal").style.display="none";
+}
+
+document.getElementById("closeModal").addEventListener("click",closeDelete);
+document.getElementById("deleteModal").addEventListener("click",e=>{
+  if(e.target.id==="deleteModal")closeDelete();
+});
+
+document.getElementById("confirmDelete").addEventListener("click",async()=>{
+  if(!pendingDeleteId)return;
+
+  const btn=document.getElementById("confirmDelete");
+  btn.disabled=true;
+
+  try{
+    await deleteDoc(doc(db,"courses",pendingDeleteId));
+    closeDelete();
+    showMessage("Course deleted successfully.");
+  }catch(error){
+    console.error(error);
+    closeDelete();
+    showMessage("Could not delete course. Check Firebase permissions.","error");
+  }finally{
+    btn.disabled=false;
+  }
+});
+
+onSnapshot(query(collection(db,"departments"),orderBy("name","asc")),snap=>{
+  departments=snap.docs.map(d=>({id:d.id,...d.data()}));
+  fillDepartments(departmentSelect.value);
+  renderCourses();
+},error=>{
+  console.error(error);
+  departmentSelect.innerHTML='<option value="">Unable to load departments</option>';
+  departmentSelect.disabled=true;
+  showMessage("Could not load departments from Firebase.","error");
+});
+
+onSnapshot(query(collection(db,"programmes"),orderBy("name","asc")),snap=>{
+  programmes=snap.docs.map(d=>({id:d.id,...d.data()}));
+
+  const selectedDepartment=departmentSelect.value;
+  const selectedProgramme=programmeSelect.value;
+  fillProgrammes(selectedDepartment,selectedProgramme);
+  renderCourses();
+},error=>{
+  console.error(error);
+  programmeSelect.innerHTML='<option value="">Unable to load programmes</option>';
+  programmeSelect.disabled=true;
+  showMessage("Could not load programmes from Firebase.","error");
+});
+
+onSnapshot(query(collection(db,"academicLevels"),orderBy("displayOrder","asc")),snap=>{
+  levels=snap.docs.map(d=>({id:d.id,...d.data()}));
+  fillLevels(levelSelect.value);
+  renderCourses();
+},error=>{
+  console.error(error);
+  levelSelect.innerHTML='<option value="">Unable to load levels</option>';
+  levelSelect.disabled=true;
+  showMessage("Could not load academic levels from Firebase.","error");
+});
+
+onSnapshot(query(collection(db,"courses"),orderBy("courseCode","asc")),snap=>{
+  courses=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderCourses();
+},error=>{
+  console.error(error);
+  table.innerHTML='<tr><td colspan="10" class="empty">Could not load courses. Check Firebase permissions.</td></tr>';
+  showMessage("Could not load courses from Firebase.","error");
+});
+
+</script>
+</body>
+</html>
