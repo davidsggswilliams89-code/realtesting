@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Student Login | GGCHST</title>
+<style>:root{--g:#087443;--g2:#075c45;--bg:#f3f8f5}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial;color:#15352b;min-height:100vh;display:grid;place-items:center;padding:18px}.card{width:min(440px,100%);background:white;border:1px solid #dce9e3;border-radius:16px;padding:26px;box-shadow:0 12px 35px #12321a12}.logo{margin:auto;width:64px;height:64px;border-radius:50%;background:#e7f4ee;color:var(--g2);display:grid;place-items:center;font-size:25px;font-weight:900}h1{text-align:center;font-size:21px;margin:13px 0 4px}.sub{text-align:center;color:#668078;font-size:12px}label{display:block;font-size:12px;font-weight:700;margin:14px 0 6px}input{width:100%;padding:12px;border:1px solid #cfded7;border-radius:9px;font:inherit}button{width:100%;margin-top:17px;padding:12px;border:0;border-radius:9px;background:var(--g);color:#fff;font-weight:800;cursor:pointer}.msg{font-size:12px;margin-top:12px;color:#b42318}.help{margin-top:18px;padding:12px;background:#f8fcfa;border:1px dashed #a9cfc1;border-radius:10px;color:#668078;font-size:11px;line-height:1.6}</style></head><body><main class="card"><div class="logo">G</div><h1>Student Portal Login</h1><p class="sub">Green Garden College of Health Sciences &amp; Technology • Gusau</p>
+<form id="f"><label>Email Address</label><input id="email" type="email" autocomplete="username" required><label>Password</label><input id="password" type="password" autocomplete="current-password" required><button id="b">Sign In</button><div id="msg" class="msg"></div></form>
+<div class="help"><b>First login:</b> Use the temporary details provided by the school. You will be required to complete your student profile before continuing.</div></main>
+<script type="module">
+import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import{getFirestore,collection,getDocs}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+const firebaseConfig={
+apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
+authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",
+storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",
+appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
+const app=getApps().length?getApp():initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=x=>document.getElementById(x);
+await setPersistence(auth,browserLocalPersistence).catch(()=>{});
+async function find(u){const a=(await getDocs(collection(db,"students"))).docs.map(d=>({id:d.id,...d.data()}));return a.find(x=>String(x.studentUid||x.authUid||x.firebaseUid||x.uid||"")===u.uid)||a.find(x=>String(x.email||"").trim().toLowerCase()===String(u.email||"").trim().toLowerCase())}
+f.onsubmit=async e=>{e.preventDefault();b.disabled=true;b.textContent="Signing in…";msg.textContent="";try{const c=await signInWithEmailAndPassword(auth,email.value.trim(),password.value),s=await find(c.user);if(!s){msg.textContent="Account is not linked to a student record. Contact the school.";await auth.signOut();return}localStorage.setItem("ggchstStudentDocId",s.id);localStorage.setItem("ggchstStudentId",s.studentId||s.id);location.href="student-profile.html?studentId="+encodeURIComponent(s.studentId||s.id)}catch(e){msg.textContent=e.message||"Unable to sign in."}finally{b.disabled=false;b.textContent="Sign In"}};
+</script></body></html>
