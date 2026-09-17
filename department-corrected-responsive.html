@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Department Management | GGCHST</title>
+<style>
+:root{
+  --green:#138a4b;--green-dark:#0b6336;--green-soft:#eaf7ef;
+  --bg:#f4f7f5;--card:#fff;--text:#17251d;--muted:#66736b;
+  --line:#dfe7e2;--danger:#c62828;--shadow:0 8px 28px rgba(20,55,35,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+.school-header{background:#fff;border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.school-header-inner{width:100%;min-height:82px;display:grid;grid-template-columns:80px minmax(0,1fr) 100px;align-items:center;gap:12px;padding:10px 24px;margin:0}
+.school-logo{
+  width:50px;height:50px;border-radius:50%;object-fit:cover;
+  border:2px solid #dcefe4;background:#eef8f1;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;font-weight:800;color:var(--green);font-size:21px
+}
+.school-logo img{width:100%;height:100%;object-fit:cover}
+.school-name{text-align:center;font-size:19px;font-weight:800;color:#173d28;line-height:1.25;min-width:0;overflow-wrap:anywhere}
+.back-btn{justify-self:end;text-decoration:none;background:var(--green);color:#fff;padding:9px 13px;border-radius:8px;font-size:12px;font-weight:700}
+.back-btn:hover{background:var(--green-dark)}
+.container{max-width:1400px;margin:0 auto;padding:24px}
+.page-title{background:linear-gradient(135deg,#0b6336,#138a4b);color:#fff;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:var(--shadow)}
+.page-title h1{margin:0 0 6px;font-size:25px}.page-title p{margin:0;opacity:.9;font-size:14px}
+.grid{display:grid;grid-template-columns:minmax(320px,420px) 1fr;gap:20px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow)}
+.card h2,.card h3{margin:0 0 16px}
+label{display:block;font-size:13px;font-weight:700;margin:13px 0 6px}
+input,textarea,select{width:100%;padding:11px 12px;border:1px solid #cfd9d3;border-radius:9px;background:#fff;color:var(--text);font-size:14px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(19,138,75,.1)}
+textarea{min-height:90px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+button{border:0;border-radius:9px;padding:11px 15px;font-weight:700;cursor:pointer;font-size:13px}
+.primary{background:var(--green);color:#fff}.primary:hover{background:var(--green-dark)}
+.secondary{background:#edf3ef;color:#245137}.danger{background:#fdecec;color:var(--danger)}
+.status{min-height:20px;margin-top:12px;font-size:13px}.status.success{color:#087443}.status.error{color:#b42318}.status.info{color:#53635a}
+.toolbar{display:grid;grid-template-columns:1fr 170px;gap:10px;margin-bottom:14px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+th{background:#f7faf8;color:#43534a;font-size:12px;position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800}
+.badge.active{background:#e7f7ed;color:#087443}.badge.inactive{background:#f0f2f1;color:#68756d}
+.row-actions{display:flex;gap:6px}.row-actions button{padding:7px 10px;font-size:11px}
+.empty{text-align:center;padding:30px;color:var(--muted)}
+.hint{margin-top:14px;padding:11px 12px;background:var(--green-soft);border-radius:9px;color:#315c42;font-size:12px;line-height:1.5}
+.count{font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:flex-end}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}
+.modal.show{display:flex}.modal-box{background:#fff;border-radius:14px;padding:22px;max-width:430px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-box h3{margin-top:0}.modal-box p{font-size:13px;color:var(--muted);line-height:1.5}
+footer{text-align:center;padding:24px;color:var(--muted);font-size:11px}
+/* Responsive improvements */
+@media(max-width:900px){
+  .school-header-inner{
+    grid-template-columns:64px minmax(0,1fr) 82px;
+    min-height:76px;
+    padding:9px 14px;
+  }
+  .school-name{font-size:16px}
+  .grid{grid-template-columns:1fr}
+  .container{padding:18px}
+}
+@media(max-width:600px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden}
+  .school-header-inner{
+    width:100%;
+    grid-template-columns:54px minmax(0,1fr) 68px;
+    gap:7px;
+    min-height:70px;
+    padding:7px 9px;
+  }
+  .school-logo{width:46px;height:46px;flex:0 0 46px}
+  .school-name{
+    min-width:0;
+    max-width:100%;
+    font-size:12.5px;
+    line-height:1.25;
+    padding:0;
+    overflow-wrap:break-word;
+    word-break:normal;
+  }
+  .back-btn{
+    justify-self:end;
+    padding:8px 7px;
+    font-size:10px;
+    white-space:nowrap;
+  }
+  .container{width:100%;max-width:100%;padding:12px}
+  .page-title{padding:18px 15px;border-radius:13px}
+  .page-title h1{font-size:21px}
+  .page-title p{font-size:12px;line-height:1.5}
+  .grid{width:100%;min-width:0}
+  .card{width:100%;min-width:0;padding:15px;border-radius:12px}
+  .card h2{font-size:18px}
+  label{font-size:12px}
+  input,textarea,select{width:100%;max-width:100%;font-size:14px;padding:11px}
+  .row,.toolbar{grid-template-columns:1fr}
+  .count{justify-content:flex-start}
+  .actions{flex-direction:column}
+  .actions button{width:100%}
+  .hint{font-size:11px}
+  .table-wrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+@media(max-width:380px){
+  .school-header-inner{
+    grid-template-columns:48px minmax(0,1fr) 60px;
+    gap:5px;
+    padding:6px 7px;
+  }
+  .school-logo{width:42px;height:42px}
+  .school-name{font-size:11px;line-height:1.2}
+  .back-btn{font-size:9px;padding:7px 5px}
+  .page-title h1{font-size:19px}
+}
+</style>
+</head>
+<body>
+
+<header class="school-header">
+  <div class="school-header-inner">
+    <div class="school-logo" aria-label="GGCHST Green Garden school logo"><img src="logo.png" alt="Green Garden College of Health Sciences & Technology logo"></div>
+    <div class="school-name">Green Garden College of Health Sciences &amp; Technology, Gusau</div>
+    <a class="back-btn" href="admin.html">← Back</a>
+  </div>
+</header>
+
+<main class="container">
+  <section class="page-title">
+    <h1>Department Management</h1>
+    <p>Create and manage GGCHST academic departments. Departments are the top-level academic structure beneath programmes.</p>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2 id="formTitle">Add Department</h2>
+      <form id="departmentForm">
+        <input type="hidden" id="departmentId">
+
+        <label for="departmentName">Department Name *</label>
+        <input id="departmentName" required maxlength="120" placeholder="e.g. Community Health">
+
+        <label for="departmentCode">Department Code</label>
+        <input id="departmentCode" maxlength="30" placeholder="e.g. CH">
+
+        <label for="hodUid">Head of Department (HOD)</label>
+        <select id="hodUid">
+          <option value="">No HOD selected</option>
+        </select>
+        <div class="hint">HOD options are loaded from the existing <b>lecturers</b> collection. The lecturer UID is stored with the department when selected.</div>
+
+        <label for="description">Description</label>
+        <textarea id="description" placeholder="Optional department description"></textarea>
+
+        <label for="status">Status</label>
+        <select id="status">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+
+        <div class="actions">
+          <button class="primary" type="submit" id="saveBtn">Save Department</button>
+          <button class="secondary" type="button" id="cancelBtn" style="display:none">Cancel</button>
+        </div>
+      </form>
+      <div id="formStatus" class="status"></div>
+    </section>
+
+    <section class="card">
+      <h2>Departments</h2>
+      <div class="toolbar">
+        <input id="searchInput" type="search" placeholder="Search department, code or HOD...">
+        <div class="count" id="departmentCount">0 Departments</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Department</th>
+              <th>Code</th>
+              <th>HOD</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="departmentTableBody">
+            <tr><td colspan="6" class="empty">Loading departments...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>GGCHST School Management System • Department Management</footer>
+
+<div class="modal" id="deleteModal">
+  <div class="modal-box">
+    <h3>Delete Department?</h3>
+    <p id="deleteMessage"></p>
+    <div class="actions">
+      <button class="danger" id="confirmDelete">Delete</button>
+      <button class="secondary" id="closeDelete">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+  getFirestore,collection,addDoc,doc,updateDoc,deleteDoc,onSnapshot,
+  query,orderBy,serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
+  authDomain:"ggchst-sms-new.firebaseapp.com",
+  projectId:"ggchst-sms-new",
+  storageBucket:"ggchst-sms-new.firebasestorage.app",
+  messagingSenderId:"942770190211",
+  appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+
+const app=getApps().length?getApp():initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const auth=getAuth(app);
+
+const departmentForm=document.getElementById("departmentForm");
+const departmentId=document.getElementById("departmentId");
+const departmentName=document.getElementById("departmentName");
+const departmentCode=document.getElementById("departmentCode");
+const hodUid=document.getElementById("hodUid");
+const description=document.getElementById("description");
+const status=document.getElementById("status");
+const formTitle=document.getElementById("formTitle");
+const saveBtn=document.getElementById("saveBtn");
+const cancelBtn=document.getElementById("cancelBtn");
+const formStatus=document.getElementById("formStatus");
+const searchInput=document.getElementById("searchInput");
+const tableBody=document.getElementById("departmentTableBody");
+const departmentCount=document.getElementById("departmentCount");
+const deleteModal=document.getElementById("deleteModal");
+const deleteMessage=document.getElementById("deleteMessage");
+const confirmDelete=document.getElementById("confirmDelete");
+const closeDelete=document.getElementById("closeDelete");
+
+let departments=[];
+let lecturers=[];
+let pendingDeleteId=null;
+
+function escapeHTML(value){
+  return String(value??"")
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function formatDate(value){
+  if(!value)return "—";
+  try{
+    const d=value?.toDate?value.toDate():new Date(value);
+    return d.toLocaleDateString("en-NG",{day:"2-digit",month:"short",year:"numeric"});
+  }catch{return "—";}
+}
+function lecturerDisplay(l){
+  return l.name||l.fullName||l.lecturerName||l.email||"Unnamed Lecturer";
+}
+function lecturerKey(l){
+  return String(l.authUid||l.firebaseUid||l.uid||l.id||"");
+}
+function getLecturer(uid){
+  return lecturers.find(l=>lecturerKey(l)===String(uid));
+}
+function showStatus(message,type="info"){
+  formStatus.textContent=message;
+  formStatus.className="status "+type;
+}
+function clearStatus(){
+  formStatus.textContent="";
+  formStatus.className="status";
+}
+function populateHodSelect(selected=""){
+  const options=lecturers.slice().sort((a,b)=>lecturerDisplay(a).localeCompare(lecturerDisplay(b)));
+  hodUid.innerHTML='<option value="">No HOD selected</option>'+
+    options.map(l=>{
+      const key=lecturerKey(l);
+      return key?`<option value="${escapeHTML(key)}">${escapeHTML(lecturerDisplay(l))}${l.staffId?` (${escapeHTML(l.staffId)})`:""}</option>`:"";
+    }).join("");
+  if(selected)hodUid.value=selected;
+}
+function resetForm(){
+  departmentForm.reset();
+  departmentId.value="";
+  formTitle.textContent="Add Department";
+  saveBtn.textContent="Save Department";
+  cancelBtn.style.display="none";
+  status.value="active";
+  populateHodSelect();
+  clearStatus();
+}
+function startEdit(id){
+  const item=departments.find(x=>x.id===id);
+  if(!item)return;
+  departmentId.value=item.id;
+  departmentName.value=item.name||"";
+  departmentCode.value=item.code||"";
+  description.value=item.description||"";
+  status.value=item.status||"active";
+  populateHodSelect(item.hodUid||item.hodId||"");
+  formTitle.textContent="Edit Department";
+  saveBtn.textContent="Update Department";
+  cancelBtn.style.display="inline-block";
+  clearStatus();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function renderDepartments(){
+  const term=searchInput.value.trim().toLowerCase();
+  const filtered=departments.filter(d=>{
+    const hod=getLecturer(d.hodUid||d.hodId);
+    const hay=[d.name,d.code,d.description,hod?lecturerDisplay(hod):""].join(" ").toLowerCase();
+    return hay.includes(term);
+  });
+  departmentCount.textContent=`${filtered.length} Department${filtered.length===1?"":"s"}`;
+  if(!filtered.length){
+    tableBody.innerHTML=`<tr><td colspan="6" class="empty">${term?"No department matches your search.":"No departments have been created yet."}</td></tr>`;
+    return;
+  }
+  tableBody.innerHTML=filtered.map(d=>{
+    const hod=getLecturer(d.hodUid||d.hodId);
+    const active=d.status!=="inactive";
+    return `<tr>
+      <td><strong>${escapeHTML(d.name||"Unnamed Department")}</strong>
+        ${d.description?`<div style="font-size:11px;color:#66736b;margin-top:4px">${escapeHTML(d.description)}</div>`:""}
+      </td>
+      <td>${escapeHTML(d.code||"—")}</td>
+      <td>${escapeHTML(hod?lecturerDisplay(hod):"Not assigned")}</td>
+      <td><span class="badge ${active?"active":"inactive"}">${active?"Active":"Inactive"}</span></td>
+      <td>${formatDate(d.createdAt)}</td>
+      <td><div class="row-actions">
+        <button class="secondary" data-edit="${escapeHTML(d.id)}">Edit</button>
+        <button class="danger" data-delete="${escapeHTML(d.id)}">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join("");
+  tableBody.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>startEdit(b.dataset.edit)));
+  tableBody.querySelectorAll("[data-delete]").forEach(b=>b.addEventListener("click",()=>openDelete(b.dataset.delete)));
+}
+function openDelete(id){
+  const item=departments.find(x=>x.id===id);
+  if(!item)return;
+  pendingDeleteId=id;
+  deleteMessage.textContent=`You are about to delete "${item.name}". Programmes linked to this department should be reviewed before deletion.`;
+  deleteModal.classList.add("show");
+}
+function closeDeleteModal(){
+  pendingDeleteId=null;
+  deleteModal.classList.remove("show");
+}
+
+departmentForm.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const name=departmentName.value.trim();
+  const code=departmentCode.value.trim().toUpperCase();
+  const hod=hodUid.value;
+  const desc=description.value.trim();
+  const selectedStatus=status.value;
+  const id=departmentId.value;
+
+  if(!name){showStatus("Department name is required.","error");return;}
+
+  const duplicate=departments.find(d=>
+    d.id!==id && String(d.name||"").trim().toLowerCase()===name.toLowerCase()
+  );
+  if(duplicate){showStatus("A department with this name already exists.","error");return;}
+
+  saveBtn.disabled=true;
+  showStatus(id?"Updating department...":"Saving department...","info");
+
+  try{
+    const data={
+      name,code,description:desc,status:selectedStatus,
+      hodUid:hod||"",
+      hodName:hod?(getLecturer(hod)?lecturerDisplay(getLecturer(hod)):""):"",
+      updatedAt:serverTimestamp()
+    };
+    if(id){
+      await updateDoc(doc(db,"departments",id),data);
+      showStatus("Department updated successfully.","success");
+    }else{
+      await addDoc(collection(db,"departments"),{...data,createdAt:serverTimestamp()});
+      showStatus("Department created successfully.","success");
+    }
+    resetForm();
+  }catch(error){
+    console.error(error);
+    showStatus("Could not save the department. Check your Firebase configuration and Firestore rules.","error");
+  }finally{
+    saveBtn.disabled=false;
+  }
+});
+
+cancelBtn.addEventListener("click",resetForm);
+searchInput.addEventListener("input",renderDepartments);
+
+confirmDelete.addEventListener("click",async()=>{
+  if(!pendingDeleteId)return;
+  confirmDelete.disabled=true;
+  try{
+    await deleteDoc(doc(db,"departments",pendingDeleteId));
+    closeDeleteModal();
+    showStatus("Department deleted successfully.","success");
+  }catch(error){
+    console.error(error);
+    closeDeleteModal();
+    showStatus("Could not delete the department. Check your Firestore rules.","error");
+  }finally{
+    confirmDelete.disabled=false;
+  }
+});
+closeDelete.addEventListener("click",closeDeleteModal);
+deleteModal.addEventListener("click",e=>{if(e.target===deleteModal)closeDeleteModal();});
+
+onSnapshot(query(collection(db,"lecturers"),orderBy("name","asc")),snapshot=>{
+  lecturers=snapshot.docs.map(x=>({id:x.id,...x.data()}));
+  populateHodSelect(hodUid.value);
+  renderDepartments();
+},error=>{
+  console.error(error);
+  hodUid.innerHTML='<option value="">Unable to load lecturers</option>';
+  showStatus("Lecturers could not be loaded. You can still create departments without assigning an HOD.","error");
+});
+
+onSnapshot(query(collection(db,"departments"),orderBy("name","asc")),snapshot=>{
+  departments=snapshot.docs.map(x=>({id:x.id,...x.data()}));
+  renderDepartments();
+},error=>{
+  console.error(error);
+  tableBody.innerHTML='<tr><td colspan="6" class="empty">Unable to load departments. Check Firestore permissions and Firebase connection.</td></tr>';
+  showStatus("Firebase could not load the department list.","error");
+});
+
+onAuthStateChanged(auth,user=>{
+  if(user) console.log("Department Management signed in as:",user.uid);
+});
+</script>
+</body>
+</html>
