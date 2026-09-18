@@ -227,7 +227,7 @@ function fmt(v){
 
 function normalizeCourse(d,id){
  return {
-  id, code:d.courseCode||d.code||"",
+  id:d.id||id, code:d.courseCode||d.code||"",
   name:d.courseTitle||d.courseName||d.name||d.title||"",
   unit:d.courseUnit??d.creditUnit??d.unit??"",
   departmentId:d.departmentId||"", department:d.departmentName||d.department||"",
@@ -236,11 +236,11 @@ function normalizeCourse(d,id){
   status:d.status||"Active"
  };
 }
-function normalizeVenue(d,id){return {id,name:d.name||d.venueName||"",code:d.code||d.venueCode||"",status:d.status||"Active"}}
-function normalizeDepartment(d,id){return {id,name:d.name||d.departmentName||"",code:d.code||d.departmentCode||"",status:d.status||"Active"}}
-function normalizeProgramme(d,id){return {id,name:d.name||d.programmeName||"",code:d.code||d.programmeCode||"",departmentId:d.departmentId||"",department:d.departmentName||d.department||"",status:d.status||"Active"}}
-function normalizeLevel(d,id){return {id,name:d.name||d.levelName||d.levelCode||"",code:d.code||d.levelCode||"",status:d.status||"Active"}}
-function normalizeLecturer(d,id){return {id,name:d.name||d.fullName||d.lecturerName||d.displayName||"",status:d.status||"Active"}}
+function normalizeVenue(d,id){return {id:d.id||id,name:d.name||d.venueName||"",code:d.code||d.venueCode||"",status:d.status||"Active"}}
+function normalizeDepartment(d,id){return {id:d.id||id,name:d.name||d.departmentName||"",code:d.code||d.departmentCode||"",status:d.status||"Active"}}
+function normalizeProgramme(d,id){return {id:d.id||id,name:d.name||d.programmeName||"",code:d.code||d.programmeCode||"",departmentId:d.departmentId||"",department:d.departmentName||d.department||"",status:d.status||"Active"}}
+function normalizeLevel(d,id){return {id:d.id||id,name:d.name||d.levelName||d.levelCode||"",code:d.code||d.levelCode||"",status:d.status||"Active"}}
+function normalizeLecturer(d,id){return {id:d.id||id,name:d.name||d.fullName||d.lecturerName||d.displayName||"",status:d.status||"Active"}}
 
 function fillTimes(){
  $("startTime").innerHTML='<option value="">Select start time</option>'+times.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join("");
@@ -249,10 +249,10 @@ function fillTimes(){
 fillTimes();
 
 function fillSelect(id,items,placeholder){
- const old=$(id).value;
+ const old=String($(id).value||"");
  $(id).innerHTML='<option value="">'+placeholder+'</option>'+
    items.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}${x.code?" — "+esc(x.code):""}</option>`).join("");
- if(old && items.some(x=>x.id===old)) $(id).value=old;
+ if(old && items.some(x=>String(x.id)===old)) $(id).value=old;
 }
 
 function renderSelects(){
@@ -358,9 +358,9 @@ function renderTable(){
  document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>deleteSchedule(b.dataset.delete));
 }
 
-function courseData(){ return courses.find(x=>x.id===$("course").value); }
-function sessionData(){ return sessions.find(x=>x.id===$("session").value); }
-function semesterData(){ return semesters.find(x=>x.id===$("semester").value); }
+function courseData(){ const id=String($("course").value||""); return courses.find(x=>String(x.id)===id); }
+function sessionData(){ const id=String($("session").value||""); return sessions.find(x=>String(x.id)===id); }
+function semesterData(){ const id=String($("semester").value||""); return semesters.find(x=>String(x.id)===id); }
 
 function venueClash(data,ignoreId){
  if(!data.venueId)return false;
@@ -557,32 +557,32 @@ listen("semesters",a=>{
 });
 
 listen("courses",a=>{
- courses=a.map((d,id)=>normalizeCourse(d,id));
+ courses=a.map(d=>normalizeCourse(d,d.id));
  renderSelects();
 });
 
 listen("venues",a=>{
- venues=a.map((d,id)=>normalizeVenue(d,id));
+ venues=a.map(d=>normalizeVenue(d,d.id));
  renderSelects();
 });
 
 listen("departments",a=>{
- departments=a.map((d,id)=>normalizeDepartment(d,id));
+ departments=a.map(d=>normalizeDepartment(d,d.id));
  renderSelects();
 });
 
 listen("programmes",a=>{
- programmes=a.map((d,id)=>normalizeProgramme(d,id));
+ programmes=a.map(d=>normalizeProgramme(d,d.id));
  renderSelects();
 });
 
 listen("academicLevels",a=>{
- levels=a.map((d,id)=>normalizeLevel(d,id));
+ levels=a.map(d=>normalizeLevel(d,d.id));
  renderSelects();
 });
 
 listen("lecturers",a=>{
- lecturers=a.map((d,id)=>normalizeLecturer(d,id));
+ lecturers=a.map(d=>normalizeLecturer(d,d.id));
  renderSelects();
 });
 
