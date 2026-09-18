@@ -140,6 +140,17 @@ body:before{
   .portal-text span{display:none}
   .arrow{font-size:18px}
 }
+
+/* FINAL PORTAL BUTTON OVERLAP FIX */
+.portal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%;align-items:stretch;}
+.portal-btn{min-width:0;width:100%;overflow:hidden;}
+.portal-icon{flex:0 0 56px;}
+.portal-text{flex:1 1 0;min-width:0;overflow:hidden;}
+.portal-text strong,.portal-text span{overflow-wrap:anywhere;word-break:break-word;}
+.arrow{flex:0 0 auto;}
+@media(max-width:600px){.portal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.portal-btn{min-width:0}.portal-icon{flex-basis:45px}}
+@media(max-width:390px){.portal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.portal-icon{flex-basis:39px}}
+
 </style>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
