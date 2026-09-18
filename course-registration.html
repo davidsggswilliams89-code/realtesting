@@ -420,6 +420,24 @@ footer{
   .course-hero p{font-size:14px}
 }
 
+
+.allocation-info{margin-top:14px;padding:12px;border:1px solid var(--border);background:var(--light);border-radius:10px;display:flex;flex-direction:column;gap:4px;font-size:12px;line-height:1.5;color:var(--dark)}
+.allocation-info span{color:var(--muted)}
+.course-box{margin-top:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.course-box-head{display:flex;justify-content:space-between;gap:10px;padding:11px 12px;background:#f3f7f4;color:var(--dark);font-size:13px}
+.course-list{max-height:260px;overflow:auto}
+.course-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.course-item:last-child{border-bottom:0}
+.course-code{font-weight:800;color:var(--dark);min-width:82px}
+.course-title{flex:1}
+.course-unit{font-size:11px;color:var(--muted);white-space:nowrap}
+.filters{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.carryover-box{margin-top:16px;padding:14px;border-radius:10px;background:#fff8e8;border:1px solid #f1dfb5}
+.carryover-box h3{margin:0 0 6px;color:#755400;font-size:14px}
+.carryover-box p{margin:0;color:#756b54;font-size:12px;line-height:1.5}
+.course-summary{font-size:11px;color:var(--muted);line-height:1.5;max-width:240px}
+@media(max-width:900px){.filters{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.filters{grid-template-columns:1fr}.course-code{min-width:68px}.course-item{align-items:flex-start;flex-wrap:wrap}}
 </style>
 
 <body>
@@ -434,131 +452,86 @@ footer{
   </div>
 </header>
 
+
 <main>
-  <section class="course-hero">
-    <h2>Course Management</h2>
-    <p>Create and manage GGCHST academic courses.</p>
-    <p>Courses are linked directly to departments, programmes, academic levels and semesters.</p>
-  </section>
+<section class="course-hero">
+  <h2>Automatic Student Course Allocation</h2>
+  <p>Allocate approved courses automatically from the student's Programme, Academic Level, Semester and curriculum.</p>
+</section>
 
-  <div class="grid">
-    <section class="card">
-      <h2 id="formTitle">Add Course</h2>
-      <div id="message" class="message"></div>
+<div class="grid">
+<section class="card">
+<h2>Allocation Setup</h2>
+<div id="message" class="message"></div>
+<form id="allocationForm">
 
-      <form id="courseForm">
-        <label for="courseCode">Course Code <span class="required">*</span></label>
-        <input id="courseCode" type="text" required maxlength="30" placeholder="e.g. HIM 101">
+<label for="sessionId">Academic Session <span class="required">*</span></label>
+<select id="sessionId" required><option value="">Select academic session</option></select>
 
-        <label for="courseTitle">Course Title <span class="required">*</span></label>
-        <input id="courseTitle" type="text" required placeholder="e.g. Introduction to Health Information Management">
+<label for="semesterId">Semester <span class="required">*</span></label>
+<select id="semesterId" required disabled><option value="">Select session first</option></select>
 
-        <div class="row">
-          <div>
-            <label for="courseUnit">Course Unit <span class="required">*</span></label>
-            <input id="courseUnit" type="number" min="1" max="12" step="1" required placeholder="3">
-          </div>
-          <div>
-            <label for="semester">Semester <span class="required">*</span></label>
-            <select id="semester" required>
-              <option value="">Select semester</option>
-              <option value="First">First</option>
-              <option value="Second">Second</option>
-            </select>
-          </div>
-        </div>
+<label for="programmeId">Programme <span class="required">*</span></label>
+<select id="programmeId" required disabled><option value="">Loading programmes...</option></select>
 
-        <label for="departmentId">Department <span class="required">*</span></label>
-        <select id="departmentId" required disabled>
-          <option value="">Loading departments...</option>
-        </select>
+<label for="levelId">Academic Level <span class="required">*</span></label>
+<select id="levelId" required disabled><option value="">Loading levels...</option></select>
 
-        <label for="programmeId">Programme <span class="required">*</span></label>
-        <select id="programmeId" required disabled>
-          <option value="">Select department first</option>
-        </select>
+<label for="studentId">Student <span class="required">*</span></label>
+<select id="studentId" required disabled><option value="">Select Programme and Level first</option></select>
 
-        <label for="levelId">Academic Level <span class="required">*</span></label>
-        <select id="levelId" required disabled>
-          <option value="">Loading levels...</option>
-        </select>
-
-        <label for="courseType">Course Type</label>
-        <select id="courseType">
-          <option value="Core">Core</option>
-          <option value="Elective">Elective</option>
-          <option value="General">General</option>
-          <option value="Practical">Practical</option>
-        </select>
-
-        <label for="description">Description</label>
-        <textarea id="description" placeholder="Optional course description"></textarea>
-
-        <label for="status">Status</label>
-        <select id="status">
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-        </select>
-
-        <div class="btns">
-          <button class="primary" type="submit" id="saveBtn">Save Course</button>
-          <button class="secondary" type="button" id="cancelBtn" style="display:none">Cancel</button>
-        </div>
-      </form>
-
-      <div class="hint">
-        Courses are master records and will be reused by course registration, attendance, examinations, results and lecturer workflows.
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Course List</h2>
-      <div class="toolbar">
-        <input id="search" type="search" placeholder="Search course, code, department, programme or level...">
-        <span class="count" id="courseCount">0 Courses</span>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Course Title</th>
-              <th>Unit</th>
-              <th>Semester</th>
-              <th>Department</th>
-              <th>Programme</th>
-              <th>Level</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="courseTable">
-            <tr><td colspan="10" class="empty">Loading courses...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-</main>
-
-<div class="modal" id="deleteModal">
-  <div class="modal-box">
-    <h3>Delete Course?</h3>
-    <p id="deleteText">This action cannot be undone.</p>
-    <div class="modal-actions">
-      <button class="secondary" id="closeModal">Cancel</button>
-      <button class="danger" id="confirmDelete">Delete</button>
-    </div>
-  </div>
+<div class="allocation-info">
+<strong>Automatic allocation</strong>
+<span>The system reads approved curriculum mappings for the selected Programme, Level and Semester. Students do not manually select courses.</span>
 </div>
 
+<div class="course-box">
+<div class="course-box-head"><strong>Courses to be Allocated</strong><span id="courseCount">0 Courses</span></div>
+<div id="courseList" class="course-list"><div class="empty">Select session, semester, programme and level.</div></div>
+</div>
+
+<div class="btns">
+<button class="primary" type="submit" id="allocateBtn" disabled>Allocate Courses</button>
+<button class="secondary" type="button" id="clearBtn">Clear</button>
+</div>
+</form>
+
+<div class="hint">Course allocation is a master workflow. Carryover courses are derived from Results and should appear below the student's automatic courses.</div>
+</section>
+
+<section class="card">
+<h2>Automatic Student Course Allocation</h2>
+<div class="toolbar">
+<input id="search" type="search" placeholder="Search student, ID, admission no., programme, level or course...">
+<span class="count" id="allocationCount">0 Allocations</span>
+</div>
+<div class="filters">
+<select id="filterSession"><option value="">All Sessions</option></select>
+<select id="filterSemester"><option value="">All Semesters</option></select>
+<select id="filterProgramme"><option value="">All Programmes</option></select>
+<select id="filterLevel"><option value="">All Levels</option></select>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr>
+<th>Student</th><th>Student ID</th><th>Admission No.</th><th>Programme</th><th>Level</th>
+<th>Session</th><th>Semester</th><th>Courses</th><th>Status</th><th>Actions</th>
+</tr></thead>
+<tbody id="allocationTable"><tr><td colspan="10" class="empty">Loading allocations...</td></tr></tbody>
+</table>
+</div>
+<div class="carryover-box">
+<h3>Carryover Courses</h3>
+<p>Carryover courses are not entered manually here. They will be derived from eligible failed results and displayed below the automatic course list in the student's portal.</p>
+</div>
+</section>
+</div>
+</main>
 <footer>GGCHST Student &amp; Management System</footer>
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import {getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,query,orderBy,serverTimestamp}
+import {getFirestore,collection,addDoc,updateDoc,doc,onSnapshot,query,orderBy,serverTimestamp}
 from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig={
@@ -573,407 +546,167 @@ const firebaseConfig={
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
-const form=document.getElementById("courseForm");
-const courseCode=document.getElementById("courseCode");
-const courseTitle=document.getElementById("courseTitle");
-const courseUnit=document.getElementById("courseUnit");
-const semester=document.getElementById("semester");
-const departmentSelect=document.getElementById("departmentId");
-const programmeSelect=document.getElementById("programmeId");
-const levelSelect=document.getElementById("levelId");
-const courseType=document.getElementById("courseType");
-const description=document.getElementById("description");
-const status=document.getElementById("status");
-const table=document.getElementById("courseTable");
-const searchInput=document.getElementById("search");
-const countEl=document.getElementById("courseCount");
-const messageEl=document.getElementById("message");
-const formTitle=document.getElementById("formTitle");
-const saveBtn=document.getElementById("saveBtn");
-const cancelBtn=document.getElementById("cancelBtn");
+const form=document.getElementById("allocationForm");
+const sessionId=document.getElementById("sessionId");
+const semesterId=document.getElementById("semesterId");
+const programmeId=document.getElementById("programmeId");
+const levelId=document.getElementById("levelId");
+const studentId=document.getElementById("studentId");
+const courseList=document.getElementById("courseList");
+const courseCount=document.getElementById("courseCount");
+const allocateBtn=document.getElementById("allocateBtn");
+const clearBtn=document.getElementById("clearBtn");
+const message=document.getElementById("message");
+const table=document.getElementById("allocationTable");
+const search=document.getElementById("search");
+const allocationCount=document.getElementById("allocationCount");
+const filterSession=document.getElementById("filterSession");
+const filterSemester=document.getElementById("filterSemester");
+const filterProgramme=document.getElementById("filterProgramme");
+const filterLevel=document.getElementById("filterLevel");
 
-let departments=[];
-let programmes=[];
-let levels=[];
-let courses=[];
-let editingId=null;
-let pendingDeleteId=null;
+let sessions=[],semesters=[],programmes=[],levels=[],students=[],courses=[],mappings=[],allocations=[];
 
-function showMessage(text,type="success"){
-  messageEl.textContent=text;
-  messageEl.className="message "+type;
-  messageEl.style.display="block";
-  clearTimeout(window.messageTimer);
-  window.messageTimer=setTimeout(()=>messageEl.style.display="none",4000);
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+function norm(v){return String(v??"").trim().toLowerCase();}
+function active(a){return a.filter(x=>norm(x.status)!=="inactive"&&norm(x.status)!=="closed");}
+function msg(t,type="success"){message.textContent=t;message.className="message "+type;message.style.display="block";clearTimeout(window.mt);window.mt=setTimeout(()=>message.style.display="none",4500);}
+function fill(el,list,placeholder,nameFn){el.innerHTML=`<option value="">${placeholder}</option>`;list.forEach(x=>{let o=document.createElement("option");o.value=x.id;o.textContent=nameFn(x);el.appendChild(o);});el.disabled=!list.length;}
+function context(){return {s:sessions.find(x=>x.id===sessionId.value),sem:semesters.find(x=>x.id===semesterId.value),p:programmes.find(x=>x.id===programmeId.value),l:levels.find(x=>x.id===levelId.value)};}
+
+function fillSessions(){
+  const list=[...sessions].sort((a,b)=>String(b.name||"").localeCompare(String(a.name||"")));
+  fill(sessionId,list,"Select academic session",x=>x.name||"Unnamed Session");
+  fill(filterSession,list,"All Sessions",x=>x.name||"Unnamed Session");
+}
+function fillSemesters(){
+  const sid=sessionId.value;
+  const list=active(semesters).filter(x=>!sid||x.sessionId===sid);
+  fill(semesterId,list,"Select semester",x=>x.name||x.semester||"Semester");
+  fill(filterSemester,active(semesters),"All Semesters",x=>(x.name||x.semester||"Semester")+(x.sessionName?" — "+x.sessionName:""));
+}
+function fillProgrammes(){
+  const list=active(programmes).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+  fill(programmeId,list,"Select programme",x=>(x.name||"Unnamed Programme")+(x.code?" ("+x.code+")":""));
+  fill(filterProgramme,list,"All Programmes",x=>(x.name||"Unnamed Programme")+(x.code?" ("+x.code+")":""));
+}
+function fillLevels(){
+  const list=active(levels).sort((a,b)=>(Number(a.displayOrder)||9999)-(Number(b.displayOrder)||9999));
+  fill(levelId,list,"Select academic level",x=>(x.name||"Unnamed Level")+(x.code?" ("+x.code+")":""));
+  fill(filterLevel,list,"All Levels",x=>x.name||"Unnamed Level");
 }
 
-function esc(value){
-  return String(value??"").replace(/[&<>"']/g,c=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[c]));
-}
-
-function normalize(value){
-  return String(value??"").trim().toLowerCase();
-}
-
-function sortByName(a,b){
-  return normalize(a.name||a.title||a.code).localeCompare(
-    normalize(b.name||b.title||b.code)
+function findCourses(){
+  const c=context();
+  if(!c.p||!c.l||!c.sem)return [];
+  const maps=mappings.filter(m=>
+    m.programmeId===c.p.id && m.levelId===c.l.id &&
+    (m.semesterId===c.sem.id||norm(m.semester)===norm(c.sem.name||c.sem.semester)) &&
+    norm(m.status||"active")!=="inactive"
   );
-}
-
-function activeItems(items){
-  return items.filter(x=>String(x.status||"").toLowerCase()!=="inactive");
-}
-
-function fillDepartments(selectedId=""){
-  const list=activeItems(departments).sort(sortByName);
-  departmentSelect.innerHTML='<option value="">Select department</option>';
-  list.forEach(d=>{
-    const o=document.createElement("option");
-    o.value=d.id;
-    o.textContent=d.name+(d.code?` (${d.code})`:"");
-    departmentSelect.appendChild(o);
-  });
-  departmentSelect.disabled=!list.length;
-  if(selectedId && list.some(d=>d.id===selectedId)){
-    departmentSelect.value=selectedId;
-  }
-}
-
-function fillProgrammes(departmentId,selectedId=""){
-  const list=activeItems(programmes)
-    .filter(p=>p.departmentId===departmentId)
-    .sort(sortByName);
-
-  programmeSelect.innerHTML='<option value="">Select programme</option>';
-  list.forEach(p=>{
-    const o=document.createElement("option");
-    o.value=p.id;
-    o.textContent=p.name+(p.code?` (${p.code})`:"");
-    programmeSelect.appendChild(o);
-  });
-  programmeSelect.disabled=!departmentId || !list.length;
-  if(selectedId && list.some(p=>p.id===selectedId)){
-    programmeSelect.value=selectedId;
-  }
-}
-
-function fillLevels(selectedId=""){
-  const list=activeItems(levels).sort((a,b)=>
-    (Number(a.displayOrder)||9999)-(Number(b.displayOrder)||9999)
-  );
-
-  levelSelect.innerHTML='<option value="">Select academic level</option>';
-  list.forEach(l=>{
-    const o=document.createElement("option");
-    o.value=l.id;
-    o.textContent=l.name+(l.code?` (${l.code})`:"");
-    levelSelect.appendChild(o);
-  });
-  levelSelect.disabled=!list.length;
-  if(selectedId) levelSelect.value=selectedId;
-}
-
-departmentSelect.addEventListener("change",()=>{
-  fillProgrammes(departmentSelect.value);
-});
-
-function getNames(course){
-  const d=departments.find(x=>x.id===course.departmentId);
-  const p=programmes.find(x=>x.id===course.programmeId);
-  const l=levels.find(x=>x.id===course.levelId);
-  return {
-    department:d?.name||course.departmentName||"—",
-    programme:p?.name||course.programmeName||"—",
-    level:l?.name||course.levelName||"—"
-  };
+  return maps.map(m=>{
+    const course=courses.find(x=>x.id===m.courseId);
+    return course?course:{id:m.courseId,courseCode:m.courseCode||"",courseTitle:m.courseName||m.courseTitle||"",courseUnit:m.courseUnit??""};
+  }).filter(x=>x.id||x.courseCode);
 }
 
 function renderCourses(){
-  const term=normalize(searchInput.value);
-
-  const filtered=courses.filter(c=>{
-    const n=getNames(c);
-    return [
-      c.courseCode,
-      c.courseTitle,
-      c.semester,
-      c.courseType,
-      c.status,
-      n.department,
-      n.programme,
-      n.level
-    ].some(v=>normalize(v).includes(term));
-  });
-
-  countEl.textContent=`${filtered.length} ${filtered.length===1?"Course":"Courses"}`;
-
-  if(!filtered.length){
-    table.innerHTML='<tr><td colspan="10" class="empty">No courses found.</td></tr>';
-    return;
-  }
-
-  table.innerHTML=filtered.map(c=>{
-    const n=getNames(c);
-    const active=String(c.status||"Active").toLowerCase()!=="inactive";
-
-    return `<tr>
-      <td><strong>${esc(c.courseCode||"—")}</strong></td>
-      <td>${esc(c.courseTitle||"—")}</td>
-      <td>${esc(c.courseUnit??"—")}</td>
-      <td>${esc(c.semester||"—")}</td>
-      <td>${esc(n.department)}</td>
-      <td>${esc(n.programme)}</td>
-      <td>${esc(n.level)}</td>
-      <td>${esc(c.courseType||"Core")}</td>
-      <td><span class="badge ${active?"active":"inactive"}">${active?"Active":"Inactive"}</span></td>
-      <td>
-        <div class="actions">
-          <button class="edit" data-edit="${esc(c.id)}">Edit</button>
-          <button class="del" data-delete="${esc(c.id)}">Delete</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join("");
+  const list=findCourses();
+  courseCount.textContent=`${list.length} ${list.length===1?"Course":"Courses"}`;
+  if(!list.length){courseList.innerHTML='<div class="empty">No approved curriculum courses found for this Programme, Level and Semester.</div>';allocateBtn.disabled=true;return;}
+  courseList.innerHTML=list.map(c=>`<div class="course-item"><span class="course-code">${esc(c.courseCode||"—")}</span><span class="course-title">${esc(c.courseTitle||"Unnamed Course")}</span><span class="course-unit">${esc(c.courseUnit??"—")} Unit</span></div>`).join("");
+  allocateBtn.disabled=!studentId.value;
 }
 
-function resetForm(){
-  editingId=null;
-  form.reset();
-
-  formTitle.textContent="Add Course";
-  saveBtn.textContent="Save Course";
-  cancelBtn.style.display="none";
-
-  departmentSelect.innerHTML='<option value="">Select department</option>';
-  departmentSelect.disabled=true;
-
-  programmeSelect.innerHTML='<option value="">Select department first</option>';
-  programmeSelect.disabled=true;
-
-  fillDepartments();
-  fillLevels();
-
-  courseType.value="Core";
-  status.value="Active";
+function fillStudents(){
+  const pid=programmeId.value,lid=levelId.value;
+  const list=students.filter(s=>
+    norm(s.status||"active")!=="inactive" &&
+    (!pid||s.programmeId===pid) && (!lid||s.levelId===lid)
+  ).sort((a,b)=>String(a.fullName||a.name||"").localeCompare(String(b.fullName||b.name||"")));
+  studentId.innerHTML='<option value="">Select student</option>';
+  list.forEach(s=>{let o=document.createElement("option");o.value=s.id;o.textContent=`${s.fullName||s.name||"Unnamed Student"} — ${s.studentId||s.matricNo||"No ID"}${s.admissionNumber?" — "+s.admissionNumber:""}`;studentId.appendChild(o);});
+  studentId.disabled=!list.length;
+  if(!list.length)studentId.innerHTML='<option value="">No students match Programme and Level</option>';
+  renderCourses();
 }
 
-function startEdit(id){
-  const c=courses.find(x=>x.id===id);
-  if(!c)return;
+function existing(student,ctx){
+  return allocations.find(a=>a.studentId===student.id&&a.sessionId===ctx.s.id&&a.semesterId===ctx.sem.id&&norm(a.status||"active")!=="inactive");
+}
 
-  editingId=id;
-  formTitle.textContent="Edit Course";
-  saveBtn.textContent="Update Course";
-  cancelBtn.style.display="inline-block";
-
-  courseCode.value=c.courseCode||"";
-  courseTitle.value=c.courseTitle||"";
-  courseUnit.value=c.courseUnit??"";
-  semester.value=c.semester||"";
-
-  fillDepartments(c.departmentId||"");
-  fillProgrammes(c.departmentId||"",c.programmeId||"");
-  fillLevels(c.levelId||"");
-
-  courseType.value=c.courseType||"Core";
-  description.value=c.description||"";
-  status.value=c.status||"Active";
-
-  window.scrollTo({top:0,behavior:"smooth"});
+function renderAllocations(){
+  const t=norm(search.value);
+  const rows=allocations.filter(a=>
+    (!filterSession.value||a.sessionId===filterSession.value)&&
+    (!filterSemester.value||a.semesterId===filterSemester.value)&&
+    (!filterProgramme.value||a.programmeId===filterProgramme.value)&&
+    (!filterLevel.value||a.levelId===filterLevel.value)
+  ).filter(a=>[
+    a.studentName,a.studentIdNumber,a.admissionNumber,a.programmeName,a.levelName,a.sessionName,a.semesterName,
+    ...(Array.isArray(a.courseNames)?a.courseNames:[])
+  ].some(v=>norm(v).includes(t)));
+  allocationCount.textContent=`${rows.length} ${rows.length===1?"Allocation":"Allocations"}`;
+  if(!rows.length){table.innerHTML='<tr><td colspan="10" class="empty">No automatic allocations found.</td></tr>';return;}
+  table.innerHTML=rows.map(a=>`<tr>
+    <td><strong>${esc(a.studentName||"Unnamed Student")}</strong></td>
+    <td>${esc(a.studentIdNumber||"—")}</td><td>${esc(a.admissionNumber||"—")}</td>
+    <td>${esc(a.programmeName||"—")}</td><td>${esc(a.levelName||"—")}</td>
+    <td>${esc(a.sessionName||"—")}</td><td>${esc(a.semesterName||"—")}</td>
+    <td><div class="course-summary">${(a.courseNames||[]).slice(0,4).map(esc).join(", ")}${(a.courseNames||[]).length>4?" +"+((a.courseNames||[]).length-4)+" more":""}</div></td>
+    <td><span class="badge active">Allocated</span></td>
+    <td><div class="actions"><button class="del" data-delete="${esc(a.id)}">Remove</button></div></td>
+  </tr>`).join("");
 }
 
 form.addEventListener("submit",async e=>{
   e.preventDefault();
-
-  const code=courseCode.value.trim().toUpperCase();
-  const title=courseTitle.value.trim();
-  const unit=Number(courseUnit.value);
-  const sem=semester.value;
-  const departmentId=departmentSelect.value;
-  const programmeId=programmeSelect.value;
-  const levelId=levelSelect.value;
-  const type=courseType.value;
-  const desc=description.value.trim();
-  const selectedStatus=status.value;
-
-  if(!code||!title||!unit||!sem||!departmentId||!programmeId||!levelId){
-    showMessage("Please complete all required fields.","error");
-    return;
-  }
-
-  const department=departments.find(d=>d.id===departmentId);
-  const programme=programmes.find(p=>p.id===programmeId);
-  const level=levels.find(l=>l.id===levelId);
-
-  if(!department || String(department.status||"").toLowerCase()==="inactive"){
-    showMessage("The selected department is not active.","error");
-    return;
-  }
-
-  if(!programme || programme.departmentId!==departmentId ||
-     String(programme.status||"").toLowerCase()==="inactive"){
-    showMessage("The selected programme does not belong to the selected department.","error");
-    return;
-  }
-
-  if(!level || String(level.status||"").toLowerCase()==="inactive"){
-    showMessage("The selected academic level is not active.","error");
-    return;
-  }
-
-  const duplicate=courses.find(c=>
-    c.id!==editingId &&
-    normalize(c.courseCode)===normalize(code) &&
-    c.departmentId===departmentId &&
-    c.programmeId===programmeId &&
-    c.levelId===levelId &&
-    c.semester===sem
-  );
-
-  if(duplicate){
-    showMessage("A course with this code already exists for the selected programme, level and semester.","error");
-    return;
-  }
-
-  saveBtn.disabled=true;
-  saveBtn.textContent=editingId?"Updating...":"Saving...";
-
+  const c=context(),student=students.find(x=>x.id===studentId.value),list=findCourses();
+  if(!c.s||!c.sem||!c.p||!c.l||!student||!list.length){msg("Please complete the selection and ensure curriculum courses exist.","error");return;}
+  if(existing(student,c)){msg("This student already has an allocation for this session and semester.","error");return;}
+  allocateBtn.disabled=true;allocateBtn.textContent="Allocating...";
   try{
+    const courseIds=list.map(x=>x.id).filter(Boolean);
+    const courseNames=list.map(x=>`${x.courseCode||""} — ${x.courseTitle||x.courseName||""}`.replace(/^\s*—\s*|\s*—\s*$/g,"").trim());
     const payload={
-      courseCode:code,
-      courseTitle:title,
-      courseUnit:unit,
-      semester:sem,
-      departmentId,
-      programmeId,
-      levelId,
-      courseType:type,
-      description:desc,
-      status:selectedStatus,
-      departmentName:department.name||"",
-      programmeName:programme.name||"",
-      levelName:level.name||"",
-      updatedAt:serverTimestamp()
+      studentId:student.id,studentIdNumber:student.studentId||student.matricNo||"",admissionNumber:student.admissionNumber||"",
+      studentName:student.fullName||student.name||"",studentUid:student.studentUid||student.authUid||student.uid||"",
+      programmeId:c.p.id,programmeName:c.p.name||"",programmeCode:c.p.code||"",
+      levelId:c.l.id,levelName:c.l.name||"",sessionId:c.s.id,sessionName:c.s.name||"",
+      semesterId:c.sem.id,semesterName:c.sem.name||c.sem.semester||"",courseIds,courseNames,
+      allocationType:"automatic",source:"curriculumMapping",status:"active",updatedAt:serverTimestamp()
     };
-
-    if(editingId){
-      await updateDoc(doc(db,"courses",editingId),payload);
-      showMessage("Course updated successfully.");
-    }else{
-      await addDoc(collection(db,"courses"),{
-        ...payload,
-        createdAt:serverTimestamp()
-      });
-      showMessage("Course created successfully.");
-    }
-
-    resetForm();
-  }catch(error){
-    console.error(error);
-    showMessage("Could not save course. Check Firebase permissions and try again.","error");
-  }finally{
-    saveBtn.disabled=false;
-    saveBtn.textContent=editingId?"Update Course":"Save Course";
-  }
+    await addDoc(collection(db,"studentCourseAllocations"),{...payload,createdAt:serverTimestamp()});
+    msg(`Courses allocated automatically to ${payload.studentName}.`);
+  }catch(err){console.error(err);msg("Could not allocate courses. Check Firebase permissions.","error");}
+  finally{allocateBtn.disabled=false;allocateBtn.textContent="Allocate Courses";}
 });
 
-cancelBtn.addEventListener("click",resetForm);
-searchInput.addEventListener("input",renderCourses);
+sessionId.addEventListener("change",()=>{fillSemesters();semesterId.value="";programmeId.value="";levelId.value="";studentId.value="";studentId.disabled=true;renderCourses();});
+semesterId.addEventListener("change",renderCourses);
+programmeId.addEventListener("change",fillStudents);
+levelId.addEventListener("change",fillStudents);
+studentId.addEventListener("change",renderCourses);
+[search,filterSession,filterSemester,filterProgramme,filterLevel].forEach(x=>x.addEventListener("input",renderAllocations));
+clearBtn.addEventListener("click",()=>{form.reset();fillSessions();fillSemesters();fillProgrammes();fillLevels();studentId.disabled=true;studentId.innerHTML='<option value="">Select Programme and Level first</option>';courseList.innerHTML='<div class="empty">Select session, semester, programme and level.</div>';courseCount.textContent="0 Courses";allocateBtn.disabled=true;message.style.display="none";});
 
-table.addEventListener("click",e=>{
-  const edit=e.target.closest("[data-edit]");
-  const del=e.target.closest("[data-delete]");
-  if(edit) startEdit(edit.dataset.edit);
-  if(del) openDelete(del.dataset.delete);
+table.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-delete]");if(!b)return;
+  const a=allocations.find(x=>x.id===b.dataset.delete);if(!a)return;
+  if(!confirm(`Remove automatic allocation for ${a.studentName||"this student"}?`))return;
+  try{await updateDoc(doc(db,"studentCourseAllocations",a.id),{status:"inactive",updatedAt:serverTimestamp()});msg("Course allocation removed.");}
+  catch(err){console.error(err);msg("Could not remove the allocation.","error");}
 });
 
-function openDelete(id){
-  const c=courses.find(x=>x.id===id);
-  if(!c)return;
-
-  pendingDeleteId=id;
-  document.getElementById("deleteText").textContent=
-    `Delete "${c.courseCode||""} - ${c.courseTitle||""}"? This action cannot be undone.`;
-  document.getElementById("deleteModal").style.display="flex";
-}
-
-function closeDelete(){
-  pendingDeleteId=null;
-  document.getElementById("deleteModal").style.display="none";
-}
-
-document.getElementById("closeModal").addEventListener("click",closeDelete);
-document.getElementById("deleteModal").addEventListener("click",e=>{
-  if(e.target.id==="deleteModal")closeDelete();
-});
-
-document.getElementById("confirmDelete").addEventListener("click",async()=>{
-  if(!pendingDeleteId)return;
-
-  const btn=document.getElementById("confirmDelete");
-  btn.disabled=true;
-
-  try{
-    await deleteDoc(doc(db,"courses",pendingDeleteId));
-    closeDelete();
-    showMessage("Course deleted successfully.");
-  }catch(error){
-    console.error(error);
-    closeDelete();
-    showMessage("Could not delete course. Check Firebase permissions.","error");
-  }finally{
-    btn.disabled=false;
-  }
-});
-
-onSnapshot(query(collection(db,"departments"),orderBy("name","asc")),snap=>{
-  departments=snap.docs.map(d=>({id:d.id,...d.data()}));
-  fillDepartments(departmentSelect.value);
-  renderCourses();
-},error=>{
-  console.error(error);
-  departmentSelect.innerHTML='<option value="">Unable to load departments</option>';
-  departmentSelect.disabled=true;
-  showMessage("Could not load departments from Firebase.","error");
-});
-
-onSnapshot(query(collection(db,"programmes"),orderBy("name","asc")),snap=>{
-  programmes=snap.docs.map(d=>({id:d.id,...d.data()}));
-
-  const selectedDepartment=departmentSelect.value;
-  const selectedProgramme=programmeSelect.value;
-  fillProgrammes(selectedDepartment,selectedProgramme);
-  renderCourses();
-},error=>{
-  console.error(error);
-  programmeSelect.innerHTML='<option value="">Unable to load programmes</option>';
-  programmeSelect.disabled=true;
-  showMessage("Could not load programmes from Firebase.","error");
-});
-
-onSnapshot(query(collection(db,"academicLevels"),orderBy("displayOrder","asc")),snap=>{
-  levels=snap.docs.map(d=>({id:d.id,...d.data()}));
-  fillLevels(levelSelect.value);
-  renderCourses();
-},error=>{
-  console.error(error);
-  levelSelect.innerHTML='<option value="">Unable to load levels</option>';
-  levelSelect.disabled=true;
-  showMessage("Could not load academic levels from Firebase.","error");
-});
-
-onSnapshot(query(collection(db,"courses"),orderBy("courseCode","asc")),snap=>{
-  courses=snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderCourses();
-},error=>{
-  console.error(error);
-  table.innerHTML='<tr><td colspan="10" class="empty">Could not load courses. Check Firebase permissions.</td></tr>';
-  showMessage("Could not load courses from Firebase.","error");
-});
-
+onSnapshot(query(collection(db,"academicSessions"),orderBy("name","desc")),s=>{sessions=s.docs.map(d=>({id:d.id,...d.data()}));fillSessions();fillSemesters();},e=>{console.error(e);msg("Could not load academic sessions.","error");});
+onSnapshot(query(collection(db,"semesters"),orderBy("name","asc")),s=>{semesters=s.docs.map(d=>({id:d.id,...d.data()}));fillSemesters();renderAllocations();},e=>{console.error(e);msg("Could not load semesters.","error");});
+onSnapshot(query(collection(db,"programmes"),orderBy("name","asc")),s=>{programmes=s.docs.map(d=>({id:d.id,...d.data()}));fillProgrammes();renderAllocations();},e=>{console.error(e);msg("Could not load programmes.","error");});
+onSnapshot(query(collection(db,"academicLevels"),orderBy("displayOrder","asc")),s=>{levels=s.docs.map(d=>({id:d.id,...d.data()}));fillLevels();renderAllocations();},e=>{console.error(e);msg("Could not load academic levels.","error");});
+onSnapshot(collection(db,"students"),s=>{students=s.docs.map(d=>({id:d.id,...d.data()}));fillStudents();renderAllocations();},e=>{console.error(e);msg("Could not load students.","error");});
+onSnapshot(collection(db,"courses"),s=>{courses=s.docs.map(d=>({id:d.id,...d.data()}));renderCourses();},e=>{console.error(e);msg("Could not load courses.","error");});
+onSnapshot(collection(db,"curriculumMappings"),s=>{mappings=s.docs.map(d=>({id:d.id,...d.data()}));renderCourses();},e=>{console.error(e);msg("Could not load curriculum mappings.","error");});
+onSnapshot(collection(db,"studentCourseAllocations"),s=>{allocations=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>norm(x.status||"active")!=="inactive");renderAllocations();},e=>{console.error(e);msg("Could not load automatic allocations.","error");});
 </script>
+
 </body>
 </html>
