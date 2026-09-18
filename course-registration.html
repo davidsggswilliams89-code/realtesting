@@ -1,712 +1,114 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GGCHST | Course Management</title>
-
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Course Registration | GGCHST</title>
 <style>
-:root{
-  --green:#08783f;
-  --dark:#07552f;
-  --light:#eef8f2;
-  --border:#dce8e1;
-  --danger:#c62828;
-  --text:#17221c;
-  --muted:#66736b;
-}
-*{box-sizing:border-box}
-html,body{width:100%;max-width:100%;overflow-x:hidden}
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f8f6;color:var(--text)}
-
-.school-header{
-  background:#fff;
-  border-bottom:1px solid var(--border);
-  box-shadow:0 2px 10px rgba(0,0,0,.06);
-  position:sticky;
-  top:0;
-  z-index:20;
-}
-.school-header-inner{
-  width:100%;
-  max-width:1180px;
-  margin:0 auto;
-  padding:10px 18px;
-  display:flex;
-  align-items:center;
-  gap:14px;
-  min-height:76px;
-}
-.school-logo{
-  width:62px;
-  height:62px;
-  flex:0 0 62px;
-  border-radius:50%;
-  object-fit:cover;
-  border:2px solid #e1eee7;
-  background:#fff;
-}
-.school-title{
-  min-width:0;
-  flex:1;
-  text-align:center;
-}
-.school-title h1{
-  margin:0;
-  color:var(--dark);
-  font-size:18px;
-  line-height:1.25;
-  font-weight:800;
-}
-.school-title p{
-  margin:4px 0 0;
-  color:var(--muted);
-  font-size:12px;
-}
-.back-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  color:#fff;
-  background:var(--green);
-  text-decoration:none;
-  border:0;
-  padding:9px 13px;
-  border-radius:8px;
-  font-size:13px;
-  font-weight:700;
-  white-space:nowrap;
-  flex:0 0 auto;
-}
-
-main{
-  width:100%;
-  max-width:1180px;
-  margin:22px auto;
-  padding:0 16px;
-}
-.intro{
-  margin-bottom:20px;
-  background:linear-gradient(135deg,#08783f,#0b8f4d);
-  color:#fff;
-  border-radius:28px;
-  padding:30px 34px;
-  text-align:center;
-  box-shadow:0 8px 24px rgba(8,120,63,.16);
-}
-.intro h2{
-  margin:0 0 12px;
-  color:#fff;
-  font-size:28px;
-  line-height:1.2;
-  font-weight:800;
-}
-.intro p{
-  margin:0;
-  color:#fff;
-  font-size:17px;
-  line-height:1.55;
-  opacity:.98;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:minmax(300px,360px) minmax(0,1fr);
-  gap:18px;
-  align-items:start;
-}
-.card{
-  min-width:0;
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:14px;
-  box-shadow:0 6px 20px rgba(0,0,0,.06);
-  padding:18px;
-}
-.card h2{
-  margin:0 0 14px;
-  color:var(--dark);
-  font-size:17px;
-}
-label{
-  display:block;
-  font-size:13px;
-  font-weight:700;
-  margin:12px 0 6px;
-}
-input,select,textarea{
-  display:block;
-  width:100%;
-  max-width:100%;
-  padding:11px 12px;
-  border:1px solid #cbd8d0;
-  border-radius:8px;
-  outline:none;
-  font-size:14px;
-  background:#fff;
-}
-textarea{
-  resize:vertical;
-  min-height:84px;
-}
-input:focus,select:focus,textarea:focus{
-  border-color:var(--green);
-  box-shadow:0 0 0 3px rgba(8,120,63,.1);
-}
-.row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-.btns{
-  display:flex;
-  gap:8px;
-  margin-top:16px;
-  flex-wrap:wrap;
-}
-button{
-  border:0;
-  border-radius:8px;
-  padding:11px 14px;
-  cursor:pointer;
-  font-weight:700;
-  font-size:13px;
-}
-.primary{background:var(--green);color:#fff}
-.secondary{background:#e9f0ec;color:var(--dark)}
-.danger{background:#fdecec;color:var(--danger)}
-button:disabled{opacity:.6;cursor:not-allowed}
-
-.message{
-  display:none;
-  margin:0 0 12px;
-  padding:10px 12px;
-  border-radius:8px;
-  font-size:13px;
-}
-.success{background:#e8f7ed;color:#126237}
-.error{background:#fdeaea;color:#a51e1e}
-
-.toolbar{
-  display:flex;
-  gap:10px;
-  margin-bottom:14px;
-  align-items:center;
-}
-.toolbar input{
-  flex:1;
-  min-width:0;
-}
-.count{
-  background:var(--light);
-  color:var(--dark);
-  border-radius:8px;
-  padding:10px 12px;
-  font-size:13px;
-  font-weight:700;
-  white-space:nowrap;
-}
-.table-wrap{
-  width:100%;
-  max-width:100%;
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-  border:1px solid var(--border);
-  border-radius:10px;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:900px;
-}
-th,td{
-  text-align:left;
-  padding:11px 10px;
-  border-bottom:1px solid var(--border);
-  vertical-align:middle;
-  font-size:13px;
-}
-th{
-  background:#f3f7f4;
-  color:var(--dark);
-  white-space:nowrap;
-}
-tr:last-child td{border-bottom:0}
-.badge{
-  display:inline-block;
-  padding:5px 8px;
-  border-radius:20px;
-  font-size:11px;
-  font-weight:700;
-}
-.active{background:#e3f5ea;color:#08783f}
-.inactive{background:#eee;color:#666}
-.actions{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-}
-.actions button{
-  padding:7px 9px;
-  font-size:11px;
-}
-.edit{
-  background:#e8f0ff;
-  color:#225aa0;
-}
-.del{
-  background:#fdecec;
-  color:var(--danger);
-}
-.empty{
-  text-align:center;
-  padding:32px 10px;
-  color:var(--muted);
-}
-.required{color:var(--danger)}
-.hint{
-  margin-top:8px;
-  color:var(--muted);
-  font-size:11px;
-  line-height:1.5;
-}
-.modal{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.5);
-  z-index:50;
-  align-items:center;
-  justify-content:center;
-  padding:15px;
-}
-.modal-box{
-  width:100%;
-  max-width:460px;
-  background:#fff;
-  border-radius:14px;
-  padding:22px;
-  box-shadow:0 20px 50px rgba(0,0,0,.2);
-}
-.modal-box h3{
-  margin-top:0;
-  color:var(--dark);
-}
-.modal-actions{
-  display:flex;
-  justify-content:flex-end;
-  gap:8px;
-  margin-top:18px;
-}
-footer{
-  text-align:center;
-  padding:24px 15px;
-  color:var(--muted);
-  font-size:12px;
-}
-
-@media(max-width:900px){
-  .grid{grid-template-columns:1fr}
-}
-@media(max-width:600px){
-  .school-header-inner{
-    min-height:66px;
-    padding:7px 10px;
-    gap:9px;
-  }
-  .school-logo{
-    width:48px;
-    height:48px;
-    flex-basis:48px;
-  }
-  .school-title h1{
-    font-size:14px;
-    line-height:1.18;
-  }
-  .school-title p{
-    font-size:10px;
-    margin-top:2px;
-  }
-  .back-btn{
-    padding:8px 9px;
-    font-size:11px;
-  }
-  main{
-    margin:16px auto;
-    padding:0 10px;
-  }
-  .intro{
-    margin-bottom:14px;
-    padding:22px 16px;
-    border-radius:22px;
-  }
-  .intro h2{
-    font-size:20px;
-    line-height:1.25;
-    margin-bottom:8px;
-  }
-  .intro p{
-    font-size:13px;
-    line-height:1.5;
-  }
-  .card{
-    padding:14px;
-    border-radius:12px;
-  }
-  .card h2{font-size:16px}
-  .row{grid-template-columns:1fr}
-  .toolbar{
-    align-items:stretch;
-    flex-direction:column;
-  }
-  .toolbar input{width:100%}
-  .count{text-align:center}
-  .btns button{
-    flex:1;
-    min-width:120px;
-  }
-}
-@media(max-width:380px){
-  .school-header-inner{
-    padding-left:7px;
-    padding-right:7px;
-    gap:6px;
-  }
-  .school-logo{
-    width:44px;
-    height:44px;
-    flex-basis:44px;
-  }
-  .school-title h1{font-size:12px}
-  .school-title p{display:none}
-  .back-btn{
-    font-size:10px;
-    padding:7px 8px;
-  }
-  main{padding:0 8px}
-}
-
-.course-hero{
-  margin-bottom:20px;
-  background:linear-gradient(135deg,#08783f,#0a9850);
-  color:#fff;
-  border-radius:30px;
-  padding:40px 52px 42px;
-  box-shadow:0 8px 24px rgba(8,120,63,.14);
-}
-.course-hero h2{
-  margin:0 0 18px;
-  color:#fff;
-  font-size:38px;
-  line-height:1.12;
-  font-weight:800;
-}
-.course-hero p{
-  margin:0;
-  color:#fff;
-  font-size:21px;
-  line-height:1.65;
-  font-weight:400;
-  max-width:1050px;
-}
-@media(max-width:600px){
-  .course-hero{padding:25px 20px 27px;border-radius:22px;margin-bottom:14px}
-  .course-hero h2{font-size:26px;margin-bottom:11px}
-  .course-hero p{font-size:15px;line-height:1.55}
-}
-@media(max-width:380px){
-  .course-hero{padding:21px 16px 23px;border-radius:19px}
-  .course-hero h2{font-size:23px}
-  .course-hero p{font-size:14px}
-}
-
-
-.allocation-info{margin-top:14px;padding:12px;border:1px solid var(--border);background:var(--light);border-radius:10px;display:flex;flex-direction:column;gap:4px;font-size:12px;line-height:1.5;color:var(--dark)}
-.allocation-info span{color:var(--muted)}
-.course-box{margin-top:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
-.course-box-head{display:flex;justify-content:space-between;gap:10px;padding:11px 12px;background:#f3f7f4;color:var(--dark);font-size:13px}
-.course-list{max-height:260px;overflow:auto}
-.course-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
-.course-item:last-child{border-bottom:0}
-.course-code{font-weight:800;color:var(--dark);min-width:82px}
-.course-title{flex:1}
-.course-unit{font-size:11px;color:var(--muted);white-space:nowrap}
-.filters{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
-.carryover-box{margin-top:16px;padding:14px;border-radius:10px;background:#fff8e8;border:1px solid #f1dfb5}
-.carryover-box h3{margin:0 0 6px;color:#755400;font-size:14px}
-.carryover-box p{margin:0;color:#756b54;font-size:12px;line-height:1.5}
-.course-summary{font-size:11px;color:var(--muted);line-height:1.5;max-width:240px}
-@media(max-width:900px){.filters{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.filters{grid-template-columns:1fr}.course-code{min-width:68px}.course-item{align-items:flex-start;flex-wrap:wrap}}
+:root{--g:#176b43;--g2:#0f5132;--soft:#edf8f2;--line:#d8e4de;--text:#17231d;--muted:#66736c;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:#f5f8f6;color:var(--text);font-family:Arial,Helvetica,sans-serif}
+header{min-height:76px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:10px 18px;gap:16px;position:sticky;top:0;z-index:10}
+.logo{width:56px;height:56px;object-fit:contain}.school{flex:1;text-align:center;font-size:18px;font-weight:800;color:var(--g2);line-height:1.25}.back{background:var(--g);color:#fff;text-decoration:none;padding:10px 15px;border-radius:10px;font-weight:700}
+main{max-width:1180px;margin:24px auto;padding:0 16px 40px}.hero{background:linear-gradient(135deg,var(--g2),var(--g));color:#fff;border-radius:18px;padding:25px;margin-bottom:18px}.hero h1{margin:0 0 7px;font-size:27px}.hero p{margin:0;line-height:1.5;opacity:.92}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px;box-shadow:0 10px 30px rgba(15,81,50,.07)}h2{margin:0 0 16px;color:var(--g2);font-size:21px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}label{display:block;font-weight:800;margin-bottom:8px}select,input{font:inherit;width:100%;height:50px;border:1px solid #cbd8d1;border-radius:12px;padding:0 14px;background:#fff;color:var(--text)}select:focus,input:focus{outline:3px solid rgba(23,107,67,.12);border-color:var(--g)}
+.help,.meta,.note{font-size:13px;color:var(--muted);line-height:1.5}.required{color:var(--red)}.summary{background:var(--soft);border:1px solid #cfe5d8;border-radius:14px;padding:15px;margin-top:16px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.search{flex:1;min-width:220px}.count{font-weight:800;color:var(--g2);background:var(--soft);padding:10px 13px;border-radius:10px;white-space:nowrap}
+button{font:inherit;border:0;border-radius:11px;padding:12px 17px;font-weight:800;cursor:pointer}.primary{background:var(--g);color:#fff}.secondary{background:#edf1ef;color:var(--text)}.remove{background:#fff0ef;color:var(--red);padding:7px 10px;font-size:12px}button:disabled{opacity:.55;cursor:not-allowed}
+.message{display:none;padding:12px 14px;border-radius:10px;margin-bottom:14px;font-weight:700}.message.success{display:block;background:#eaf7ef;color:var(--g)}.message.error{display:block;background:#fff0ef;color:var(--red)}
+.list{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:15px}.head,.row{display:grid;grid-template-columns:42px 120px 1fr 70px 95px;gap:10px;align-items:center;padding:12px 14px}.head{background:#f1f7f3;font-size:12px;text-transform:uppercase;font-weight:800;color:var(--muted)}.row{border-top:1px solid #edf1ee;cursor:pointer}.row:hover{background:#fbfdfc}.row input{width:20px;height:20px}.code{font-weight:800;color:var(--g2)}.title{font-weight:700}.unit{text-align:center;font-weight:800}.tag{font-size:12px;background:#f1f4f2;padding:6px 8px;border-radius:8px;text-align:center}.empty{text-align:center;padding:34px;color:var(--muted)}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}.tablewrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:700px}.table th,.table td{padding:11px 10px;border-bottom:1px solid #e8eeea;text-align:left;font-size:14px}.table th{background:#f4f8f5;color:var(--muted);font-size:12px;text-transform:uppercase}.badge{display:inline-block;padding:5px 8px;border-radius:8px;background:#eaf7ef;color:var(--g2);font-weight:800;font-size:12px}.note{background:#fafcfb;border:1px dashed #cbd8d1;padding:14px;border-radius:12px;margin-top:16px}
+@media(max-width:760px){header{padding:9px 12px}.logo{width:48px;height:48px}.school{font-size:14px}.back{padding:8px 10px;font-size:13px}.grid{grid-template-columns:1fr}.hero h1{font-size:22px}.head{display:none}.row{grid-template-columns:35px 90px 1fr 55px}.row .tag{grid-column:3/5;justify-self:start}}
 </style>
-
+</head>
 <body>
-<header class="school-header">
-  <div class="school-header-inner">
-    <img src="logo.png" alt="Green Garden College of Health Sciences & Technology logo" class="school-logo">
-    <div class="school-title">
-      <h1>Green Garden College of Health Sciences &amp; Technology, Gusau</h1>
-      <p>Course Management</p>
-    </div>
-    <a class="back-btn" href="admin.html">← Back</a>
-  </div>
+<header>
+<img src="logo.png" alt="Green Garden College of Health Sciences & Technology logo" class="logo">
+<div class="school">Green Garden College of Health Sciences &amp; Technology, Gusau</div>
+<a class="back" href="admin.html">← Back</a>
 </header>
-
-
 <main>
-<section class="course-hero">
-  <h2>Automatic Student Course Allocation</h2>
-  <p>Allocate approved courses automatically from the student's Programme, Academic Level, Semester and curriculum.</p>
-</section>
+<section class="hero"><h1>Programme Course Setup</h1><p>HODs select the courses that belong to each Programme and Academic Level. Students automatically receive the selected courses during registration.</p></section>
 
+<section class="card"><h2>Course Allocation Setup</h2><div id="msg" class="message"></div>
 <div class="grid">
-<section class="card">
-<h2>Allocation Setup</h2>
-<div id="message" class="message"></div>
-<form id="allocationForm">
-
-<label for="sessionId">Academic Session <span class="required">*</span></label>
-<select id="sessionId" required><option value="">Select academic session</option></select>
-
-<label for="semesterId">Semester <span class="required">*</span></label>
-<select id="semesterId" required disabled><option value="">Select session first</option></select>
-
-<label for="programmeId">Programme <span class="required">*</span></label>
-<select id="programmeId" required disabled><option value="">Loading programmes...</option></select>
-
-<label for="levelId">Academic Level <span class="required">*</span></label>
-<select id="levelId" required disabled><option value="">Loading levels...</option></select>
-
-<label for="studentId">Student <span class="required">*</span></label>
-<select id="studentId" required disabled><option value="">Select Programme and Level first</option></select>
-
-<div class="allocation-info">
-<strong>Automatic allocation</strong>
-<span>The system reads approved curriculum mappings for the selected Programme, Level and Semester. Students do not manually select courses.</span>
+<div><label>Programme <span class="required">*</span></label><select id="programme"><option value="">Select programme</option></select><div class="help">Choose the Programme first.</div></div>
+<div><label>Academic Level <span class="required">*</span></label><select id="level"><option value="">Select academic level</option></select><div class="help">100 Level, 200 Level or 300 Level.</div></div>
 </div>
-
-<div class="course-box">
-<div class="course-box-head"><strong>Courses to be Allocated</strong><span id="courseCount">0 Courses</span></div>
-<div id="courseList" class="course-list"><div class="empty">Select session, semester, programme and level.</div></div>
-</div>
-
-<div class="btns">
-<button class="primary" type="submit" id="allocateBtn" disabled>Allocate Courses</button>
-<button class="secondary" type="button" id="clearBtn">Clear</button>
-</div>
-</form>
-
-<div class="hint">Course allocation is a master workflow. Carryover courses are derived from Results and should appear below the student's automatic courses.</div>
+<div class="summary"><b>HOD course setup:</b> Select the Programme and Level, then tick the courses that belong to that level. This page uses existing master courses; it does not create new courses.</div>
 </section>
 
-<section class="card">
-<h2>Automatic Student Course Allocation</h2>
-<div class="toolbar">
-<input id="search" type="search" placeholder="Search student, ID, admission no., programme, level or course...">
-<span class="count" id="allocationCount">0 Allocations</span>
-</div>
-<div class="filters">
-<select id="filterSession"><option value="">All Sessions</option></select>
-<select id="filterSemester"><option value="">All Semesters</option></select>
-<select id="filterProgramme"><option value="">All Programmes</option></select>
-<select id="filterLevel"><option value="">All Levels</option></select>
-</div>
-<div class="table-wrap">
-<table>
-<thead><tr>
-<th>Student</th><th>Student ID</th><th>Admission No.</th><th>Programme</th><th>Level</th>
-<th>Session</th><th>Semester</th><th>Courses</th><th>Status</th><th>Actions</th>
-</tr></thead>
-<tbody id="allocationTable"><tr><td colspan="10" class="empty">Loading allocations...</td></tr></tbody>
-</table>
-</div>
-<div class="carryover-box">
-<h3>Carryover Courses</h3>
-<p>Carryover courses are not entered manually here. They will be derived from eligible failed results and displayed below the automatic course list in the student's portal.</p>
-</div>
+<section class="card"><h2>All Courses</h2>
+<div class="toolbar"><input id="search" class="search" type="search" placeholder="Search course code or title..."><span id="courseCount" class="count">0 Courses</span><button id="select" class="secondary" type="button">Select Visible</button><button id="clearVisible" class="secondary" type="button">Clear Visible</button></div>
+<div id="courseList" class="list"><div class="empty">Select a Programme and Academic Level to load courses.</div></div>
+<div class="actions"><button id="save" class="primary" type="button" disabled>Save Selected Courses</button><button id="clear" class="secondary" type="button">Clear Selection</button><span id="selected" class="count">0 Selected</span></div>
+<div class="note">A course may be attached to more than one Programme or Level when required by the school's curriculum. The course's existing Semester value is preserved and will be used when students view/register for that semester.</div>
 </section>
-</div>
+
+<section class="card"><h2>Saved Programme Course Structure</h2>
+<div class="toolbar"><input id="mapSearch" class="search" type="search" placeholder="Search programme, level, course code or title..."><span id="mapCount" class="count">0 Mappings</span></div>
+<div class="tablewrap"><table class="table"><thead><tr><th>Programme</th><th>Level</th><th>Course</th><th>Unit</th><th>Semester</th><th>Status</th><th>Action</th></tr></thead><tbody id="maps"><tr><td colspan="7" class="empty">Loading saved course mappings...</td></tr></tbody></table></div>
+</section>
 </main>
-<footer>GGCHST Student &amp; Management System</footer>
 
 <script type="module">
-import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import {getFirestore,collection,addDoc,updateDoc,doc,onSnapshot,query,orderBy,serverTimestamp}
-from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-const firebaseConfig={
-  apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
-  authDomain:"ggchst-sms-new.firebaseapp.com",
-  projectId:"ggchst-sms-new",
-  storageBucket:"ggchst-sms-new.firebasestorage.app",
-  messagingSenderId:"942770190211",
-  appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
-};
+const firebaseConfig={apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
+const app=getApps().length?getApp():initializeApp(firebaseConfig),db=getFirestore(app),$=id=>document.getElementById(id);
+let programmes=[],levels=[],courses=[],maps=[],selected=new Set(),busy=false;
 
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
+const active=x=>{let s=String(x??"").toLowerCase();return x!==false&&s!=="inactive"&&s!=="disabled"},
+norm=x=>String(x??"").trim().toLowerCase(),
+pname=x=>x?.name||x?.programmeName||x?.title||"",
+lname=x=>x?.name||x?.levelName||x?.label||"",
+cc=x=>x?.courseCode||x?.code||"",
+ct=x=>x?.courseTitle||x?.courseName||x?.title||"",
+cu=x=>Number(x?.courseUnit??x?.unit??x?.creditUnit??0),
+cs=x=>x?.semester||x?.semesterName||"",
+esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 
-const form=document.getElementById("allocationForm");
-const sessionId=document.getElementById("sessionId");
-const semesterId=document.getElementById("semesterId");
-const programmeId=document.getElementById("programmeId");
-const levelId=document.getElementById("levelId");
-const studentId=document.getElementById("studentId");
-const courseList=document.getElementById("courseList");
-const courseCount=document.getElementById("courseCount");
-const allocateBtn=document.getElementById("allocateBtn");
-const clearBtn=document.getElementById("clearBtn");
-const message=document.getElementById("message");
-const table=document.getElementById("allocationTable");
-const search=document.getElementById("search");
-const allocationCount=document.getElementById("allocationCount");
-const filterSession=document.getElementById("filterSession");
-const filterSemester=document.getElementById("filterSemester");
-const filterProgramme=document.getElementById("filterProgramme");
-const filterLevel=document.getElementById("filterLevel");
-
-let sessions=[],semesters=[],programmes=[],levels=[],students=[],courses=[],mappings=[],allocations=[];
-
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
-function norm(v){return String(v??"").trim().toLowerCase();}
-function active(a){return a.filter(x=>norm(x.status)!=="inactive"&&norm(x.status)!=="closed");}
-function msg(t,type="success"){message.textContent=t;message.className="message "+type;message.style.display="block";clearTimeout(window.mt);window.mt=setTimeout(()=>message.style.display="none",4500);}
-function fill(el,list,placeholder,nameFn){el.innerHTML=`<option value="">${placeholder}</option>`;list.forEach(x=>{let o=document.createElement("option");o.value=x.id;o.textContent=nameFn(x);el.appendChild(o);});el.disabled=!list.length;}
-function context(){return {s:sessions.find(x=>x.id===sessionId.value),sem:semesters.find(x=>x.id===semesterId.value),p:programmes.find(x=>x.id===programmeId.value),l:levels.find(x=>x.id===levelId.value)};}
-
-function fillSessions(){
-  const list=[...sessions].sort((a,b)=>String(b.name||"").localeCompare(String(a.name||"")));
-  fill(sessionId,list,"Select academic session",x=>x.name||"Unnamed Session");
-  fill(filterSession,list,"All Sessions",x=>x.name||"Unnamed Session");
+function message(t,type="success"){$("msg").textContent=t;$("msg").className="message "+type;$("msg").style.display="block";clearTimeout(window.mt);window.mt=setTimeout(()=>$("msg").style.display="none",4500)}
+function fill(id,rows,placeholder,namefn){let el=$(id),old=el.value;el.innerHTML='<option value="">'+placeholder+'</option>';rows.filter(x=>active(x.status)).sort((a,b)=>namefn(a).localeCompare(namefn(b))).forEach(x=>{let o=document.createElement("option");o.value=x.id;o.textContent=namefn(x);el.appendChild(o)});if(rows.some(x=>x.id===old))el.value=old}
+function visible(){let q=norm($("search").value);return courses.filter(x=>active(x.status)).filter(x=>!q||norm(cc(x)).includes(q)||norm(ct(x)).includes(q)).sort((a,b)=>cc(a).localeCompare(cc(b)))}
+function render(){
+ let rows=visible();$("courseCount").textContent=rows.length+" Course"+(rows.length===1?"":"s");
+ if(!$("programme").value||!$("level").value){$("courseList").innerHTML='<div class="empty">Select a Programme and Academic Level to load courses.</div>';$("save").disabled=true;return}
+ if(!rows.length){$("courseList").innerHTML='<div class="empty">No active courses found in the courses collection.</div>';$("save").disabled=false;return}
+ $("courseList").innerHTML='<div class="head"><div></div><div>Code</div><div>Course Title</div><div>Unit</div><div>Semester</div></div>'+rows.map(c=>'<label class="row"><input type="checkbox" data-id="'+esc(c.id)+'" '+(selected.has(c.id)?"checked":"")+'><div class="code">'+esc(cc(c))+'</div><div><div class="title">'+esc(ct(c))+'</div><div class="meta">'+esc(c.courseType||c.type||"Course")+'</div></div><div class="unit">'+esc(cu(c))+'</div><div class="tag">'+esc(cs(c)||"—")+'</div></label>').join("");
+ $("save").disabled=false;$("selected").textContent=selected.size+" Selected";
 }
-function fillSemesters(){
-  const sid=sessionId.value;
-  const list=active(semesters).filter(x=>!sid||x.sessionId===sid);
-  fill(semesterId,list,"Select semester",x=>x.name||x.semester||"Semester");
-  fill(filterSemester,active(semesters),"All Semesters",x=>(x.name||x.semester||"Semester")+(x.sessionName?" — "+x.sessionName:""));
+function loadSelected(){selected=new Set();let p=$("programme").value,l=$("level").value;if(p&&l)maps.filter(m=>String(m.programmeId||"")===p&&String(m.levelId||"")===l&&norm(m.status)!=="inactive"&&m.courseId).forEach(m=>selected.add(m.courseId));render();$("selected").textContent=selected.size+" Selected"}
+$("programme").onchange=()=>loadSelected();$("level").onchange=()=>loadSelected();$("search").oninput=render;
+$("courseList").onchange=e=>{let c=e.target.closest("[data-id]");if(!c)return;c.checked?selected.add(c.dataset.id):selected.delete(c.dataset.id);$("selected").textContent=selected.size+" Selected"};
+$("select").onclick=()=>{if(!$("programme").value||!$("level").value)return message("Select a Programme and Academic Level first.","error");visible().forEach(c=>selected.add(c.id));render()};
+$("clearVisible").onclick=()=>{visible().forEach(c=>selected.delete(c.id));render()};
+$("clear").onclick=()=>{selected=new Set();render()};
+
+async function saveStructure(){
+ if(busy)return;let p=programmes.find(x=>x.id===$("programme").value),l=levels.find(x=>x.id===$("level").value);if(!p||!l)return message("Please select a Programme and Academic Level.","error");
+ busy=true;$("save").disabled=true;$("save").textContent="Saving...";
+ try{
+  let old=maps.filter(m=>String(m.programmeId||"")===p.id&&String(m.levelId||"")===l.id),chosen=courses.filter(c=>selected.has(c.id)),chosenSet=new Set(chosen.map(c=>c.id));
+  for(let c of chosen){let found=old.find(m=>String(m.courseId||"")===c.id),data={programmeId:p.id,programmeName:pname(p),levelId:l.id,levelName:lname(l),courseId:c.id,courseCode:cc(c),courseName:ct(c),courseTitle:ct(c),courseUnit:cu(c),semester:cs(c),courseType:c.courseType||c.type||"Core",status:"Active",updatedAt:serverTimestamp()};if(found)await updateDoc(doc(db,"curriculumMappings",found.id),data);else await addDoc(collection(db,"curriculumMappings"),{...data,createdAt:serverTimestamp()})}
+  for(let m of old)if(m.courseId&&!chosenSet.has(m.courseId)&&norm(m.status)!=="inactive")await updateDoc(doc(db,"curriculumMappings",m.id),{status:"Inactive",updatedAt:serverTimestamp()});
+  message(chosen.length+" course"+(chosen.length===1?"":"s")+" saved for "+pname(p)+" — "+lname(l)+".");
+ }catch(e){console.error(e);message(e.message||"Could not save course structure. Check Firebase permissions.","error")}
+ finally{busy=false;$("save").disabled=false;$("save").textContent="Save Selected Courses"}
 }
-function fillProgrammes(){
-  const list=active(programmes).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
-  fill(programmeId,list,"Select programme",x=>(x.name||"Unnamed Programme")+(x.code?" ("+x.code+")":""));
-  fill(filterProgramme,list,"All Programmes",x=>(x.name||"Unnamed Programme")+(x.code?" ("+x.code+")":""));
+$("save").onclick=saveStructure;
+
+function renderMaps(){
+ let q=norm($("mapSearch").value),rows=maps.filter(m=>norm(m.status)!=="inactive").filter(m=>!q||[m.programmeName,m.programme,m.levelName,m.level,m.courseCode,m.courseName,m.courseTitle,m.semester].some(v=>norm(v).includes(q))).sort((a,b)=>String(a.programmeName||"").localeCompare(String(b.programmeName||""))||String(a.levelName||"").localeCompare(String(b.levelName||""))||String(a.courseCode||"").localeCompare(String(b.courseCode||"")));
+ $("mapCount").textContent=rows.length+" Mapping"+(rows.length===1?"":"s");
+ $("maps").innerHTML=rows.length?rows.map(m=>'<tr><td>'+esc(m.programmeName||m.programme||"—")+'</td><td>'+esc(m.levelName||m.level||"—")+'</td><td><b>'+esc(m.courseCode||"")+'</b><br><span class="meta">'+esc(m.courseName||m.courseTitle||"")+'</span></td><td>'+esc(m.courseUnit||0)+'</td><td>'+esc(m.semester||"—")+'</td><td><span class="badge">Active</span></td><td><button class="remove" data-remove="'+esc(m.id)+'" type="button">Remove</button></td></tr>').join(""):'<tr><td colspan="7" class="empty">No saved course mappings found.</td></tr>';
 }
-function fillLevels(){
-  const list=active(levels).sort((a,b)=>(Number(a.displayOrder)||9999)-(Number(b.displayOrder)||9999));
-  fill(levelId,list,"Select academic level",x=>(x.name||"Unnamed Level")+(x.code?" ("+x.code+")":""));
-  fill(filterLevel,list,"All Levels",x=>x.name||"Unnamed Level");
-}
+$("mapSearch").oninput=renderMaps;
+$("maps").onclick=async e=>{let b=e.target.closest("[data-remove]");if(!b)return;let m=maps.find(x=>x.id===b.dataset.remove);if(!m||!confirm("Remove "+(m.courseCode||"this course")+" from "+(m.programmeName||m.programme)+" — "+(m.levelName||m.level)+"?"))return;b.disabled=true;try{await updateDoc(doc(db,"curriculumMappings",m.id),{status:"Inactive",updatedAt:serverTimestamp()});message("Course removed from the Programme + Level structure.")}catch(e){message(e.message||"Could not remove course.","error")}finally{b.disabled=false}};
 
-function findCourses(){
-  const c=context();
-  if(!c.p||!c.l||!c.sem)return [];
-  const maps=mappings.filter(m=>
-    m.programmeId===c.p.id && m.levelId===c.l.id &&
-    (m.semesterId===c.sem.id||norm(m.semester)===norm(c.sem.name||c.sem.semester)) &&
-    norm(m.status||"active")!=="inactive"
-  );
-  return maps.map(m=>{
-    const course=courses.find(x=>x.id===m.courseId);
-    return course?course:{id:m.courseId,courseCode:m.courseCode||"",courseTitle:m.courseName||m.courseTitle||"",courseUnit:m.courseUnit??""};
-  }).filter(x=>x.id||x.courseCode);
-}
-
-function renderCourses(){
-  const list=findCourses();
-  courseCount.textContent=`${list.length} ${list.length===1?"Course":"Courses"}`;
-  if(!list.length){courseList.innerHTML='<div class="empty">No approved curriculum courses found for this Programme, Level and Semester.</div>';allocateBtn.disabled=true;return;}
-  courseList.innerHTML=list.map(c=>`<div class="course-item"><span class="course-code">${esc(c.courseCode||"—")}</span><span class="course-title">${esc(c.courseTitle||"Unnamed Course")}</span><span class="course-unit">${esc(c.courseUnit??"—")} Unit</span></div>`).join("");
-  allocateBtn.disabled=!studentId.value;
-}
-
-function fillStudents(){
-  const pid=programmeId.value,lid=levelId.value;
-  const list=students.filter(s=>
-    norm(s.status||"active")!=="inactive" &&
-    (!pid||s.programmeId===pid) && (!lid||s.levelId===lid)
-  ).sort((a,b)=>String(a.fullName||a.name||"").localeCompare(String(b.fullName||b.name||"")));
-  studentId.innerHTML='<option value="">Select student</option>';
-  list.forEach(s=>{let o=document.createElement("option");o.value=s.id;o.textContent=`${s.fullName||s.name||"Unnamed Student"} — ${s.studentId||s.matricNo||"No ID"}${s.admissionNumber?" — "+s.admissionNumber:""}`;studentId.appendChild(o);});
-  studentId.disabled=!list.length;
-  if(!list.length)studentId.innerHTML='<option value="">No students match Programme and Level</option>';
-  renderCourses();
-}
-
-function existing(student,ctx){
-  return allocations.find(a=>a.studentId===student.id&&a.sessionId===ctx.s.id&&a.semesterId===ctx.sem.id&&norm(a.status||"active")!=="inactive");
-}
-
-function renderAllocations(){
-  const t=norm(search.value);
-  const rows=allocations.filter(a=>
-    (!filterSession.value||a.sessionId===filterSession.value)&&
-    (!filterSemester.value||a.semesterId===filterSemester.value)&&
-    (!filterProgramme.value||a.programmeId===filterProgramme.value)&&
-    (!filterLevel.value||a.levelId===filterLevel.value)
-  ).filter(a=>[
-    a.studentName,a.studentIdNumber,a.admissionNumber,a.programmeName,a.levelName,a.sessionName,a.semesterName,
-    ...(Array.isArray(a.courseNames)?a.courseNames:[])
-  ].some(v=>norm(v).includes(t)));
-  allocationCount.textContent=`${rows.length} ${rows.length===1?"Allocation":"Allocations"}`;
-  if(!rows.length){table.innerHTML='<tr><td colspan="10" class="empty">No automatic allocations found.</td></tr>';return;}
-  table.innerHTML=rows.map(a=>`<tr>
-    <td><strong>${esc(a.studentName||"Unnamed Student")}</strong></td>
-    <td>${esc(a.studentIdNumber||"—")}</td><td>${esc(a.admissionNumber||"—")}</td>
-    <td>${esc(a.programmeName||"—")}</td><td>${esc(a.levelName||"—")}</td>
-    <td>${esc(a.sessionName||"—")}</td><td>${esc(a.semesterName||"—")}</td>
-    <td><div class="course-summary">${(a.courseNames||[]).slice(0,4).map(esc).join(", ")}${(a.courseNames||[]).length>4?" +"+((a.courseNames||[]).length-4)+" more":""}</div></td>
-    <td><span class="badge active">Allocated</span></td>
-    <td><div class="actions"><button class="del" data-delete="${esc(a.id)}">Remove</button></div></td>
-  </tr>`).join("");
-}
-
-form.addEventListener("submit",async e=>{
-  e.preventDefault();
-  const c=context(),student=students.find(x=>x.id===studentId.value),list=findCourses();
-  if(!c.s||!c.sem||!c.p||!c.l||!student||!list.length){msg("Please complete the selection and ensure curriculum courses exist.","error");return;}
-  if(existing(student,c)){msg("This student already has an allocation for this session and semester.","error");return;}
-  allocateBtn.disabled=true;allocateBtn.textContent="Allocating...";
-  try{
-    const courseIds=list.map(x=>x.id).filter(Boolean);
-    const courseNames=list.map(x=>`${x.courseCode||""} — ${x.courseTitle||x.courseName||""}`.replace(/^\s*—\s*|\s*—\s*$/g,"").trim());
-    const payload={
-      studentId:student.id,studentIdNumber:student.studentId||student.matricNo||"",admissionNumber:student.admissionNumber||"",
-      studentName:student.fullName||student.name||"",studentUid:student.studentUid||student.authUid||student.uid||"",
-      programmeId:c.p.id,programmeName:c.p.name||"",programmeCode:c.p.code||"",
-      levelId:c.l.id,levelName:c.l.name||"",sessionId:c.s.id,sessionName:c.s.name||"",
-      semesterId:c.sem.id,semesterName:c.sem.name||c.sem.semester||"",courseIds,courseNames,
-      allocationType:"automatic",source:"curriculumMapping",status:"active",updatedAt:serverTimestamp()
-    };
-    await addDoc(collection(db,"studentCourseAllocations"),{...payload,createdAt:serverTimestamp()});
-    msg(`Courses allocated automatically to ${payload.studentName}.`);
-  }catch(err){console.error(err);msg("Could not allocate courses. Check Firebase permissions.","error");}
-  finally{allocateBtn.disabled=false;allocateBtn.textContent="Allocate Courses";}
-});
-
-sessionId.addEventListener("change",()=>{fillSemesters();semesterId.value="";programmeId.value="";levelId.value="";studentId.value="";studentId.disabled=true;renderCourses();});
-semesterId.addEventListener("change",renderCourses);
-programmeId.addEventListener("change",fillStudents);
-levelId.addEventListener("change",fillStudents);
-studentId.addEventListener("change",renderCourses);
-[search,filterSession,filterSemester,filterProgramme,filterLevel].forEach(x=>x.addEventListener("input",renderAllocations));
-clearBtn.addEventListener("click",()=>{form.reset();fillSessions();fillSemesters();fillProgrammes();fillLevels();studentId.disabled=true;studentId.innerHTML='<option value="">Select Programme and Level first</option>';courseList.innerHTML='<div class="empty">Select session, semester, programme and level.</div>';courseCount.textContent="0 Courses";allocateBtn.disabled=true;message.style.display="none";});
-
-table.addEventListener("click",async e=>{
-  const b=e.target.closest("[data-delete]");if(!b)return;
-  const a=allocations.find(x=>x.id===b.dataset.delete);if(!a)return;
-  if(!confirm(`Remove automatic allocation for ${a.studentName||"this student"}?`))return;
-  try{await updateDoc(doc(db,"studentCourseAllocations",a.id),{status:"inactive",updatedAt:serverTimestamp()});msg("Course allocation removed.");}
-  catch(err){console.error(err);msg("Could not remove the allocation.","error");}
-});
-
-onSnapshot(query(collection(db,"academicSessions"),orderBy("name","desc")),s=>{sessions=s.docs.map(d=>({id:d.id,...d.data()}));fillSessions();fillSemesters();},e=>{console.error(e);msg("Could not load academic sessions.","error");});
-onSnapshot(query(collection(db,"semesters"),orderBy("name","asc")),s=>{semesters=s.docs.map(d=>({id:d.id,...d.data()}));fillSemesters();renderAllocations();},e=>{console.error(e);msg("Could not load semesters.","error");});
-onSnapshot(query(collection(db,"programmes"),orderBy("name","asc")),s=>{programmes=s.docs.map(d=>({id:d.id,...d.data()}));fillProgrammes();renderAllocations();},e=>{console.error(e);msg("Could not load programmes.","error");});
-onSnapshot(query(collection(db,"academicLevels"),orderBy("displayOrder","asc")),s=>{levels=s.docs.map(d=>({id:d.id,...d.data()}));fillLevels();renderAllocations();},e=>{console.error(e);msg("Could not load academic levels.","error");});
-onSnapshot(collection(db,"students"),s=>{students=s.docs.map(d=>({id:d.id,...d.data()}));fillStudents();renderAllocations();},e=>{console.error(e);msg("Could not load students.","error");});
-onSnapshot(collection(db,"courses"),s=>{courses=s.docs.map(d=>({id:d.id,...d.data()}));renderCourses();},e=>{console.error(e);msg("Could not load courses.","error");});
-onSnapshot(collection(db,"curriculumMappings"),s=>{mappings=s.docs.map(d=>({id:d.id,...d.data()}));renderCourses();},e=>{console.error(e);msg("Could not load curriculum mappings.","error");});
-onSnapshot(collection(db,"studentCourseAllocations"),s=>{allocations=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>norm(x.status||"active")!=="inactive");renderAllocations();},e=>{console.error(e);msg("Could not load automatic allocations.","error");});
+onSnapshot(collection(db,"programmes"),s=>{programmes=s.docs.map(d=>({id:d.id,...d.data()}));fill("programme",programmes,"Select programme",pname);render()},e=>message("Could not load programmes: "+e.message,"error"));
+onSnapshot(collection(db,"academicLevels"),s=>{levels=s.docs.map(d=>({id:d.id,...d.data()}));fill("level",levels,"Select academic level",lname);render()},e=>message("Could not load levels: "+e.message,"error"));
+onSnapshot(collection(db,"courses"),s=>{courses=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>message("Could not load courses: "+e.message,"error"));
+onSnapshot(collection(db,"curriculumMappings"),s=>{maps=s.docs.map(d=>({id:d.id,...d.data()}));loadSelected();renderMaps()},e=>message("Could not load mappings: "+e.message,"error"));
 </script>
-
-</body>
-</html>
+</body></html>
