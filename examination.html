@@ -21,7 +21,7 @@
 </section>
 <section class="card"><h2>Examination Periods</h2><div class="toolbar"><input id="examSearch" type="search" placeholder="Search examination, session, semester, type..."><select id="filterExamSession"><option value="">All sessions</option></select><select id="filterExamSemester"><option value="">All semesters</option></select><select id="filterExamPeriodStatus"><option value="">All status</option><option>Draft</option><option>Scheduled</option><option>Active</option><option>Canceled</option><option>Postponed</option><option>Finished</option></select></div><div class="table-wrap"><table><thead><tr><th>#</th><th>Examination</th><th>Session</th><th>Semester</th><th>Type</th><th>Date Range</th><th>Status</th><th>Actions</th></tr></thead><tbody id="examTableBody"><tr><td colspan="8" class="empty">Loading examinations...</td></tr></tbody></table></div></section>
 <div style="height:2px;margin:25px 0;background:#e7ebef"></div>
-<section class="card"><h2 id="formTitle">Create Examination Timetable Entry</h2><form id="scheduleForm"><div class="grid">
+<section class="card"><h2 id="formTitle">Create Examination Timetable Entry</h2><form id="scheduleForm" novalidate><div class="grid">
 <div class="field span2"><label>Examination *</label><select id="examination" required><option value="">Select examination</option></select><div class="help">Select an existing examination period.</div></div>
 <div class="field"><label>Academic Session</label><input id="scheduleSession" readonly placeholder="Taken from examination" style="background:#f5f7fa"></div>
 <div class="field"><label>Semester</label><input id="scheduleSemester" readonly placeholder="Taken from examination" style="background:#f5f7fa"></div>
@@ -36,7 +36,7 @@
 <div class="field span2"><label>Invigilator(s)</label><select id="invigilators" multiple size="5"></select><div class="help">Hold Ctrl/Command to select more than one invigilator.</div></div>
 <div class="field"><label>Status *</label><select id="scheduleStatus" required><option>Draft</option><option>Scheduled</option><option>Published</option><option>Active</option><option>Canceled</option><option>Postponed</option><option>Finished</option></select></div>
 <div class="field full"><label>Notes</label><textarea id="scheduleNotes" placeholder="Optional examination schedule notes"></textarea></div></div>
-<div class="actions"><button type="submit" class="primary">Save Examination Timetable</button><button type="button" class="secondary" id="cancelEdit" style="display:none">Cancel Edit</button></div></form></section>
+<div class="actions"><button type="submit" class="primary" id="saveScheduleBtn">Save Examination Timetable</button><button type="button" class="secondary" id="cancelEdit" style="display:none">Cancel Edit</button></div></form></section>
 <section class="card"><h2>Examination Timetable</h2><div class="toolbar"><input id="search" type="search" placeholder="Search course, venue, invigilator, department..."><select id="filterExam"><option value="">All examinations</option></select><select id="filterDate"><option value="">All dates</option></select><select id="filterStatus"><option value="">All status</option><option>Draft</option><option>Scheduled</option><option>Active</option><option>Canceled</option><option>Postponed</option><option>Finished</option></select><select id="filterVenue"><option value="">All venues</option></select></div>
 <div class="table-wrap"><table><thead><tr><th>#</th><th>Examination</th><th>Course</th><th>Department</th><th>Programme</th><th>Level</th><th>Date</th><th>Time</th><th>Venue</th><th>Invigilator(s)</th><th>Status</th><th>Actions</th></tr></thead><tbody id="tableBody"><tr><td colspan="12" class="empty">Loading examination schedules...</td></tr></tbody></table></div></section></main>
 <script type="module">
@@ -236,23 +236,109 @@ async function deleteExamPeriod(id){
 
 $("scheduleForm").addEventListener("submit",async e=>{
  e.preventDefault();
- const ex=exams.find(x=>x.id===$("examination").value),c=courses.find(x=>x.id===$("course").value),v=venues.find(x=>x.id===$("venue").value),d=departments.find(x=>x.id===$("department").value),p=programmes.find(x=>x.id===$("programme").value),l=levels.find(x=>x.id===$("level").value);
- const inv=[...$("invigilators").selectedOptions].map(o=>lecturers.find(x=>x.id===o.value)).filter(Boolean);
- const date=$("examDate").value,start=$("startTime").value,end=$("endTime").value;
- if(!ex||!c)return notice("Please select the examination and course.","error");
- if(!date)return notice("Please select the examination date.","error");
- if(!start||!end)return notice("Please select the start and stop time.","error");
- if(end<=start)return notice("Stop time must be later than start time.","error");
- if(ex.startDate&&date<ex.startDate||ex.endDate&&date>ex.endDate)return notice("Exam date must fall within the selected examination period.","error");
- const data={examinationId:ex.id,examinationName:ex.name||"",sessionId:ex.sessionId||"",sessionName:ex.sessionName||"",semesterId:ex.semesterId||"",semesterName:ex.semesterName||"",courseId:c.id,courseCode:c.code,courseName:c.name,courseUnit:c.unit,departmentId:d?.id||c.departmentId||"",department:d?.name||c.department||"",programmeId:p?.id||c.programmeId||"",programme:p?.name||c.programme||"",levelId:l?.id||c.levelId||"",level:l?.name||c.level||"",examDate:date,startTime:start,endTime:end,venueId:v?.id||"",venue:v?.name||"",invigilatorIds:inv.map(x=>x.id),invigilatorNames:inv.map(x=>x.name),status:$("scheduleStatus").value,notes:$("scheduleNotes").value.trim(),updatedAt:serverTimestamp()};
- if(venueClash(data,editingScheduleId))return notice("Venue clash: another examination is already scheduled in this venue at an overlapping time.","error");
- if(courseClash(data,editingScheduleId))return notice("Course clash: this course is already scheduled at an overlapping time.","error");
+ const btn=$("saveScheduleBtn");
+ if(btn.disabled)return;
+
  try{
-  if(editingScheduleId)await updateDoc(doc(db,"examinationSchedules",editingScheduleId),data);
-  else{data.createdAt=serverTimestamp();await addDoc(collection(db,"examinationSchedules"),data)}
-  notice(data.status==="Published"?(editingScheduleId?"Examination timetable updated and published successfully.":"Examination timetable saved and published successfully."):(editingScheduleId?"Examination timetable updated successfully.":"Examination timetable saved successfully."));
+  const ex=exams.find(x=>x.id===$("examination").value);
+  const c=courses.find(x=>x.id===$("course").value);
+  const v=venues.find(x=>x.id===$("venue").value);
+  const d=departments.find(x=>x.id===$("department").value);
+  const p=programmes.find(x=>x.id===$("programme").value);
+  const l=levels.find(x=>x.id===$("level").value);
+  const inv=[...$("invigilators").selectedOptions].map(o=>lecturers.find(x=>x.id===o.value)).filter(Boolean);
+  const date=$("examDate").value;
+  const startTime=$("startTime").value;
+  const endTime=$("endTime").value;
+  const status=$("scheduleStatus").value;
+
+  // Explicit validation. novalidate is used so these messages are always shown.
+  if(!ex)return notice("Please select an examination.","error");
+  if(!c)return notice("Please select a course.","error");
+  if(!date)return notice("Please select the examination date.","error");
+  if(!startTime)return notice("Please select the start time.","error");
+  if(!endTime)return notice("Please select the stop time.","error");
+  if(endTime<=startTime)return notice("Stop time must be later than start time.","error");
+  if((ex.startDate&&date<ex.startDate)||(ex.endDate&&date>ex.endDate)){
+   return notice("Exam date must fall within the selected examination period.","error");
+  }
+
+  const data={
+   examinationId:ex.id,
+   examinationName:ex.name||"",
+   sessionId:ex.sessionId||"",
+   sessionName:ex.sessionName||"",
+   semesterId:ex.semesterId||"",
+   semesterName:ex.semesterName||"",
+   courseId:c.id,
+   courseCode:c.code||"",
+   courseName:c.name||"",
+   courseUnit:c.unit??"",
+   departmentId:d?.id||c.departmentId||"",
+   department:d?.name||c.department||"",
+   programmeId:p?.id||c.programmeId||"",
+   programme:p?.name||c.programme||"",
+   levelId:l?.id||c.levelId||"",
+   level:l?.name||c.level||"",
+   examDate:date,
+   startTime:startTime,
+   endTime:endTime,
+   venueId:v?.id||"",
+   venue:v?.name||"",
+   invigilatorIds:inv.map(x=>x.id),
+   invigilatorNames:inv.map(x=>x.name),
+   status:status||"Draft",
+   notes:$("scheduleNotes").value.trim(),
+   updatedAt:serverTimestamp()
+  };
+
+  if(venueClash(data,editingScheduleId)){
+   return notice("Venue clash: another examination is already scheduled in this venue at an overlapping time.","error");
+  }
+  if(courseClash(data,editingScheduleId)){
+   return notice("Course clash: this course is already scheduled at an overlapping time.","error");
+  }
+
+  btn.disabled=true;
+  const oldText=btn.textContent;
+  btn.textContent=editingScheduleId?"Updating...":"Saving...";
+
+  let savedId=editingScheduleId;
+  if(editingScheduleId){
+   await updateDoc(doc(db,"examinationSchedules",editingScheduleId),data);
+  }else{
+   data.createdAt=serverTimestamp();
+   const ref=await addDoc(collection(db,"examinationSchedules"),data);
+   savedId=ref.id;
+  }
+
+  // Audit failure must never make a successful timetable save look like a failed save.
+  try{
+   await addDoc(collection(db,"auditLogs"),{
+    action:editingScheduleId?"update":"create",
+    module:"examinationSchedules",
+    entityType:"examinationSchedule",
+    entityId:savedId,
+    uid:window.currentUserUid||"",
+    timestamp:new Date().toISOString(),
+    result:"success"
+   });
+  }catch(auditErr){
+   console.warn("Timetable saved, but audit log failed:",auditErr);
+  }
+
+  notice(status==="Published"
+   ? (editingScheduleId?"Examination timetable updated and published successfully.":"Examination timetable saved and published successfully.")
+   : (editingScheduleId?"Examination timetable updated successfully.":"Examination timetable saved successfully."));
   resetScheduleForm();
- }catch(err){console.error(err);notice("Unable to save examination timetable: "+err.message,"error")}
+
+ }catch(err){
+  console.error("EXAMINATION TIMETABLE SAVE ERROR:",err);
+  notice("Unable to save examination timetable: "+(err?.message||err),"error");
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Save Examination Timetable";
+ }
 });
 
 function overlap(a,b,c,d){return a<d&&c<b}
@@ -271,6 +357,9 @@ async function deleteSchedule(id){
  if(!confirm(`Delete examination timetable entry for ${x.courseCode||x.courseName} on ${x.examDate}?`))return;
  try{await deleteDoc(doc(db,"examinationSchedules",id));notice("Examination timetable entry deleted successfully.")}catch(err){console.error(err);notice("Unable to delete timetable entry: "+err.message,"error")}
 }
+
+window.addEventListener("error",e=>{console.error(e.error||e.message);notice("Page error: "+(e.message||"Unknown JavaScript error"),"error")});
+
 
 function listen(name,fn){return onSnapshot(collection(db,name),snap=>fn(snap.docs.map(d=>info(d.data(),d.id))),err=>{console.error(name,err);notice("Unable to load "+name+": "+err.message,"error")})}
 
