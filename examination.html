@@ -91,14 +91,14 @@ function fillSelect(id,items,placeholder,keep=true){
 }
 
 function renderSessionSemester(){
- const oldSession=$("session").value,oldSemester=$("semester").value;
- $("session").innerHTML='<option value="">Select session</option>'+sessions.map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.sessionName||"")}</option>`).join("");
- if(oldSession && sessions.some(x=>x.id===oldSession))$("session").value=oldSession;
- const sid=$("session").value;
+ const oldSession=$("examSession").value,oldSemester=$("examSemester").value;
+ $("examSession").innerHTML='<option value="">Select session</option>'+sessions.map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.sessionName||"")}</option>`).join("");
+ if(oldSession && sessions.some(x=>x.id===oldSession))$("examSession").value=oldSession;
+ const sid=$("examSession").value;
  const list=semesters.filter(x=>!sid||x.sessionId===sid);
- $("semester").disabled=!sid;
- $("semester").innerHTML='<option value="">Select semester</option>'+list.map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.semesterName||"")}</option>`).join("");
- if(oldSemester && list.some(x=>x.id===oldSemester))$("semester").value=oldSemester;
+ $("examSemester").disabled=!sid;
+ $("examSemester").innerHTML='<option value="">Select semester</option>'+list.map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.semesterName||"")}</option>`).join("");
+ if(oldSemester && list.some(x=>x.id===oldSemester))$("examSemester").value=oldSemester;
 }
 
 function renderMasterExaminationSelect(){
@@ -188,9 +188,9 @@ function updateScheduleFromExam(){
  $("dateHelp").textContent=ex?("Allowed examination period: "+(ex.startDate||"—")+" to "+(ex.endDate||"—")):"";
 }
 
-$("session").addEventListener("change",()=>{
- const old=$("semester").value;renderSessionSemester();
- if(old && [...$("semester").options].some(o=>o.value===old))$("semester").value=old;
+$("examSession").addEventListener("change",()=>{
+ const old=$("examSemester").value;renderSessionSemester();
+ if(old && [...$("examSemester").options].some(o=>o.value===old))$("examSemester").value=old;
 });
 $("examination").addEventListener("change",updateScheduleFromExam);
 $("course").addEventListener("change",()=>{
@@ -244,7 +244,7 @@ $("scheduleForm").addEventListener("submit",async e=>{
  if(!start||!end)return notice("Please select the start and stop time.","error");
  if(end<=start)return notice("Stop time must be later than start time.","error");
  if(ex.startDate&&date<ex.startDate||ex.endDate&&date>ex.endDate)return notice("Exam date must fall within the selected examination period.","error");
- const data={examinationId:ex.id,examinationName:ex.name||"",sessionId:ex.sessionId||"",sessionName:ex.sessionName||"",semesterId:ex.semesterId||"",semesterName:ex.semesterName||"",courseId:c.id,courseCode:c.code,courseName:c.name,courseUnit:c.unit,departmentId:d?.id||c.departmentId||"",department:d?.name||c.department||"",programmeId:p?.id||c.programmeId||"",programme:p?.name||c.programme||"",levelId:l?.id||c.levelId||"",level:l?.name||c.level||"",examDate:date,startTime:start,endTime:end,venueId:v?.id||"",venue:v?.name||"",invigilatorIds:inv.map(x=>x.id),invigilatorNames:inv.map(x=>x.name),status:$("status").value,notes:$("notes").value.trim(),updatedAt:serverTimestamp()};
+ const data={examinationId:ex.id,examinationName:ex.name||"",sessionId:ex.sessionId||"",sessionName:ex.sessionName||"",semesterId:ex.semesterId||"",semesterName:ex.semesterName||"",courseId:c.id,courseCode:c.code,courseName:c.name,courseUnit:c.unit,departmentId:d?.id||c.departmentId||"",department:d?.name||c.department||"",programmeId:p?.id||c.programmeId||"",programme:p?.name||c.programme||"",levelId:l?.id||c.levelId||"",level:l?.name||c.level||"",examDate:date,startTime:start,endTime:end,venueId:v?.id||"",venue:v?.name||"",invigilatorIds:inv.map(x=>x.id),invigilatorNames:inv.map(x=>x.name),status:$("scheduleStatus").value,notes:$("scheduleNotes").value.trim(),updatedAt:serverTimestamp()};
  if(venueClash(data,editingScheduleId))return notice("Venue clash: another examination is already scheduled in this venue at an overlapping time.","error");
  if(courseClash(data,editingScheduleId))return notice("Course clash: this course is already scheduled at an overlapping time.","error");
  try{
@@ -261,9 +261,9 @@ function courseClash(x,ignore){return schedules.some(s=>s.id!==ignore&&s.examDat
 
 function editSchedule(id){
  const x=schedules.find(a=>a.id===id);if(!x)return;editingScheduleId=id;
- $("formTitle").textContent="Edit Examination Timetable Entry";$("examination").value=x.examinationId||"";updateScheduleFromExam();$("course").value=x.courseId||"";$("examDate").value=x.examDate||"";$("startTime").value=x.startTime||"";$("endTime").value=x.endTime||"";$("venue").value=x.venueId||"";$("department").value=x.departmentId||"";$("programme").value=x.programmeId||"";$("level").value=x.levelId||"";$("status").value=x.status||"Draft";$("notes").value=x.notes||"";[...$("invigilators").options].forEach(o=>o.selected=(x.invigilatorIds||[]).includes(o.value));$("cancelEdit").style.display="inline-block";scrollTo({top:0,behavior:"smooth"});
+ $("formTitle").textContent="Edit Examination Timetable Entry";$("examination").value=x.examinationId||"";updateScheduleFromExam();$("course").value=x.courseId||"";$("examDate").value=x.examDate||"";$("startTime").value=x.startTime||"";$("endTime").value=x.endTime||"";$("venue").value=x.venueId||"";$("department").value=x.departmentId||"";$("programme").value=x.programmeId||"";$("level").value=x.levelId||"";$("scheduleStatus").value=x.status||"Draft";$("scheduleNotes").value=x.notes||"";[...$("invigilators").options].forEach(o=>o.selected=(x.invigilatorIds||[]).includes(o.value));$("cancelEdit").style.display="inline-block";scrollTo({top:0,behavior:"smooth"});
 }
-function resetScheduleForm(){editingScheduleId=null;$("formTitle").textContent="Create Examination Timetable Entry";$("scheduleForm").reset();$("status").value="Draft";$("cancelEdit").style.display="none";$("scheduleSession").value="";$("scheduleSemester").value="";$("dateHelp").textContent="";$("examDate").removeAttribute("min");$("examDate").removeAttribute("max");[...$("invigilators").options].forEach(o=>o.selected=false)}
+function resetScheduleForm(){editingScheduleId=null;$("formTitle").textContent="Create Examination Timetable Entry";$("scheduleForm").reset();$("scheduleStatus").value="Draft";$("cancelEdit").style.display="none";$("scheduleSession").value="";$("scheduleSemester").value="";$("dateHelp").textContent="";$("examDate").removeAttribute("min");$("examDate").removeAttribute("max");[...$("invigilators").options].forEach(o=>o.selected=false)}
 $("cancelEdit").onclick=resetScheduleForm;
 
 async function deleteSchedule(id){
