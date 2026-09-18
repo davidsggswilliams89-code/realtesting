@@ -152,29 +152,38 @@ body:before{
 @media(max-width:390px){.portal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.portal-icon{flex-basis:39px}}
 
 
-/* Compact two-column portal buttons */
+/* CLEAN TWO-COLUMN ADMIN WORKSPACE */
 .portal-grid{
+  display:grid !important;
   grid-template-columns:repeat(2,minmax(0,1fr)) !important;
   gap:10px !important;
   width:100% !important;
+  align-items:stretch !important;
 }
 .portal-btn{
-  min-height:78px !important;
-  height:78px !important;
-  padding:8px 9px !important;
-  border-radius:15px !important;
+  display:flex !important;
+  align-items:center !important;
+  width:100% !important;
   min-width:0 !important;
+  height:78px !important;
+  min-height:78px !important;
+  max-height:78px !important;
+  padding:8px 10px !important;
+  margin:0 !important;
+  border-radius:16px !important;
+  overflow:hidden !important;
 }
 .portal-icon{
+  flex:0 0 42px !important;
   width:42px !important;
   height:42px !important;
   min-width:42px !important;
-  flex:0 0 42px !important;
+  margin-right:9px !important;
   border-radius:12px !important;
   font-size:21px !important;
-  margin-right:8px !important;
 }
 .portal-text{
+  flex:1 1 auto !important;
   min-width:0 !important;
   overflow:hidden !important;
 }
@@ -182,17 +191,19 @@ body:before{
   font-size:14px !important;
   line-height:1.08 !important;
   overflow-wrap:anywhere !important;
+  word-break:break-word !important;
 }
 .portal-text span{
   margin-top:3px !important;
   font-size:8px !important;
-  line-height:1.15 !important;
+  line-height:1.12 !important;
   overflow-wrap:anywhere !important;
 }
 .arrow{
-  font-size:18px !important;
-  padding-left:3px !important;
   flex:0 0 auto !important;
+  margin-left:6px !important;
+  padding-left:0 !important;
+  font-size:19px !important;
 }
 @media(max-width:600px){
   .portal-grid{
@@ -200,37 +211,40 @@ body:before{
     gap:8px !important;
   }
   .portal-btn{
-    min-height:70px !important;
     height:70px !important;
+    min-height:70px !important;
+    max-height:70px !important;
     padding:7px !important;
-    border-radius:13px !important;
+    border-radius:14px !important;
   }
   .portal-icon{
+    flex-basis:36px !important;
     width:36px !important;
     height:36px !important;
     min-width:36px !important;
-    flex-basis:36px !important;
-    font-size:18px !important;
-    margin-right:6px !important;
+    margin-right:7px !important;
     border-radius:10px !important;
+    font-size:18px !important;
   }
   .portal-text strong{font-size:12px !important}
   .portal-text span{font-size:7px !important}
-  .arrow{font-size:16px !important}
+  .arrow{font-size:16px !important;margin-left:4px !important}
 }
 @media(max-width:390px){
   .portal-grid{gap:7px !important}
   .portal-btn{
-    min-height:66px !important;
-    height:66px !important;
+    height:64px !important;
+    min-height:64px !important;
+    max-height:64px !important;
     padding:6px !important;
   }
   .portal-icon{
+    flex-basis:32px !important;
     width:32px !important;
     height:32px !important;
     min-width:32px !important;
-    flex-basis:32px !important;
     font-size:16px !important;
+    margin-right:6px !important;
   }
   .portal-text strong{font-size:11px !important}
   .portal-text span{display:none !important}
@@ -283,206 +297,147 @@ window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':
     <div class="section-title">ADMINISTRATION WORKSPACES</div>
 
     <div class="portal-grid">
-      <a class="portal-btn" href="admin-users.html">
-      <div class="portal-icon">⚙️
-
-<a class="portal-btn" href="academic-session.html">
-  <div class="portal-icon">📅</div>
-  <div class="portal-text"><strong>Academic Sessions</strong><span>Sessions and semesters</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="levels.html">
-  <div class="portal-icon">🎓</div>
-  <div class="portal-text"><strong>Academic Levels</strong><span>Manage student levels</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="department.html">
-  <div class="portal-icon">🏢</div>
-  <div class="portal-text"><strong>Departments</strong><span>Manage school departments</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="programme.html">
-  <div class="portal-icon">📚</div>
-  <div class="portal-text"><strong>Programmes</strong><span>Manage academic programmes</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="course-management.html">
-  <div class="portal-icon">📖</div>
-  <div class="portal-text"><strong>Course Management</strong><span>Create and manage courses</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="curriculum-mapping.html">
-  <div class="portal-icon">🗂️</div>
-  <div class="portal-text"><strong>Curriculum Mapping</strong><span>Programme course mapping</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="hod-course-assignment.html">
-  <div class="portal-icon">👨‍🏫</div>
-  <div class="portal-text"><strong>HOD Course Assignment</strong><span>Automatic student course allocation</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="admin-notes.html">
-  <div class="portal-icon">📝</div>
-  <div class="portal-text"><strong>Lecture Notes</strong><span>Manage lecturer lecture notes</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="admin-assignments-cloudinary.html">
-  <div class="portal-icon">📋</div>
-  <div class="portal-text"><strong>Assignments</strong><span>Manage school assignments</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="admin-finance-updated.html">
-  <div class="portal-icon">💳</div>
-  <div class="portal-text"><strong>Finance & Fees</strong><span>Approve and manage student payments</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="examination.html">
-  <div class="portal-icon">📝</div>
-  <div class="portal-text"><strong>Examinations</strong><span>Manage examination timetable</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="results.html">
-  <div class="portal-icon">📊</div>
-  <div class="portal-text"><strong>Results Management</strong><span>Enter and manage student results</span></div>
-  <div class="arrow">›</div>
-</a>
-
-<a class="portal-btn" href="admin-attendance.html">
-  <div class="portal-icon">✅</div>
-  <div class="portal-text"><strong>Attendance Management</strong><span>View and manage attendance</span></div>
-  <div class="arrow">›</div>
-</a>
+  <a class="portal-btn" href="admin-users.html">
+    <div class="portal-icon">⚙️</div>
+    <div class="portal-text"><strong>User &amp; Role Management</strong><span>Users, roles &amp; permissions</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="admin-dashboard.html">
+    <div class="portal-icon">📊</div>
+    <div class="portal-text"><strong>Admin Dashboard</strong><span>Overview &amp; recent activity</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="student.html">
+    <div class="portal-icon">🎓</div>
+    <div class="portal-text"><strong>Students</strong><span>Student records</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="academic-session.html">
+    <div class="portal-icon">📅</div>
+    <div class="portal-text"><strong>Academic Sessions</strong><span>Academic years &amp; semesters</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="levels.html">
+    <div class="portal-icon">🎓</div>
+    <div class="portal-text"><strong>Academic Levels</strong><span>Manage student levels</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="department.html">
+    <div class="portal-icon">🏢</div>
+    <div class="portal-text"><strong>Departments</strong><span>Manage school departments</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="programme.html">
+    <div class="portal-icon">📚</div>
+    <div class="portal-text"><strong>Programmes</strong><span>Manage academic programmes</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="course-management.html">
+    <div class="portal-icon">📖</div>
+    <div class="portal-text"><strong>Course Management</strong><span>Create and manage courses</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="curriculum-mapping.html">
+    <div class="portal-icon">🗂️</div>
+    <div class="portal-text"><strong>Curriculum Mapping</strong><span>Programme course mapping</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="hod-course-assignment.html">
+    <div class="portal-icon">👨‍🏫</div>
+    <div class="portal-text"><strong>HOD Course Assignment</strong><span>Automatic student course allocation</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="venue.html">
+    <div class="portal-icon">🏫</div>
+    <div class="portal-text"><strong>Venues</strong><span>Rooms &amp; locations</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="timetable.html">
+    <div class="portal-icon">🕐</div>
+    <div class="portal-text"><strong>Timetable Management</strong><span>Classes &amp; lecture times</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="examination.html">
+    <div class="portal-icon">📝</div>
+    <div class="portal-text"><strong>Examinations</strong><span>Examination timetable</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="grade-settings.html">
+    <div class="portal-icon">📈</div>
+    <div class="portal-text"><strong>Grade Settings</strong><span>Grading rules</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="results.html">
+    <div class="portal-icon">🏆</div>
+    <div class="portal-text"><strong>Results Management</strong><span>Academic results</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="attendance.html">
+    <div class="portal-icon">✅</div>
+    <div class="portal-text"><strong>Lecturer Attendance</strong><span>Attendance marking</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="admin-attendance.html">
+    <div class="portal-icon">📋</div>
+    <div class="portal-text"><strong>Attendance Management</strong><span>View and manage attendance</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="admin-notes.html">
+    <div class="portal-icon">📖</div>
+    <div class="portal-text"><strong>Lecture Notes</strong><span>Manage lecture notes</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="admin-assignments-cloudinary.html">
+    <div class="portal-icon">✏️</div>
+    <div class="portal-text"><strong>Assignments</strong><span>Manage school assignments</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="admin-finance-updated.html">
+    <div class="portal-icon">💰</div>
+    <div class="portal-text"><strong>Finance &amp; Fees</strong><span>Payments &amp; approval</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="admin-notices.html">
+    <div class="portal-icon">📢</div>
+    <div class="portal-text"><strong>Notices &amp; Announcements</strong><span>School notices</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="admin-calendar.html">
+    <div class="portal-icon">🗓️</div>
+    <div class="portal-text"><strong>Academic Calendar</strong><span>Dates &amp; deadlines</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="admin-settings.html">
+    <div class="portal-icon">⚙️</div>
+    <div class="portal-text"><strong>System Settings</strong><span>School &amp; system setup</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="admin-audit.html">
+    <div class="portal-icon">🔐</div>
+    <div class="portal-text"><strong>Audit &amp; Activity Logs</strong><span>Security records</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="admin-reports.html">
+    <div class="portal-icon">📑</div>
+    <div class="portal-text"><strong>Reports &amp; Export</strong><span>Reports &amp; CSV export</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="admissions.html">
+    <div class="portal-icon">🎓</div>
+    <div class="portal-text"><strong>Admissions Management</strong><span>Applications &amp; decisions</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="applicant-portal.html">
+    <div class="portal-icon">📝</div>
+    <div class="portal-text"><strong>Applicant Portal</strong><span>Applicant applications</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="user-management.html">
+    <div class="portal-icon">🔑</div>
+    <div class="portal-text"><strong>Existing User Management</strong><span>Existing account records</span></div>
+    <div class="arrow">›</div>
+  </a>
 </div>
-      <div class="portal-text"><strong>User & Role Management</strong><span>Users, roles & permissions</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="admin-dashboard.html">
-      <div class="portal-icon">📊</div>
-      <div class="portal-text"><strong>Admin Dashboard</strong><span>Overview & recent activity</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="admin-notes.html">
-      <div class="portal-icon">📖</div>
-      <div class="portal-text"><strong>Lecture Notes</strong><span>Learning materials</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="admin-assignments.html">
-      <div class="portal-icon">✏️</div>
-      <div class="portal-text"><strong>Assignments</strong><span>Deadlines & marks</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="admin-finance.html">
-      <div class="portal-icon">💰</div>
-      <div class="portal-text"><strong>Finance & Fees</strong><span>Payments & balances</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="admin-notices.html">
-      <div class="portal-icon">📢</div>
-      <div class="portal-text"><strong>Notices & Announcements</strong><span>School notices</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="admin-calendar.html">
-      <div class="portal-icon">🗓️</div>
-      <div class="portal-text"><strong>Academic Calendar</strong><span>Dates & deadlines</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="admin-settings.html">
-      <div class="portal-icon">⚙️</div>
-      <div class="portal-text"><strong>System Settings</strong><span>School & system setup</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="admin-audit.html">
-      <div class="portal-icon">🔐</div>
-      <div class="portal-text"><strong>Audit & Activity Logs</strong><span>Security records</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="admin-reports.html">
-      <div class="portal-icon">📑</div>
-      <div class="portal-text"><strong>Reports & Export</strong><span>Reports & CSV export</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="student.html">
-      <div class="portal-icon">🎓</div>
-      <div class="portal-text"><strong>Students</strong><span>Student records</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="academic-session.html">
-      <div class="portal-icon">📅</div>
-      <div class="portal-text"><strong>Academic Sessions</strong><span>Academic years & sessions</span></div>
-      <div class="arrow">›</div>
-    </a><a class="portal-btn" href="curriculum-mapping.html">
-      <div class="portal-icon">🗂️</div>
-      <div class="portal-text"><strong>Curriculum Mapping</strong><span>Programme course mapping</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="hod-course-assignment.html">
-      <div class="portal-icon">👨‍🏫</div>
-      <div class="portal-text"><strong>HOD Course Assignment</strong><span>Automatic student course allocation</span></div>
-      <div class="arrow">›</div>
-    </a>
-
-<a class="portal-btn" href="venue.html">
-      <div class="portal-icon">🏫</div>
-      <div class="portal-text"><strong>Venues</strong><span>Rooms & locations</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="examination.html">
-      <div class="portal-icon">📝</div>
-      <div class="portal-text"><strong>Examinations</strong><span>Exam management</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="grade-settings.html">
-      <div class="portal-icon">📈</div>
-      <div class="portal-text"><strong>Grade Settings</strong><span>Grading rules</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="course-registration.html">
-      <div class="portal-icon">📚</div>
-      <div class="portal-text"><strong>Course Registration</strong><span>Course selections</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="results.html">
-      <div class="portal-icon">🏆</div>
-      <div class="portal-text"><strong>Results</strong><span>Academic results</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="attendance.html">
-      <div class="portal-icon">✅</div>
-      <div class="portal-text"><strong>Attendance</strong><span>Attendance records</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="user-management.html">
-      <div class="portal-icon">🔑</div>
-      <div class="portal-text"><strong>Existing User Management</strong><span>Existing account records</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="timetable.html">
-      <div class="portal-icon">🕐</div>
-      <div class="portal-text"><strong>Timetable Management</strong><span>Classes & lecture times</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="admissions.html">
-      <div class="portal-icon">🎓</div>
-      <div class="portal-text"><strong>Admissions Management</strong><span>Applications & decisions</span></div>
-      <div class="arrow">›</div>
-    </a>
-<a class="portal-btn" href="applicant-portal.html">
-      <div class="portal-icon">📝</div>
-      <div class="portal-text"><strong>Applicant Portal</strong><span>Applicant applications</span></div>
-      <div class="arrow">›</div>
-    </a>
-    </div>
 
     <div class="footer">GGCHST Student &amp; Management System • Gusau, Zamfara State</div>
   </div>
