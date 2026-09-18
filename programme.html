@@ -55,7 +55,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
 .toolbar input{flex:1;min-width:0}
 .count{background:var(--light);color:var(--dark);border-radius:8px;padding:10px 12px;font-size:13px;font-weight:700;white-space:nowrap}
 .table-wrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:10px}
-table{width:100%;border-collapse:collapse;min-width:780px}
+table{width:100%;border-collapse:collapse;min-width:680px}
 th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13px}
 th{background:#f3f7f4;color:var(--dark);position:sticky;top:0}
 tr:last-child td{border-bottom:0}
@@ -127,7 +127,7 @@ footer{text-align:center;padding:24px 15px;color:var(--muted);font-size:12px}
 <main>
 <section class="intro">
   <h2>Programme Management</h2>
-  <p>Create programmes and connect every programme to its correct department.</p>
+  <p>Create and manage academic programmes for GGCHST.</p>
 </section>
 
 <div class="grid">
@@ -143,10 +143,7 @@ footer{text-align:center;padding:24px 15px;color:var(--muted);font-size:12px}
 <label for="programmeCode">Programme Code</label>
 <input id="programmeCode" type="text" placeholder="e.g. NDCH" maxlength="30">
 
-<label for="departmentSelect">Department *</label>
-<select id="departmentSelect" required disabled>
-<option value="">Select department first</option>
-</select>
+
 
 
 <label for="programmeType">Programme Type</label>
@@ -156,8 +153,6 @@ footer{text-align:center;padding:24px 15px;color:var(--muted);font-size:12px}
 <option value="Diploma">Diploma</option>
 <option value="National Diploma">National Diploma</option>
 <option value="Higher National Diploma">Higher National Diploma</option>
-<option value="Degree">Degree</option>
-<option value="Other">Other</option>
 </select>
 
 <label for="duration">Duration</label>
@@ -187,7 +182,7 @@ The programme is linked directly to its department. Courses created later can th
 <section class="card">
 <h3>Programme List</h3>
 <div class="toolbar">
-<input id="searchInput" type="search" placeholder="Search programme, code, department or type...">
+<input id="searchInput" type="search" placeholder="Search programme, code or type...">
 <div class="count" id="programmeCount">0 Programmes</div>
 </div>
 
@@ -197,14 +192,13 @@ The programme is linked directly to its department. Courses created later can th
 <tr>
 <th>Programme</th>
 <th>Code</th>
-<th>Department</th>
 <th>Type</th>
 <th>Status</th>
 <th>Actions</th>
 </tr>
 </thead>
 <tbody id="programmeTableBody">
-<tr><td colspan="6" class="empty">Loading programmes...</td></tr>
+<tr><td colspan="5" class="empty">Loading programmes...</td></tr>
 </tbody>
 </table>
 </div>
@@ -246,7 +240,6 @@ const programmeForm=document.getElementById("programmeForm");
 const programmeId=document.getElementById("programmeId");
 const programmeName=document.getElementById("programmeName");
 const programmeCode=document.getElementById("programmeCode");
-const departmentSelect=document.getElementById("departmentSelect");
 const programmeType=document.getElementById("programmeType");
 const duration=document.getElementById("duration");
 const description=document.getElementById("description");
@@ -263,7 +256,6 @@ const deleteMessage=document.getElementById("deleteMessage");
 const confirmDelete=document.getElementById("confirmDelete");
 const closeDelete=document.getElementById("closeDelete");
 
-let departments=[];
 let programmes=[];
 let pendingDeleteId=null;
 
@@ -279,27 +271,12 @@ function escapeHTML(value){
   return String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;")
     .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
-function getDepartment(id){
-  return departments.find(x=>x.id===id);
-}
-function departmentName(id){
-  const item=getDepartment(id);
-  return item?item.name:"Department not found";
-}
-function populateDepartmentSelect(selected=""){
-  const active=departments.filter(d=>d.status!=="inactive");
-  departmentSelect.innerHTML='<option value="">Select Department</option>'+
-    active.map(d=>`<option value="${escapeHTML(d.id)}">${escapeHTML(d.name)}${d.code?" ("+escapeHTML(d.code)+")":""}</option>`).join("");
-  if(selected) departmentSelect.value=selected;
-  departmentSelect.disabled=false;
-}
 function resetForm(){
   programmeForm.reset();
   programmeId.value="";
   formTitle.textContent="Add Programme";
   saveBtn.textContent="Save Programme";
   cancelBtn.style.display="none";
-  populateDepartmentSelect();
   clearStatus();
 }
 function startEdit(id){
@@ -308,7 +285,6 @@ function startEdit(id){
   programmeId.value=item.id;
   programmeName.value=item.name||"";
   programmeCode.value=item.code||"";
-  departmentSelect.value=item.departmentId||"";
   programmeType.value=item.programmeType||"";
   duration.value=item.duration||"";
   description.value=item.description||"";
@@ -324,15 +300,14 @@ function renderProgrammes(){
   const filtered=programmes.filter(p=>{
     const name=String(p.name||"").toLowerCase();
     const code=String(p.code||"").toLowerCase();
-    const department=departmentName(p.departmentId).toLowerCase();
     const type=String(p.programmeType||"").toLowerCase();
-    return name.includes(term)||code.includes(term)||department.includes(term)||type.includes(term);
+    return name.includes(term)||code.includes(term)||type.includes(term);
   });
 
   programmeCount.textContent=`${filtered.length} ${filtered.length===1?"Programme":"Programmes"}`;
 
   if(!filtered.length){
-    tableBody.innerHTML=`<tr><td colspan="6" class="empty">${term?"No programme matches your search.":"No programmes have been created yet."}</td></tr>`;
+    tableBody.innerHTML=`<tr><td colspan="5" class="empty">${term?"No programme matches your search.":"No programmes have been created yet."}</td></tr>`;
     return;
   }
 
@@ -343,7 +318,6 @@ function renderProgrammes(){
         ${p.duration?`<div style="font-size:11px;color:#66736b;margin-top:4px">${escapeHTML(p.duration)}</div>`:""}
       </td>
       <td>${escapeHTML(p.code||"—")}</td>
-      <td>${escapeHTML(departmentName(p.departmentId))}</td>
       <td>${escapeHTML(p.programmeType||"—")}</td>
       <td><span class="badge ${active?"active":"inactive"}">${active?"Active":"Inactive"}</span></td>
       <td><div class="row-actions">
@@ -373,7 +347,6 @@ programmeForm.addEventListener("submit",async e=>{
 
   const name=programmeName.value.trim();
   const code=programmeCode.value.trim().toUpperCase();
-  const departmentIdValue=departmentSelect.value;
   const type=programmeType.value;
   const durationValue=duration.value.trim();
   const desc=description.value.trim();
@@ -381,21 +354,12 @@ programmeForm.addEventListener("submit",async e=>{
   const id=programmeId.value;
 
   if(!name){showStatus("Programme name is required.","error");return;}
-  if(!departmentIdValue){showStatus("Please select a department.","error");return;}
-
-  const selectedDepartment=getDepartment(departmentIdValue);
-  if(!selectedDepartment || selectedDepartment.status==="inactive"){
-    showStatus("Please select an active department.","error");
-    return;
-  }
-
   const duplicate=programmes.find(p=>
     p.id!==id &&
-    String(p.name||"").trim().toLowerCase()===name.toLowerCase() &&
-    p.departmentId===departmentIdValue
+    String(p.name||"").trim().toLowerCase()===name.toLowerCase()
   );
   if(duplicate){
-    showStatus("A programme with this name already exists in the selected department.","error");
+    showStatus("A programme with this name already exists.","error");
     return;
   }
 
@@ -406,7 +370,6 @@ programmeForm.addEventListener("submit",async e=>{
     const data={
       name,
       code,
-      departmentId:departmentIdValue,
       programmeType:type,
       duration:durationValue,
       description:desc,
@@ -450,17 +413,6 @@ confirmDelete.addEventListener("click",async()=>{
 });
 closeDelete.addEventListener("click",closeDeleteModal);
 deleteModal.addEventListener("click",e=>{if(e.target===deleteModal)closeDeleteModal();});
-
-onSnapshot(query(collection(db,"departments"),orderBy("name","asc")),snapshot=>{
-  departments=snapshot.docs.map(x=>({id:x.id,...x.data()}));
-  populateDepartmentSelect(departmentSelect.value);
-  renderProgrammes();
-},error=>{
-  console.error(error);
-  departmentSelect.innerHTML='<option value="">Unable to load departments</option>';
-  departmentSelect.disabled=true;
-  showStatus("Firebase could not load departments.","error");
-});
 
 onSnapshot(query(collection(db,"programmes"),orderBy("name","asc")),snapshot=>{
   programmes=snapshot.docs.map(x=>({id:x.id,...x.data()}));
