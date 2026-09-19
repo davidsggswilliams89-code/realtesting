@@ -144,7 +144,7 @@ body:before{
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapshot,getDocs,query,orderBy,limit} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {getAuth,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getAuth} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
@@ -159,79 +159,16 @@ const app=initializeApp(firebaseConfig); const db=getFirestore(app); const auth=
 window.GG={app,db,auth,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapshot,getDocs,query,orderBy,limit};
 window.toast=(m)=>{const e=document.getElementById('toast');if(!e)return;e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',2600)};
 window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-
-/* ===== GGCHST ADMIN ACCESS GUARD ===== */
-const ggNorm=v=>String(v??"").trim().toLowerCase();
-
-function ggIsAdmin(row){
-  if(!row)return false;
-  const roles=[row.role,row.accountType,row.userType,row.staffRole,row.category]
-    .flatMap(x=>Array.isArray(x)?x:[x]).map(ggNorm);
-  const permissions=Array.isArray(row.permissions)
-    ? row.permissions.map(ggNorm)
-    : String(row.permissions||"").split(",").map(ggNorm);
-  const roleOK=roles.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"));
-  const permissionOK=permissions.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"));
-  const status=ggNorm(row.status);
-  return !["deactivated","suspended","inactive","disabled"].includes(status) && (roleOK||permissionOK);
-}
-
-async function ggFindAdminRecord(user){
-  const snap=await getDocs(collection(db,"users"));
-  const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
-  return rows.find(x=>String(x.uid||x.authUid||x.firebaseUid||"")===user.uid)
-    || rows.find(x=>ggNorm(x.email||x.authEmail)===ggNorm(user.email));
-}
-
-async function ggCheckAdmin(){
-  try{
-    /* CRITICAL: do not redirect until Firebase has restored persistence. */
-    if(typeof auth.authStateReady==="function"){
-      await auth.authStateReady();
-    }else{
-      await new Promise(resolve=>{
-        let finished=false;
-        const unsub=onAuthStateChanged(auth,()=>{
-          if(!finished){finished=true;unsub();resolve();}
-        });
-      });
-    }
-
-    const user=auth.currentUser;
-
-    if(!user){
-      window.location.replace("admin-login.html");
-      return;
-    }
-
-    const row=await ggFindAdminRecord(user);
-
-    if(!ggIsAdmin(row)){
-      await signOut(auth);
-      window.location.replace("admin-login.html");
-      return;
-    }
-
-    sessionStorage.setItem("ggchstAdminVerified","1");
-    document.getElementById("ggchstAdminGate")?.remove();
-
-  }catch(error){
-    console.error("GGCHST Admin access check failed:",error);
-    try{await signOut(auth);}catch(_){}
+</script>
+</head><body>
+<script>
+(function(){
+  if(sessionStorage.getItem("ggchstAdminVerified") !== "1"){
     window.location.replace("admin-login.html");
   }
-}
-
-ggCheckAdmin();
-/* ================================= */
-
+})();
 </script>
-<style id="ggchst-admin-gate-css">
-#ggchstAdminGate{position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:#eef8f2;color:#064b39;font-family:Arial,Helvetica,sans-serif}
-#ggchstAdminGate .box{width:min(92%,390px);padding:24px;text-align:center;background:#fff;border:1px solid #d8e9df;border-radius:18px;box-shadow:0 12px 35px #064b3914}
-#ggchstAdminGate strong{display:block;font-size:20px;margin-bottom:8px}
-#ggchstAdminGate span{font-size:13px;color:#667c73}
-</style></head><body><div id="ggchstAdminGate"><div class="box"><strong>🔐 Checking Admin Access</strong><span>Please wait while your Admin account is verified.</span></div></div>
+
 <div class="page">
   <div class="content">
     <div class="top-images">
