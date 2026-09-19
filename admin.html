@@ -140,117 +140,6 @@ body:before{
   .portal-text span{display:none}
   .arrow{font-size:18px}
 }
-
-/* FINAL PORTAL BUTTON OVERLAP FIX */
-.portal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%;align-items:stretch;}
-.portal-btn{min-width:0;width:100%;overflow:hidden;}
-.portal-icon{flex:0 0 56px;}
-.portal-text{flex:1 1 0;min-width:0;overflow:hidden;}
-.portal-text strong,.portal-text span{overflow-wrap:anywhere;word-break:break-word;}
-.arrow{flex:0 0 auto;}
-@media(max-width:600px){.portal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.portal-btn{min-width:0}.portal-icon{flex-basis:45px}}
-@media(max-width:390px){.portal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.portal-icon{flex-basis:39px}}
-
-
-/* CLEAN TWO-COLUMN ADMIN WORKSPACE */
-.portal-grid{
-  display:grid !important;
-  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  gap:10px !important;
-  width:100% !important;
-  align-items:stretch !important;
-}
-.portal-btn{
-  display:flex !important;
-  align-items:center !important;
-  width:100% !important;
-  min-width:0 !important;
-  height:78px !important;
-  min-height:78px !important;
-  max-height:78px !important;
-  padding:8px 10px !important;
-  margin:0 !important;
-  border-radius:16px !important;
-  overflow:hidden !important;
-}
-.portal-icon{
-  flex:0 0 42px !important;
-  width:42px !important;
-  height:42px !important;
-  min-width:42px !important;
-  margin-right:9px !important;
-  border-radius:12px !important;
-  font-size:21px !important;
-}
-.portal-text{
-  flex:1 1 auto !important;
-  min-width:0 !important;
-  overflow:hidden !important;
-}
-.portal-text strong{
-  font-size:14px !important;
-  line-height:1.08 !important;
-  overflow-wrap:anywhere !important;
-  word-break:break-word !important;
-}
-.portal-text span{
-  margin-top:3px !important;
-  font-size:8px !important;
-  line-height:1.12 !important;
-  overflow-wrap:anywhere !important;
-}
-.arrow{
-  flex:0 0 auto !important;
-  margin-left:6px !important;
-  padding-left:0 !important;
-  font-size:19px !important;
-}
-@media(max-width:600px){
-  .portal-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-    gap:8px !important;
-  }
-  .portal-btn{
-    height:70px !important;
-    min-height:70px !important;
-    max-height:70px !important;
-    padding:7px !important;
-    border-radius:14px !important;
-  }
-  .portal-icon{
-    flex-basis:36px !important;
-    width:36px !important;
-    height:36px !important;
-    min-width:36px !important;
-    margin-right:7px !important;
-    border-radius:10px !important;
-    font-size:18px !important;
-  }
-  .portal-text strong{font-size:12px !important}
-  .portal-text span{font-size:7px !important}
-  .arrow{font-size:16px !important;margin-left:4px !important}
-}
-@media(max-width:390px){
-  .portal-grid{gap:7px !important}
-  .portal-btn{
-    height:64px !important;
-    min-height:64px !important;
-    max-height:64px !important;
-    padding:6px !important;
-  }
-  .portal-icon{
-    flex-basis:32px !important;
-    width:32px !important;
-    height:32px !important;
-    min-width:32px !important;
-    font-size:16px !important;
-    margin-right:6px !important;
-  }
-  .portal-text strong{font-size:11px !important}
-  .portal-text span{display:none !important}
-  .arrow{font-size:15px !important}
-}
-
 </style>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -271,47 +160,78 @@ window.GG={app,db,auth,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapsh
 window.toast=(m)=>{const e=document.getElementById('toast');if(!e)return;e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',2600)};
 window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 
-/* GGCHST ADMIN SECURITY GUARD — uses the SAME default Firebase Auth instance as admin-login.html */
+/* ===== GGCHST ADMIN ACCESS GUARD ===== */
 const ggNorm=v=>String(v??"").trim().toLowerCase();
+
 function ggIsAdmin(row){
   if(!row)return false;
-  const roles=[row.role,row.accountType,row.userType,row.staffRole,row.category].flatMap(x=>Array.isArray(x)?x:[x]).map(ggNorm);
-  const permissions=Array.isArray(row.permissions)?row.permissions.map(ggNorm):String(row.permissions||"").split(",").map(ggNorm);
+  const roles=[row.role,row.accountType,row.userType,row.staffRole,row.category]
+    .flatMap(x=>Array.isArray(x)?x:[x]).map(ggNorm);
+  const permissions=Array.isArray(row.permissions)
+    ? row.permissions.map(ggNorm)
+    : String(row.permissions||"").split(",").map(ggNorm);
   const roleOK=roles.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"));
   const permissionOK=permissions.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"));
   const status=ggNorm(row.status);
   return !["deactivated","suspended","inactive","disabled"].includes(status) && (roleOK||permissionOK);
 }
+
 async function ggFindAdminRecord(user){
   const snap=await getDocs(collection(db,"users"));
   const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
   return rows.find(x=>String(x.uid||x.authUid||x.firebaseUid||"")===user.uid)
     || rows.find(x=>ggNorm(x.email||x.authEmail)===ggNorm(user.email));
 }
-function ggGoToLogin(){window.location.replace("admin-login.html");}
-onAuthStateChanged(auth,async user=>{
-  if(!user){ggGoToLogin();return;}
+
+async function ggCheckAdmin(){
   try{
+    /* CRITICAL: do not redirect until Firebase has restored persistence. */
+    if(typeof auth.authStateReady==="function"){
+      await auth.authStateReady();
+    }else{
+      await new Promise(resolve=>{
+        let finished=false;
+        const unsub=onAuthStateChanged(auth,()=>{
+          if(!finished){finished=true;unsub();resolve();}
+        });
+      });
+    }
+
+    const user=auth.currentUser;
+
+    if(!user){
+      window.location.replace("admin-login.html");
+      return;
+    }
+
     const row=await ggFindAdminRecord(user);
-    if(!ggIsAdmin(row)){await signOut(auth);ggGoToLogin();return;}
+
+    if(!ggIsAdmin(row)){
+      await signOut(auth);
+      window.location.replace("admin-login.html");
+      return;
+    }
+
     sessionStorage.setItem("ggchstAdminVerified","1");
-    const gate=document.getElementById("ggchstAdminGate");
-    if(gate)gate.remove();
+    document.getElementById("ggchstAdminGate")?.remove();
+
   }catch(error){
-    console.error("GGCHST Admin security check failed:",error);
+    console.error("GGCHST Admin access check failed:",error);
     try{await signOut(auth);}catch(_){}
-    ggGoToLogin();
+    window.location.replace("admin-login.html");
   }
-});
+}
+
+ggCheckAdmin();
+/* ================================= */
 
 </script>
-<style id="ggchst-admin-security-css">
+<style id="ggchst-admin-gate-css">
 #ggchstAdminGate{position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:#eef8f2;color:#064b39;font-family:Arial,Helvetica,sans-serif}
-#ggchstAdminGate .gate-box{width:min(92%,390px);padding:24px;text-align:center;background:#fff;border:1px solid #d8e9df;border-radius:18px;box-shadow:0 12px 35px #064b3914}
+#ggchstAdminGate .box{width:min(92%,390px);padding:24px;text-align:center;background:#fff;border:1px solid #d8e9df;border-radius:18px;box-shadow:0 12px 35px #064b3914}
 #ggchstAdminGate strong{display:block;font-size:20px;margin-bottom:8px}
 #ggchstAdminGate span{font-size:13px;color:#667c73}
-</style></head><body>
-<div id="ggchstAdminGate"><div class="gate-box"><strong>🔐 Checking Admin Access</strong><span>Please wait while your Admin account is verified.</span></div></div>
+</style></head><body><div id="ggchstAdminGate"><div class="box"><strong>🔐 Checking Admin Access</strong><span>Please wait while your Admin account is verified.</span></div></div>
 <div class="page">
   <div class="content">
     <div class="top-images">
@@ -337,153 +257,127 @@ onAuthStateChanged(auth,async user=>{
     <div class="section-title">ADMINISTRATION WORKSPACES</div>
 
     <div class="portal-grid">
-<a class="portal-btn" href="create-access.html">
-  <div class="portal-icon">🔐</div>
-  <div class="portal-text"><strong>CREATE ACCESS</strong><span>Create Student, Lecturer &amp; Staff login accounts</span></div>
-  <div class="arrow">›</div>
-</a>
+      <a class="portal-btn" href="admin-users.html">
+      <div class="portal-icon">⚙️</div>
+      <div class="portal-text"><strong>User & Role Management</strong><span>Users, roles & permissions</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="admin-dashboard.html">
+      <div class="portal-icon">📊</div>
+      <div class="portal-text"><strong>Admin Dashboard</strong><span>Overview & recent activity</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="admin-notes.html">
+      <div class="portal-icon">📖</div>
+      <div class="portal-text"><strong>Lecture Notes</strong><span>Learning materials</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="admin-assignments.html">
+      <div class="portal-icon">✏️</div>
+      <div class="portal-text"><strong>Assignments</strong><span>Deadlines & marks</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="admin-finance.html">
+      <div class="portal-icon">💰</div>
+      <div class="portal-text"><strong>Finance & Fees</strong><span>Payments & balances</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="admin-notices.html">
+      <div class="portal-icon">📢</div>
+      <div class="portal-text"><strong>Notices & Announcements</strong><span>School notices</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="admin-calendar.html">
+      <div class="portal-icon">🗓️</div>
+      <div class="portal-text"><strong>Academic Calendar</strong><span>Dates & deadlines</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="admin-settings.html">
+      <div class="portal-icon">⚙️</div>
+      <div class="portal-text"><strong>System Settings</strong><span>School & system setup</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="admin-audit.html">
+      <div class="portal-icon">🔐</div>
+      <div class="portal-text"><strong>Audit & Activity Logs</strong><span>Security records</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="admin-reports.html">
+      <div class="portal-icon">📑</div>
+      <div class="portal-text"><strong>Reports & Export</strong><span>Reports & CSV export</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="student.html">
+      <div class="portal-icon">🎓</div>
+      <div class="portal-text"><strong>Students</strong><span>Student records</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="academic-session.html">
+      <div class="portal-icon">📅</div>
+      <div class="portal-text"><strong>Academic Sessions</strong><span>Academic years & sessions</span></div>
+      <div class="arrow">›</div>
+    </a><a class="portal-btn" href="curriculum-mapping.html">
+      <div class="portal-icon">🗂️</div>
+      <div class="portal-text"><strong>Curriculum Mapping</strong><span>Programme course mapping</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="hod-course-assignment.html">
+      <div class="portal-icon">👨‍🏫</div>
+      <div class="portal-text"><strong>HOD Course Assignment</strong><span>Automatic student course allocation</span></div>
+      <div class="arrow">›</div>
+    </a>
 
-  <a class="portal-btn" href="admin-users.html">
-    <div class="portal-icon">⚙️</div>
-    <div class="portal-text"><strong>User &amp; Role Management</strong><span>Users, roles &amp; permissions</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="admin-dashboard.html">
-    <div class="portal-icon">📊</div>
-    <div class="portal-text"><strong>Admin Dashboard</strong><span>Overview &amp; recent activity</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="student.html">
-    <div class="portal-icon">🎓</div>
-    <div class="portal-text"><strong>Students</strong><span>Student records</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="academic-session.html">
-    <div class="portal-icon">📅</div>
-    <div class="portal-text"><strong>Academic Sessions</strong><span>Academic years &amp; semesters</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="levels.html">
-    <div class="portal-icon">🎓</div>
-    <div class="portal-text"><strong>Academic Levels</strong><span>Manage student levels</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="department.html">
-    <div class="portal-icon">🏢</div>
-    <div class="portal-text"><strong>Departments</strong><span>Manage school departments</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="programme.html">
-    <div class="portal-icon">📚</div>
-    <div class="portal-text"><strong>Programmes</strong><span>Manage academic programmes</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="course-management.html">
-    <div class="portal-icon">📖</div>
-    <div class="portal-text"><strong>Course Management</strong><span>Create and manage courses</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="curriculum-mapping.html">
-    <div class="portal-icon">🗂️</div>
-    <div class="portal-text"><strong>Curriculum Mapping</strong><span>Programme course mapping</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="hod-course-assignment.html">
-    <div class="portal-icon">👨‍🏫</div>
-    <div class="portal-text"><strong>HOD Course Assignment</strong><span>Automatic student course allocation</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="venue.html">
-    <div class="portal-icon">🏫</div>
-    <div class="portal-text"><strong>Venues</strong><span>Rooms &amp; locations</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="timetable.html">
-    <div class="portal-icon">🕐</div>
-    <div class="portal-text"><strong>Timetable Management</strong><span>Classes &amp; lecture times</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="examination.html">
-    <div class="portal-icon">📝</div>
-    <div class="portal-text"><strong>Examinations</strong><span>Examination timetable</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="grade-settings.html">
-    <div class="portal-icon">📈</div>
-    <div class="portal-text"><strong>Grade Settings</strong><span>Grading rules</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="results.html">
-    <div class="portal-icon">🏆</div>
-    <div class="portal-text"><strong>Results Management</strong><span>Academic results</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="attendance.html">
-    <div class="portal-icon">✅</div>
-    <div class="portal-text"><strong>Lecturer Attendance</strong><span>Attendance marking</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="admin-attendance.html">
-    <div class="portal-icon">📋</div>
-    <div class="portal-text"><strong>Attendance Management</strong><span>View and manage attendance</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="admin-notes.html">
-    <div class="portal-icon">📖</div>
-    <div class="portal-text"><strong>Lecture Notes</strong><span>Manage lecture notes</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="admin-assignments-cloudinary.html">
-    <div class="portal-icon">✏️</div>
-    <div class="portal-text"><strong>Assignments</strong><span>Manage school assignments</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="admin-finance-updated.html">
-    <div class="portal-icon">💰</div>
-    <div class="portal-text"><strong>Finance &amp; Fees</strong><span>Payments &amp; approval</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="admin-notices.html">
-    <div class="portal-icon">📢</div>
-    <div class="portal-text"><strong>Notices &amp; Announcements</strong><span>School notices</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="admin-calendar.html">
-    <div class="portal-icon">🗓️</div>
-    <div class="portal-text"><strong>Academic Calendar</strong><span>Dates &amp; deadlines</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="admin-settings.html">
-    <div class="portal-icon">⚙️</div>
-    <div class="portal-text"><strong>System Settings</strong><span>School &amp; system setup</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="admin-audit.html">
-    <div class="portal-icon">🔐</div>
-    <div class="portal-text"><strong>Audit &amp; Activity Logs</strong><span>Security records</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="admin-reports.html">
-    <div class="portal-icon">📑</div>
-    <div class="portal-text"><strong>Reports &amp; Export</strong><span>Reports &amp; CSV export</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="admissions.html">
-    <div class="portal-icon">🎓</div>
-    <div class="portal-text"><strong>Admissions Management</strong><span>Applications &amp; decisions</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="applicant-portal.html">
-    <div class="portal-icon">📝</div>
-    <div class="portal-text"><strong>Applicant Portal</strong><span>Applicant applications</span></div>
-    <div class="arrow">›</div>
-  </a>
-  <a class="portal-btn" href="user-management.html">
-    <div class="portal-icon">🔑</div>
-    <div class="portal-text"><strong>Existing User Management</strong><span>Existing account records</span></div>
-    <div class="arrow">›</div>
-  </a>
-</div>
+<a class="portal-btn" href="venue.html">
+      <div class="portal-icon">🏫</div>
+      <div class="portal-text"><strong>Venues</strong><span>Rooms & locations</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="examination.html">
+      <div class="portal-icon">📝</div>
+      <div class="portal-text"><strong>Examinations</strong><span>Exam management</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="grade-settings.html">
+      <div class="portal-icon">📈</div>
+      <div class="portal-text"><strong>Grade Settings</strong><span>Grading rules</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="course-registration.html">
+      <div class="portal-icon">📚</div>
+      <div class="portal-text"><strong>Course Registration</strong><span>Course selections</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="results.html">
+      <div class="portal-icon">🏆</div>
+      <div class="portal-text"><strong>Results</strong><span>Academic results</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="attendance.html">
+      <div class="portal-icon">✅</div>
+      <div class="portal-text"><strong>Attendance</strong><span>Attendance records</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="user-management.html">
+      <div class="portal-icon">🔑</div>
+      <div class="portal-text"><strong>Existing User Management</strong><span>Existing account records</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="timetable.html">
+      <div class="portal-icon">🕐</div>
+      <div class="portal-text"><strong>Timetable Management</strong><span>Classes & lecture times</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="admissions.html">
+      <div class="portal-icon">🎓</div>
+      <div class="portal-text"><strong>Admissions Management</strong><span>Applications & decisions</span></div>
+      <div class="arrow">›</div>
+    </a>
+<a class="portal-btn" href="applicant-portal.html">
+      <div class="portal-icon">📝</div>
+      <div class="portal-text"><strong>Applicant Portal</strong><span>Applicant applications</span></div>
+      <div class="arrow">›</div>
+    </a>
+    </div>
 
     <div class="footer">GGCHST Student &amp; Management System • Gusau, Zamfara State</div>
   </div>
