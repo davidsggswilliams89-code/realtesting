@@ -191,7 +191,7 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,getDocs,addDoc,doc,updateDoc,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {getAuth,createUserWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getAuth,createUserWithEmailAndPassword,signOut,onAuthStateChanged,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig={
  apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
@@ -214,14 +214,29 @@ const toast=t=>{const x=$("toast");x.textContent=t;x.style.display="block";clear
 
 async function initializeCreateAccess(){
   try{
-    // Wait until Firebase finishes restoring the Admin's saved login session.
+    // Create Access is a child page of admin.html.
+    // It must NOT redirect back to admin.html/admin-login.html while
+    // Firebase is restoring the existing Admin session.
+
+    // Keep the primary Admin session available across page navigation.
+    try{
+      await setPersistence(auth,browserLocalPersistence);
+    }catch(persistenceError){
+      console.warn("Could not explicitly set local Auth persistence:",persistenceError);
+    }
+
+    // Wait until Firebase finishes restoring the saved Admin session.
     if(typeof auth.authStateReady==="function"){
       await auth.authStateReady();
     }else{
       await new Promise(resolve=>{
         let finished=false;
         const unsub=onAuthStateChanged(auth,()=>{
-          if(!finished){finished=true;unsub();resolve();}
+          if(!finished){
+            finished=true;
+            unsub();
+            resolve();
+          }
         });
       });
     }
@@ -229,15 +244,20 @@ async function initializeCreateAccess(){
     currentAdmin=auth.currentUser||null;
 
     if(!currentAdmin){
+      // IMPORTANT: Do not automatically redirect.
+      // The old redirect caused the Admin/Create Access navigation loop.
       const gateMessage=$("adminSessionText");
-      if(gateMessage) gateMessage.textContent="Please login as Admin before creating access.";
+      if(gateMessage){
+        gateMessage.innerHTML='No Admin Firebase session is active. <a href="admin-login.html" style="color:#166534;font-weight:800">Login as Admin</a> and then open Create Access again.';
+      }
       $("createBtn").disabled=true;
-      window.location.replace("admin-login.html");
       return;
     }
 
     const gateMessage=$("adminSessionText");
-    if(gateMessage) gateMessage.textContent="Verified Admin: "+(currentAdmin.email||"")+" — ready to create access.";
+    if(gateMessage){
+      gateMessage.textContent="Verified Admin: "+(currentAdmin.email||"")+" — ready to create access.";
+    }
     $("createBtn").disabled=false;
 
     await loadSourceData();
@@ -246,8 +266,11 @@ async function initializeCreateAccess(){
   }catch(e){
     console.error("Create Access initialization failed:",e);
     $("createBtn").disabled=true;
+    const gateMessage=$("adminSessionText");
+    if(gateMessage){
+      gateMessage.textContent="Admin session could not be verified. Please login as Admin, then return to Create Access.";
+    }
     msg("Admin login session could not be restored. Please login again.",true);
-    setTimeout(()=>window.location.replace("admin-login.html"),1200);
   }
 }
 
@@ -458,8 +481,8 @@ async function toggleAccountStatus(userId, uid, currentStatus){
 
 function initializeAdminSession(){
   const gateMessage=$("adminSessionText");
-  if(gateMessage) gateMessage.textContent="Create Access is ready. Enter the new user's details and create the account.";
-  $("createBtn").disabled=false;
+  if(gateMessage) gateMessage.textContent="Checking the existing Admin Firebase session…";
+  $("createBtn").disabled=true;
   msg("");
 }
 setCategory("student");
