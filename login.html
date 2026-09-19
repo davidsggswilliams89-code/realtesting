@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GGCHST | Login</title>
+<style>
+:root{
+  --green:#08783d;
+  --green2:#0a9a4d;
+  --dark:#14532d;
+  --soft:#eaf8f0;
+  --text:#17352b;
+  --muted:#667c73;
+  --line:#d8e4df;
+  --danger:#b42318;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 90% 5%,rgba(255,255,255,.16) 0 11%,transparent 11.5%),
+    radial-gradient(circle at 0 100%,rgba(255,255,255,.12) 0 13%,transparent 13.5%),
+    linear-gradient(145deg,#075c31,#079246 55%,#08783d);
+  color:#fff;
+  padding:8px 10px 18px;
+}
+.page{
+  width:min(100%,850px);
+  min-height:calc(100vh - 26px);
+  margin:auto;
+  border-radius:0 0 34px 34px;
+  overflow:hidden;
+  padding:18px 30px 34px;
+  background:
+    radial-gradient(circle at 100% 0,rgba(255,255,255,.10),transparent 28%),
+    radial-gradient(circle at 0 100%,rgba(255,255,255,.08),transparent 25%);
+}
+.top{text-align:center}
+.building{
+  width:190px;height:190px;
+  border-radius:50%;
+  object-fit:cover;
+  border:8px solid #fff;
+  box-shadow:0 5px 20px rgba(0,0,0,.14);
+  background:#dfe9e4;
+}
+.logo{
+  width:96px;height:96px;
+  display:block;
+  margin:-22px auto 18px;
+  border-radius:50%;
+  object-fit:contain;
+  background:#fff;
+  border:7px solid #fff;
+  box-shadow:0 4px 15px rgba(0,0,0,.13);
+}
+.school{
+  margin:0 auto;
+  max-width:760px;
+  font-size:22px;
+  line-height:1.25;
+  letter-spacing:2px;
+  font-weight:800;
+}
+h1{
+  margin:20px 0 12px;
+  font-size:43px;
+  line-height:1.08;
+  text-shadow:0 2px 2px rgba(0,0,0,.12);
+}
+.welcome{
+  max-width:690px;
+  margin:0 auto;
+  font-size:20px;
+  line-height:1.55;
+}
+.tagline{
+  max-width:760px;
+  margin:34px auto 24px;
+  border:2px solid rgba(255,255,255,.25);
+  border-radius:40px;
+  padding:14px 20px;
+  background:rgba(255,255,255,.08);
+  font-weight:800;
+  font-size:17px;
+}
+.card{
+  max-width:760px;
+  margin:0 auto;
+  background:#fff;
+  color:var(--text);
+  border-radius:25px;
+  padding:28px 34px 25px;
+  box-shadow:0 15px 45px rgba(0,0,0,.12);
+}
+.field{margin-bottom:20px}
+label{
+  display:block;
+  margin:0 0 9px;
+  font-size:16px;
+  font-weight:800;
+  color:var(--dark);
+}
+.input-wrap{position:relative}
+input{
+  width:100%;
+  height:58px;
+  border:2px solid #d4dfdb;
+  border-radius:14px;
+  padding:0 16px;
+  font:inherit;
+  font-size:17px;
+  outline:none;
+  color:var(--text);
+  background:#fff;
+}
+input:focus{
+  border-color:#18a957;
+  box-shadow:0 0 0 4px rgba(24,169,87,.10);
+}
+.password-wrap input{padding-right:78px}
+.show{
+  position:absolute;
+  right:7px;
+  top:6px;
+  height:46px;
+  border:0;
+  border-radius:12px;
+  background:#eaf1ee;
+  color:var(--dark);
+  padding:0 13px;
+  font-weight:800;
+  cursor:pointer;
+}
+.forgot{
+  display:block;
+  text-align:right;
+  margin:-7px 3px 20px;
+  color:#07934b;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+  text-decoration:none;
+}
+.login{
+  width:100%;
+  height:61px;
+  border:0;
+  border-radius:14px;
+  background:linear-gradient(180deg,#14934b,#08783d);
+  color:#fff;
+  font-size:20px;
+  font-weight:900;
+  cursor:pointer;
+}
+.login:disabled{opacity:.65;cursor:wait}
+.message{
+  min-height:22px;
+  margin:13px 0 0;
+  text-align:center;
+  font-size:13px;
+  font-weight:800;
+}
+.bad{color:var(--danger)}
+.ok{color:#087443}
+.secure{
+  border-top:1px solid #e1e8e5;
+  margin-top:22px;
+  padding-top:19px;
+  text-align:center;
+  color:#7a8783;
+  font-size:14px;
+}
+.small{font-size:11px;color:#8a9692;margin-top:10px;text-align:center}
+.hidden{display:none!important}
+
+@media(max-width:700px){
+  body{padding:8px 7px 14px}
+  .page{min-height:calc(100vh - 22px);padding:8px 16px 25px;border-radius:0 0 28px 28px}
+  .building{width:165px;height:165px;border-width:7px}
+  .logo{width:82px;height:82px;margin:-18px auto 15px;border-width:6px}
+  .school{font-size:14px;letter-spacing:1.5px}
+  h1{font-size:33px;margin-top:17px}
+  .welcome{font-size:17px;line-height:1.55}
+  .tagline{font-size:14px;margin:26px auto 20px;padding:12px 12px}
+  .card{padding:22px 18px 20px;border-radius:20px}
+  label{font-size:14px}
+  input{height:55px;font-size:16px}
+  .login{height:58px;font-size:19px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="top">
+    <!-- Keep your existing school image and logo filenames if they are already used in your project. -->
+    <img class="building" src="school.jpg" alt="Green Garden College campus"
+         onerror="this.style.display='none'">
+    <img class="logo" src="logo.png" alt="Green Garden College logo"
+         onerror="this.style.display='none'">
+
+    <div class="school">GREEN GARDEN COLLEGE OF HEALTH SCIENCES &amp;<br>TECHNOLOGY, GUSAU</div>
+
+    <h1>GGCHST Student &amp;<br>Management System</h1>
+
+    <div class="welcome">
+      Welcome to the official school management portal. Please login with your registered email and password to continue.
+    </div>
+
+    <div class="tagline">🌿 Quality Education · Practical Training · Professional Excellence</div>
+  </div>
+
+  <section class="card">
+    <form id="loginForm" autocomplete="on">
+      <div class="field">
+        <label for="email">Email Address</label>
+        <input id="email" name="email" type="email" autocomplete="username"
+               placeholder="Enter your email address" required>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap password-wrap">
+          <input id="password" name="password" type="password"
+                 autocomplete="current-password" placeholder="Enter your password" required>
+          <button class="show" id="showPassword" type="button">Show</button>
+        </div>
+      </div>
+
+      <a class="forgot" id="forgotPassword" href="#">Forgot Password?</a>
+
+      <button class="login" id="loginBtn" type="submit">↪ &nbsp; LOGIN</button>
+      <div id="message" class="message"></div>
+
+      <div class="secure">🛡️ &nbsp; Secure Access · Your Information is Protected</div>
+      <div class="small">GGCHST Student &amp; Management System</div>
+    </form>
+  </section>
+
+</div>
+
+<script type="module">
+import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  query,
+  where,
+  limit
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+  authDomain:"ggchst-sms-new.firebaseapp.com",
+  projectId:"ggchst-sms-new",
+  storageBucket:"ggchst-sms-new.firebasestorage.app",
+  messagingSenderId:"942770190211",
+  appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+
+const app=getApps().length?getApp():initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+const $=id=>document.getElementById(id);
+
+function message(text,error=false){
+  $("message").textContent=text;
+  $("message").className="message "+(error?"bad":"ok");
+}
+
+function authError(e){
+  const c=e?.code||"";
+  const map={
+    "auth/invalid-credential":"Incorrect email or password.",
+    "auth/invalid-login-credentials":"Incorrect email or password.",
+    "auth/user-not-found":"No account was found with this email.",
+    "auth/wrong-password":"Incorrect email or password.",
+    "auth/invalid-email":"Please enter a valid email address.",
+    "auth/user-disabled":"This Firebase account has been disabled.",
+    "auth/too-many-requests":"Too many login attempts. Please wait and try again.",
+    "auth/network-request-failed":"Network error. Check your internet connection.",
+    "auth/api-key-not-valid":"Firebase API key is invalid. Check the Firebase configuration."
+  };
+  return map[c]||e?.message||"Login failed. Please try again.";
+}
+
+function normal(v){
+  return String(v??"").trim().toLowerCase();
+}
+
+function roleValue(data){
+  return normal(data.role||data.staffRole||data.accountType);
+}
+
+/*
+  The users collection is the central routing record.
+  The UID is the strongest match because it comes directly from
+  Firebase Authentication.
+*/
+async function findUserRecord(user){
+  const uid=user.uid;
+  const email=normal(user.email);
+
+  const byUid=await getDocs(
+    query(collection(db,"users"),where("uid","==",uid),limit(1))
+  );
+  if(!byUid.empty) return {id:byUid.docs[0].id,data:byUid.docs[0].data()};
+
+  const byAuthUid=await getDocs(
+    query(collection(db,"users"),where("authUid","==",uid),limit(1))
+  );
+  if(!byAuthUid.empty) return {id:byAuthUid.docs[0].id,data:byAuthUid.docs[0].data()};
+
+  if(email){
+    const byEmail=await getDocs(
+      query(collection(db,"users"),where("email","==",email),limit(1))
+    );
+    if(!byEmail.empty) return {id:byEmail.docs[0].id,data:byEmail.docs[0].data()};
+
+    const byAuthEmail=await getDocs(
+      query(collection(db,"users"),where("authEmail","==",email),limit(1))
+    );
+    if(!byAuthEmail.empty) return {id:byAuthEmail.docs[0].id,data:byAuthEmail.docs[0].data()};
+  }
+
+  return null;
+}
+
+function isInactive(data){
+  return normal(data.status||data.accountStatus)==="deactivated" ||
+         normal(data.status||data.accountStatus)==="inactive" ||
+         normal(data.status||data.accountStatus)==="disabled";
+}
+
+/*
+  Exact GGCHST portal routing.
+  One login page is used for all supported account types.
+*/
+function getPortal(data){
+  const accountType=normal(data.accountType);
+  const role=roleValue(data);
+
+  // Exact GGCHST portal destinations
+  if(accountType==="admin" || role==="admin" || role==="administrator" ||
+     role.includes("super admin") || role.includes("system admin")){
+    return "admin.html";
+  }
+
+  if(accountType.includes("student") || role==="student"){
+    return "student-profile.html";
+  }
+
+  if(accountType.includes("lecturer") || role.includes("lecturer")){
+    return "lecturer-profile.html";
+  }
+
+  if(role==="bursary" || role.includes("bursary") ||
+     role==="finance" || role.includes("finance")){
+    return "bursary.html";
+  }
+
+  if(role==="hod" || role.includes("head of department") || accountType==="hod"){
+    return "hod.html";
+  }
+
+  if(role==="admissions officer" || role.includes("admission")){
+    return "admissions.html";
+  }
+
+  if(role==="registrar" || role.includes("registrar")){
+    return "registrar.html";
+  }
+
+  return null;
+}
+
+$("showPassword").onclick=()=>{
+  const hidden=$("password").type==="password";
+  $("password").type=hidden?"text":"password";
+  $("showPassword").textContent=hidden?"Hide":"Show";
+};
+
+$("forgotPassword").onclick=async e=>{
+  e.preventDefault();
+  const email=$("email").value.trim();
+
+  if(!email){
+    message("Enter your email address first, then select Forgot Password.",true);
+    $("email").focus();
+    return;
+  }
+
+  try{
+    $("forgotPassword").style.pointerEvents="none";
+    await sendPasswordResetEmail(auth,email);
+    message("Password reset instructions have been sent to your email.");
+  }catch(e){
+    console.error(e);
+    message(authError(e),true);
+  }finally{
+    setTimeout(()=>$("forgotPassword").style.pointerEvents="",2500);
+  }
+};
+
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+
+  const email=$("email").value.trim();
+  const password=$("password").value;
+
+  if(!email){
+    message("Enter your email address.",true);
+    return;
+  }
+
+  if(!password){
+    message("Enter your password.",true);
+    return;
+  }
+
+  $("loginBtn").disabled=true;
+  $("loginBtn").textContent="LOGGING IN...";
+  message("");
+
+  try{
+    const credential=await signInWithEmailAndPassword(auth,email,password);
+    const user=credential.user;
+
+    const record=await findUserRecord(user);
+
+    if(!record){
+      // Do not leave a successfully authenticated user stranded.
+      await auth.signOut();
+      message("Login succeeded, but no school access record was found for this account. Please contact the administrator.",true);
+      return;
+    }
+
+    const data=record.data;
+
+    if(isInactive(data)){
+      await auth.signOut();
+      message("This account is currently deactivated. Please contact the administrator.",true);
+      return;
+    }
+
+    const portal=getPortal(data);
+
+    if(!portal){
+      await auth.signOut();
+      message("Your account role has not been configured for a portal yet. Please contact the administrator.",true);
+      return;
+    }
+
+    sessionStorage.setItem("shtmsUser",JSON.stringify({
+      uid:user.uid,
+      email:user.email||data.email||"",
+      name:data.name||data.fullName||"",
+      accountType:data.accountType||"",
+      role:data.role||data.staffRole||"",
+      profileId:data.profileId||"",
+      userRecordId:record.id
+    }));
+
+    window.location.href=portal;
+
+  }catch(e){
+    console.error(e);
+    message(authError(e),true);
+  }finally{
+    $("loginBtn").disabled=false;
+    $("loginBtn").textContent="↪  LOGIN";
+  }
+});
+</script>
+</body>
+</html>
