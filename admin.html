@@ -255,7 +255,7 @@ body:before{
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapshot,getDocs,query,orderBy,limit} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getAuth,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
@@ -270,8 +270,113 @@ const app=initializeApp(firebaseConfig); const db=getFirestore(app); const auth=
 window.GG={app,db,auth,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapshot,getDocs,query,orderBy,limit};
 window.toast=(m)=>{const e=document.getElementById('toast');if(!e)return;e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',2600)};
 window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+
+/* ================= ADMIN ACCESS GUARD ================= */
+const adminNorm = v => String(v ?? "").trim().toLowerCase();
+
+function isAuthorizedAdmin(row){
+  if(!row) return false;
+
+  const roles = [row.role,row.accountType,row.userType,row.staffRole,row.category]
+    .flatMap(x => Array.isArray(x) ? x : [x])
+    .map(adminNorm);
+
+  const permissions = Array.isArray(row.permissions)
+    ? row.permissions.map(adminNorm)
+    : String(row.permissions || "").split(",").map(adminNorm);
+
+  const adminRole = roles.some(x =>
+    x === "admin" ||
+    x.includes("administrator") ||
+    x.includes("super admin") ||
+    x.includes("system admin")
+  );
+
+  const adminPermission = permissions.some(x =>
+    x === "admin" ||
+    x.includes("administrator") ||
+    x.includes("super admin") ||
+    x.includes("system admin")
+  );
+
+  const status = adminNorm(row.status);
+  const active = !["deactivated","suspended","inactive","disabled"].includes(status);
+
+  return active && (adminRole || adminPermission);
+}
+
+async function findAdminRecord(user){
+  const snap = await getDocs(collection(db,"users"));
+  const rows = snap.docs.map(d => ({id:d.id,...d.data()}));
+
+  return rows.find(x =>
+    String(x.uid || x.authUid || x.firebaseUid || "") === user.uid
+  ) || rows.find(x =>
+    adminNorm(x.email || x.authEmail) === adminNorm(user.email)
+  );
+}
+
+function sendToAdminLogin(){
+  window.location.replace("admin-login.html");
+}
+
+onAuthStateChanged(auth, async user => {
+  if(!user){
+    sendToAdminLogin();
+    return;
+  }
+
+  try{
+    const row = await findAdminRecord(user);
+
+    if(!isAuthorizedAdmin(row)){
+      await signOut(auth);
+      sendToAdminLogin();
+      return;
+    }
+
+    sessionStorage.setItem("ggchstAdminVerified","1");
+
+    const gate = document.getElementById("adminSecurityGate");
+    if(gate) gate.remove();
+
+    const badge = document.createElement("div");
+    badge.textContent = "Admin: " + (user.email || "");
+    badge.style.cssText =
+      "position:fixed;right:12px;bottom:12px;z-index:9998;background:#075c38;color:#fff;" +
+      "padding:7px 11px;border-radius:999px;font:700 11px Arial,sans-serif;box-shadow:0 5px 15px #0002;";
+    document.body.appendChild(badge);
+
+  }catch(error){
+    console.error("Admin security check failed:",error);
+    try{ await signOut(auth); }catch(_){}
+    sendToAdminLogin();
+  }
+});
+/* ====================================================== */
+
 </script>
+
+<style id="admin-security-style">
+#adminSecurityGate{
+  position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;
+  background:#f3f7f4;color:#075c38;font-family:Arial,Helvetica,sans-serif;
+}
+#adminSecurityGate .box{
+  width:min(92%,380px);background:#fff;border:1px solid #d8e9df;border-radius:18px;
+  padding:24px;text-align:center;box-shadow:0 12px 35px #064b3914;
+}
+#adminSecurityGate strong{display:block;font-size:20px;margin-bottom:8px}
+#adminSecurityGate span{font-size:13px;color:#667c73}
+</style>
 </head><body>
+<div id="adminSecurityGate">
+  <div class="box">
+    <strong>🔐 Checking Admin Access</strong>
+    <span>Please wait while your Admin account is verified.</span>
+  </div>
+</div>
+
 <div class="page">
   <div class="content">
     <div class="top-images">
