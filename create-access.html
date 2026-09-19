@@ -268,15 +268,34 @@ $("clearBtn").onclick=()=>{
 };
 
 async function findUserRecord(user){
- const snap=await getDocs(collection(db,"users"));
- const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
- return rows.find(x=>String(x.uid||x.authUid||x.firebaseUid||"")===String(user?.uid||""))
-   || rows.find(x=>norm(x.email||x.authEmail||"")===norm(user?.email||""));
+ const uid=String(user?.uid||"");
+ const email=norm(user?.email||"");
+
+ // First try a document whose ID is the Firebase UID.
+ if(uid){
+   try{
+     const direct=await getDocs(collection(db,"users"));
+     const rows=direct.docs.map(d=>({id:d.id,...d.data()}));
+     const byDocId=rows.find(x=>x.id===uid);
+     if(byDocId)return byDocId;
+     const byUid=rows.find(x=>String(x.uid||x.authUid||x.firebaseUid||"")===uid);
+     if(byUid)return byUid;
+     const byEmail=rows.find(x=>norm(x.email||x.authEmail||"")===email);
+     if(byEmail)return byEmail;
+   }catch(e){throw e;}
+ }
+ return null;
 }
 function isAdminRecord(row){
  if(!row) return false;
- const values=[row.role,row.accountType,row.userType].map(x=>norm(x));
- return values.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"));
+ const values=[row.role,row.accountType,row.userType,row.staffRole,row.category]
+   .flatMap(x=>Array.isArray(x)?x:[x])
+   .map(x=>norm(x));
+ const permissionValues=Array.isArray(row.permissions)
+   ? row.permissions.map(x=>norm(x))
+   : String(row.permissions||"").split(",").map(x=>norm(x));
+ return values.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"))
+   || permissionValues.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"));
 }
 function setAdminState(user,row){
  currentAdmin=user||null;
@@ -308,7 +327,11 @@ $("adminVerifyBtn").onclick=async()=>{
    const row=await findUserRecord(cred.user);
    if(!isAdminRecord(row)){
      await signOut(auth);
-     throw new Error("This Firebase account is not registered as an Admin in the users collection.");
+     if(row){
+       const roleShown=row.role||row.accountType||row.userType||"not set";
+       throw new Error(`Firebase login succeeded, but this users record is not marked as Admin. Current role/account type: ${roleShown}.`);
+     }
+     throw new Error("Firebase login succeeded, but no matching record was found in the users collection for this Firebase UID/email.");
    }
    setAdminState(cred.user,row);
  }catch(e){
