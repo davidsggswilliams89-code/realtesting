@@ -271,112 +271,47 @@ window.GG={app,db,auth,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapsh
 window.toast=(m)=>{const e=document.getElementById('toast');if(!e)return;e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',2600)};
 window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 
-/* ================= ADMIN ACCESS GUARD ================= */
-const adminNorm = v => String(v ?? "").trim().toLowerCase();
-
-function isAuthorizedAdmin(row){
-  if(!row) return false;
-
-  const roles = [row.role,row.accountType,row.userType,row.staffRole,row.category]
-    .flatMap(x => Array.isArray(x) ? x : [x])
-    .map(adminNorm);
-
-  const permissions = Array.isArray(row.permissions)
-    ? row.permissions.map(adminNorm)
-    : String(row.permissions || "").split(",").map(adminNorm);
-
-  const adminRole = roles.some(x =>
-    x === "admin" ||
-    x.includes("administrator") ||
-    x.includes("super admin") ||
-    x.includes("system admin")
-  );
-
-  const adminPermission = permissions.some(x =>
-    x === "admin" ||
-    x.includes("administrator") ||
-    x.includes("super admin") ||
-    x.includes("system admin")
-  );
-
-  const status = adminNorm(row.status);
-  const active = !["deactivated","suspended","inactive","disabled"].includes(status);
-
-  return active && (adminRole || adminPermission);
+/* GGCHST ADMIN SECURITY GUARD — uses the SAME default Firebase Auth instance as admin-login.html */
+const ggNorm=v=>String(v??"").trim().toLowerCase();
+function ggIsAdmin(row){
+  if(!row)return false;
+  const roles=[row.role,row.accountType,row.userType,row.staffRole,row.category].flatMap(x=>Array.isArray(x)?x:[x]).map(ggNorm);
+  const permissions=Array.isArray(row.permissions)?row.permissions.map(ggNorm):String(row.permissions||"").split(",").map(ggNorm);
+  const roleOK=roles.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"));
+  const permissionOK=permissions.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"));
+  const status=ggNorm(row.status);
+  return !["deactivated","suspended","inactive","disabled"].includes(status) && (roleOK||permissionOK);
 }
-
-async function findAdminRecord(user){
-  const snap = await getDocs(collection(db,"users"));
-  const rows = snap.docs.map(d => ({id:d.id,...d.data()}));
-
-  return rows.find(x =>
-    String(x.uid || x.authUid || x.firebaseUid || "") === user.uid
-  ) || rows.find(x =>
-    adminNorm(x.email || x.authEmail) === adminNorm(user.email)
-  );
+async function ggFindAdminRecord(user){
+  const snap=await getDocs(collection(db,"users"));
+  const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
+  return rows.find(x=>String(x.uid||x.authUid||x.firebaseUid||"")===user.uid)
+    || rows.find(x=>ggNorm(x.email||x.authEmail)===ggNorm(user.email));
 }
-
-function sendToAdminLogin(){
-  window.location.replace("admin-login.html");
-}
-
-onAuthStateChanged(auth, async user => {
-  if(!user){
-    sendToAdminLogin();
-    return;
-  }
-
+function ggGoToLogin(){window.location.replace("admin-login.html");}
+onAuthStateChanged(auth,async user=>{
+  if(!user){ggGoToLogin();return;}
   try{
-    const row = await findAdminRecord(user);
-
-    if(!isAuthorizedAdmin(row)){
-      await signOut(auth);
-      sendToAdminLogin();
-      return;
-    }
-
+    const row=await ggFindAdminRecord(user);
+    if(!ggIsAdmin(row)){await signOut(auth);ggGoToLogin();return;}
     sessionStorage.setItem("ggchstAdminVerified","1");
-
-    const gate = document.getElementById("adminSecurityGate");
-    if(gate) gate.remove();
-
-    const badge = document.createElement("div");
-    badge.textContent = "Admin: " + (user.email || "");
-    badge.style.cssText =
-      "position:fixed;right:12px;bottom:12px;z-index:9998;background:#075c38;color:#fff;" +
-      "padding:7px 11px;border-radius:999px;font:700 11px Arial,sans-serif;box-shadow:0 5px 15px #0002;";
-    document.body.appendChild(badge);
-
+    const gate=document.getElementById("ggchstAdminGate");
+    if(gate)gate.remove();
   }catch(error){
-    console.error("Admin security check failed:",error);
-    try{ await signOut(auth); }catch(_){}
-    sendToAdminLogin();
+    console.error("GGCHST Admin security check failed:",error);
+    try{await signOut(auth);}catch(_){}
+    ggGoToLogin();
   }
 });
-/* ====================================================== */
 
 </script>
-
-<style id="admin-security-style">
-#adminSecurityGate{
-  position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;
-  background:#f3f7f4;color:#075c38;font-family:Arial,Helvetica,sans-serif;
-}
-#adminSecurityGate .box{
-  width:min(92%,380px);background:#fff;border:1px solid #d8e9df;border-radius:18px;
-  padding:24px;text-align:center;box-shadow:0 12px 35px #064b3914;
-}
-#adminSecurityGate strong{display:block;font-size:20px;margin-bottom:8px}
-#adminSecurityGate span{font-size:13px;color:#667c73}
-</style>
-</head><body>
-<div id="adminSecurityGate">
-  <div class="box">
-    <strong>🔐 Checking Admin Access</strong>
-    <span>Please wait while your Admin account is verified.</span>
-  </div>
-</div>
-
+<style id="ggchst-admin-security-css">
+#ggchstAdminGate{position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:#eef8f2;color:#064b39;font-family:Arial,Helvetica,sans-serif}
+#ggchstAdminGate .gate-box{width:min(92%,390px);padding:24px;text-align:center;background:#fff;border:1px solid #d8e9df;border-radius:18px;box-shadow:0 12px 35px #064b3914}
+#ggchstAdminGate strong{display:block;font-size:20px;margin-bottom:8px}
+#ggchstAdminGate span{font-size:13px;color:#667c73}
+</style></head><body>
+<div id="ggchstAdminGate"><div class="gate-box"><strong>🔐 Checking Admin Access</strong><span>Please wait while your Admin account is verified.</span></div></div>
 <div class="page">
   <div class="content">
     <div class="top-images">
@@ -433,12 +368,17 @@ onAuthStateChanged(auth, async user => {
     <div class="portal-text"><strong>Academic Levels</strong><span>Manage student levels</span></div>
     <div class="arrow">›</div>
   </a>
-<a class="portal-btn" href="programme.html">
+  <a class="portal-btn" href="department.html">
+    <div class="portal-icon">🏢</div>
+    <div class="portal-text"><strong>Departments</strong><span>Manage school departments</span></div>
+    <div class="arrow">›</div>
+  </a>
+  <a class="portal-btn" href="programme.html">
     <div class="portal-icon">📚</div>
     <div class="portal-text"><strong>Programmes</strong><span>Manage academic programmes</span></div>
     <div class="arrow">›</div>
   </a>
-  <a class="portal-btn" href="course-registration.html">
+  <a class="portal-btn" href="course-management.html">
     <div class="portal-icon">📖</div>
     <div class="portal-text"><strong>Course Management</strong><span>Create and manage courses</span></div>
     <div class="arrow">›</div>
@@ -448,7 +388,7 @@ onAuthStateChanged(auth, async user => {
     <div class="portal-text"><strong>Curriculum Mapping</strong><span>Programme course mapping</span></div>
     <div class="arrow">›</div>
   </a>
-  <a class="portal-btn" href="assignment-management.html">
+  <a class="portal-btn" href="hod-course-assignment.html">
     <div class="portal-icon">👨‍🏫</div>
     <div class="portal-text"><strong>HOD Course Assignment</strong><span>Automatic student course allocation</span></div>
     <div class="arrow">›</div>
@@ -493,12 +433,12 @@ onAuthStateChanged(auth, async user => {
     <div class="portal-text"><strong>Lecture Notes</strong><span>Manage lecture notes</span></div>
     <div class="arrow">›</div>
   </a>
-  <a class="portal-btn" href="admin-assignments.html">
+  <a class="portal-btn" href="admin-assignments-cloudinary.html">
     <div class="portal-icon">✏️</div>
     <div class="portal-text"><strong>Assignments</strong><span>Manage school assignments</span></div>
     <div class="arrow">›</div>
   </a>
-  <a class="portal-btn" href="admin-finance.html">
+  <a class="portal-btn" href="admin-finance-updated.html">
     <div class="portal-icon">💰</div>
     <div class="portal-text"><strong>Finance &amp; Fees</strong><span>Payments &amp; approval</span></div>
     <div class="arrow">›</div>
@@ -538,7 +478,7 @@ onAuthStateChanged(auth, async user => {
     <div class="portal-text"><strong>Applicant Portal</strong><span>Applicant applications</span></div>
     <div class="arrow">›</div>
   </a>
-  <a class="portal-btn" href="admin-users.html">
+  <a class="portal-btn" href="user-management.html">
     <div class="portal-icon">🔑</div>
     <div class="portal-text"><strong>Existing User Management</strong><span>Existing account records</span></div>
     <div class="arrow">›</div>
