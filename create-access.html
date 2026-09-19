@@ -85,6 +85,22 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 </div></nav>
 
 <main>
+<section class="panel" id="adminAuthPanel" style="border-color:#bbf7d0;background:#f0fdf4">
+ <div class="identity">
+  <strong>🔐 Admin Verification</strong>
+  <span id="adminAuthText">Sign in with an authorized Admin Firebase account before creating new access.</span>
+ </div>
+ <div id="adminLoginFields" class="form-grid" style="margin-top:12px">
+  <div><label>Admin Email</label><input id="adminEmail" type="email" placeholder="Admin login email"></div>
+  <div><label>Admin Password</label><input id="adminPassword" type="password" placeholder="Admin password"></div>
+ </div>
+ <div class="actions">
+  <button id="adminVerifyBtn" type="button">VERIFY ADMIN</button>
+  <button id="adminSignOutBtn" type="button" class="secondary hidden">Sign Out</button>
+ </div>
+ <div id="adminAuthMessage" class="message"></div>
+</section>
+
 <section class="hero">
  <h1>CREATE ACCESS</h1>
  <p>Create login access for Students, Lecturers and Staff from one place. Firebase Authentication stores the login credential; Firestore stores the school profile and Firebase UID. Passwords are never written to Firestore.</p>
@@ -167,7 +183,7 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 
  <div id="message" class="message"></div>
  <div class="actions">
-  <button id="createBtn" type="button">CREATE ACCOUNT</button>
+  <button id="createBtn" type="button" disabled>CREATE ACCOUNT</button>
   <button id="clearBtn" type="button" class="secondary">Clear</button>
  </div>
 </section>
@@ -187,7 +203,7 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,getDocs,addDoc,doc,updateDoc,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signOut,signInWithEmailAndPassword,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig={
  apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
@@ -200,6 +216,7 @@ const firebaseConfig={
 
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
 const db=getFirestore(app), auth=getAuth(app);
+const authReady=setPersistence(auth,browserLocalPersistence);
 const $=id=>document.getElementById(id);
 const norm=v=>String(v??"").trim().toLowerCase();
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -250,6 +267,59 @@ $("clearBtn").onclick=()=>{
  $("staffPermissions").value="profile"; syncGeneral(); msg("");
 };
 
+async function findUserRecord(user){
+ const snap=await getDocs(collection(db,"users"));
+ const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
+ return rows.find(x=>String(x.uid||x.authUid||x.firebaseUid||"")===String(user?.uid||""))
+   || rows.find(x=>norm(x.email||x.authEmail||"")===norm(user?.email||""));
+}
+function isAdminRecord(row){
+ if(!row) return false;
+ const values=[row.role,row.accountType,row.userType].map(x=>norm(x));
+ return values.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"));
+}
+function setAdminState(user,row){
+ currentAdmin=user||null;
+ const ok=!!user && isAdminRecord(row) && String(row.status||row.accountStatus||"Active").toLowerCase()!=="deactivated";
+ $("createBtn").disabled=!ok;
+ $("adminAuthPanel").style.borderColor=ok?"#86efac":"#bbf7d0";
+ $("adminLoginFields").classList.toggle("hidden",ok);
+ $("adminVerifyBtn").classList.toggle("hidden",ok);
+ $("adminSignOutBtn").classList.toggle("hidden",!ok);
+ if(ok){
+   $("adminAuthText").textContent=`Verified Admin: ${user.email||row.name||"Administrator"}. You can now create access.`;
+   $("adminAuthMessage").textContent="Admin verification successful.";
+   $("adminAuthMessage").className="message ok";
+ }else if(user){
+   $("adminAuthText").textContent="This Firebase account is not authorized as an Admin, or it is deactivated.";
+   $("adminAuthMessage").textContent="Use an authorized Admin account.";
+   $("adminAuthMessage").className="message bad";
+ }
+ return ok;
+}
+
+$("adminVerifyBtn").onclick=async()=>{
+ const email=$("adminEmail").value.trim(), password=$("adminPassword").value;
+ if(!email||!password){$("adminAuthMessage").textContent="Enter Admin email and password.";$("adminAuthMessage").className="message bad";return;}
+ const b=$("adminVerifyBtn"); b.disabled=true;b.textContent="Verifying…";
+ try{
+   await authReady;
+   const cred=await signInWithEmailAndPassword(auth,email,password);
+   const row=await findUserRecord(cred.user);
+   if(!isAdminRecord(row)){
+     await signOut(auth);
+     throw new Error("This Firebase account is not registered as an Admin in the users collection.");
+   }
+   setAdminState(cred.user,row);
+ }catch(e){
+   currentAdmin=null;
+   const code=e?.code||"";
+   const text=code==="auth/invalid-credential"?"Incorrect Admin email or password.":(e?.message||"Admin verification failed.");
+   $("adminAuthMessage").textContent=text;$("adminAuthMessage").className="message bad";
+ }finally{b.disabled=false;b.textContent="VERIFY ADMIN";}
+};
+$("adminSignOutBtn").onclick=async()=>{await signOut(auth);};
+
 async function createSecondary(email,password){
  const cfg=app.options;
  const sa=getApps().some(a=>a.name==="GGCHSTAccountCreator")?getApp("GGCHSTAccountCreator"):initializeApp(cfg,"GGCHSTAccountCreator");
@@ -269,7 +339,7 @@ async function duplicateEmail(email){
 }
 
 $("createBtn").onclick=async()=>{
- if(!currentAdmin){msg("Admin Firebase authentication is required before creating access.",true);return;}
+ if(!currentAdmin){msg("Verify an authorized Admin account above before creating access.",true);return;}
  let name="",email=$("loginEmail").value.trim(),schoolId="",programme="",level="",role="",status="Active",accountType="",permissions=[],profileData={};
  if(category==="student"){
    name=$("studentName").value.trim(); schoolId=$("studentId").value.trim();
@@ -411,7 +481,25 @@ async function toggleAccountStatus(userId, uid, currentStatus){
  }
 }
 
-onAuthStateChanged(auth,user=>{currentAdmin=user||null;if(!user)msg("No Admin Firebase session detected. Sign in to Admin first, then create access.",true);});
+onAuthStateChanged(auth,async user=>{
+ try{
+  await authReady;
+  if(!user){setAdminState(null,null);return;}
+  const row=await findUserRecord(user);
+  if(!isAdminRecord(row)){
+    await signOut(auth);
+    setAdminState(null,null);
+    $("adminAuthMessage").textContent="Signed-in account is not an authorized Admin account.";
+    $("adminAuthMessage").className="message bad";
+    return;
+  }
+  setAdminState(user,row);
+ }catch(e){
+  console.error(e);setAdminState(null,null);
+  $("adminAuthMessage").textContent="Could not verify Admin account: "+(e.code||e.message);
+  $("adminAuthMessage").className="message bad";
+ }
+});
 setCategory("student");
 Promise.all([loadSourceData(),loadAccounts()]).catch(e=>{console.error(e);msg("Could not load school records: "+(e.code||e.message),true);});
 </script>
