@@ -107,7 +107,7 @@ tr:last-child td{border-bottom:0}
 <main class="container">
   <section class="hero">
     <h2>Results Management</h2>
-    <p>Enter, validate, submit, verify, approve and publish student results using the configured GGCHST grading system.</p>
+    <p>Enter a complete class set of student results, validate scores, submit, verify, approve and publish results using the configured GGCHST grading system.</p>
   </section>
 
   <div id="notice" class="notice"></div>
@@ -120,19 +120,15 @@ tr:last-child td{border-bottom:0}
   </section>
 
   <section class="card">
-    <h2>Result Entry</h2>
+    <h2>Add Student Results</h2>
     <div class="grid">
       <div class="field">
         <label>Academic Session *</label>
-        <select id="session"><option value="">Select academic session</option></select>
+        <select id="session"><option value="">Loading academic sessions...</option></select>
       </div>
       <div class="field">
         <label>Semester *</label>
         <select id="semester" disabled><option value="">Select semester</option></select>
-      </div>
-      <div class="field">
-        <label>Department *</label>
-        <select id="department"><option value="">Select department</option></select>
       </div>
       <div class="field">
         <label>Programme *</label>
@@ -167,7 +163,7 @@ tr:last-child td{border-bottom:0}
       <button id="clearEntryBtn" class="secondary" type="button">Clear</button>
     </div>
     <div class="help">
-      Students are loaded automatically from the student master records and the HOD course assignment for the selected Department, Programme, Level, Session and Semester. Students do not manually select courses here.
+      Select Academic Session, Semester, Programme, Level and Course. The system then loads every eligible student in that class so results can be entered for the whole class at once.
     </div>
   </section>
 
@@ -187,6 +183,9 @@ tr:last-child td{border-bottom:0}
     </div>
     <div class="actions">
       <button id="saveResultsBtn" class="primary" type="button">Save Results</button>
+    </div>
+    <div class="help">
+      Enter CA for each student (0–40) and Examination for each student (0–60). Total, Grade, Point and Pass/Fail are calculated automatically for every row.
     </div>
   </section>
 
@@ -239,7 +238,7 @@ const auth=getAuth(app);
 const $=id=>document.getElementById(id);
 
 let currentUser=null;
-let sessions=[],semesters=[],departments=[],programmes=[],levels=[],courses=[],assignments=[],students=[],gradeSettings=[],results=[];
+let sessions=[],semesters=[],programmes=[],levels=[],courses=[],curriculumMappings=[],students=[],gradeSettings=[],results=[];
 let currentStudents=[];
 let currentEditingResult=null;
 
@@ -285,8 +284,6 @@ function studentIdOf(s){
 }
 function admissionOf(s){return clean(first(s,"admissionNo","admissionNumber"))}
 function nameOf(s){return clean(first(s,"fullName","studentName","name"))}
-function deptIdOf(s){return clean(s.departmentId||"")}
-function deptNameOf(s){return clean(first(s,"departmentName","department","dept"))}
 function progIdOf(s){return clean(s.programmeId||"")}
 function progNameOf(s){return clean(first(s,"programmeName","programme","courseOfStudy"))}
 function levelIdOf(s){return clean(s.levelId||"")}
@@ -295,10 +292,9 @@ function sessionNameOf(s){return clean(first(s,"academicSession","session"))}
 function semesterNameOf(s){return clean(s.semesterName||s.semester||"")}
 
 function courseInfo(){
-  const c=selected(courses,$("course").value);
+  const c=courseInfo();
   if(c)return c;
-  const a=assignments.find(x=>String(x.id)===String($("course").value));
-  return a||null;
+  return mappedCoursesForSelection().find(x=>String(x.id)===String($("course").value))||null;
 }
 
 function populate(selectId,items,placeholder,labelFn){
@@ -336,7 +332,7 @@ function renderResults(){
   const q=norm($("search").value),fs=$("filterSession").value,ft=$("filterStatus").value,fr=$("filterResult").value;
   const rows=results.filter(r=>{
     const hay=[
-      r.studentId,r.admissionNo,r.studentName,r.courseCode,r.courseName,r.programmeName,r.departmentName,
+      r.studentId,r.admissionNo,r.studentName,r.courseCode,r.courseName,r.programmeName,
       r.sessionName,r.semesterName,r.grade,r.status,r.resultStatus
     ].map(norm).join(" ");
     const sessionMatch=!fs||String(r.sessionId||r.sessionName)===String(fs);
@@ -367,20 +363,19 @@ function renderResults(){
   }).join("");
 }
 
+
 function resetSelects(){
-  populate("semester",[],"Select semester",x=>x.name||"");
+  populate("semester",[],"Select semester",x=>x.name||x.semesterName||"");
   $("semester").disabled=true;
-  populate("programme",[],"Select programme",x=>x.name||"");
+  populate("programme",[],"Select programme",x=>x.code?`${x.name} (${x.code})`:x.name);
   $("programme").disabled=true;
   populate("course",[],"Select course",x=>x.code?`${x.code} — ${x.title||x.name||""}`:(x.name||""));
   $("course").disabled=true;
 }
 
 function loadProgrammes(){
-  const d=selected(departments,$("department").value);
-  const list=d?programmes.filter(p=>String(p.departmentId||"")===String(d.id)):programmes;
-  populate("programme",list,"Select programme",x=>x.code?`${x.name} (${x.code})`:x.name);
-  $("programme").disabled=!d;
+  populate("programme",programmes,"Select programme",x=>x.code?`${x.name} (${x.code})`:x.name);
+  $("programme").disabled=false;
   $("course").innerHTML='<option value="">Select course</option>';
   $("course").disabled=true;
 }
@@ -388,59 +383,97 @@ function loadProgrammes(){
 function loadSemesters(){
   const s=selected(sessions,$("session").value);
   const list=s?semesters.filter(x=>String(x.sessionId||"")===String(s.id)):semesters;
-  populate("semester",list,"Select semester",x=>x.name);
+  populate("semester",list,"Select semester",x=>x.name||x.semesterName||"");
   $("semester").disabled=!s;
 }
 
-function assignmentForSelection(){
-  const d=selected(departments,$("department").value);
+function mappedCoursesForSelection(){
   const p=selected(programmes,$("programme").value);
   const l=selected(levels,$("level").value);
-  const s=selected(sessions,$("session").value);
   const sem=selected(semesters,$("semester").value);
-  if(!d||!p||!l||!s||!sem)return null;
-  return assignments.find(a=>
-    String(a.departmentId)===String(d.id)&&
-    String(a.programmeId)===String(p.id)&&
-    String(a.levelId)===String(l.id)&&
-    String(a.sessionId)===String(s.id)&&
-    String(a.semesterId)===String(sem.id)&&
-    String(a.status||"active").toLowerCase()==="active"
-  )||null;
+  if(!p||!l)return [];
+
+  const mappings=curriculumMappings.filter(m=>{
+    const programmeMatch =
+      (m.programmeId && String(m.programmeId)===String(p.id)) ||
+      (!m.programmeId && norm(m.programmeName)===norm(p.name));
+
+    const levelMatch =
+      (m.levelId && String(m.levelId)===String(l.id)) ||
+      (!m.levelId && norm(m.levelName)===norm(l.name));
+
+    const semesterMatch = !sem ||
+      (m.semesterId && String(m.semesterId)===String(sem.id)) ||
+      (!m.semesterId && !m.semesterName) ||
+      (!m.semesterId && norm(m.semesterName)===norm(sem.name));
+
+    const active=String(m.status||m.mappingStatus||"Active").toLowerCase()!=="inactive";
+    return programmeMatch && levelMatch && semesterMatch && active;
+  });
+
+  const seen=new Set(),out=[];
+  for(const m of mappings){
+    const courseId=String(m.courseId||"").trim();
+    let c=courses.find(x=>courseId && String(x.id)===courseId);
+
+    if(!c){
+      c={
+        id:courseId||m.courseCode||m.code||m.courseName,
+        code:m.courseCode||m.code||"",
+        title:m.courseTitle||m.courseName||m.title||"",
+        unit:m.courseUnit??m.unit??0,
+        courseType:m.courseType||""
+      };
+    }
+
+    const key=String(c.id||c.code);
+    if(!key||seen.has(key))continue;
+    seen.add(key);
+    out.push(c);
+  }
+  return out;
 }
 
 function loadCourses(){
-  const a=assignmentForSelection();
-  if(!a){
-    $("course").innerHTML='<option value="">No active HOD course assignment found</option>';
+  const mapped=mappedCoursesForSelection();
+  if(!mapped.length){
+    $("course").innerHTML='<option value="">No course mapped to this Programme / Level / Semester</option>';
     $("course").disabled=true;
     return;
   }
-  const mapped=(a.courses||[]).map(x=>{
-    const c=courses.find(c=>String(c.id)===String(x.courseId));
-    return c?c:{id:x.courseId,code:x.code,title:x.title,unit:x.unit,courseType:x.courseType};
-  });
   populate("course",mapped,"Select course",x=>x.code?`${x.code} — ${x.title||x.name||""}`:(x.title||x.name||""));
-  $("course").disabled=!mapped.length;
+  $("course").disabled=false;
 }
 
 function loadStudentsForCourse(){
-  const d=selected(departments,$("department").value);
   const p=selected(programmes,$("programme").value);
   const l=selected(levels,$("level").value);
   const s=selected(sessions,$("session").value);
   const sem=selected(semesters,$("semester").value);
-  const c=selected(courses,$("course").value);
-  if(!d||!p||!l||!s||!sem||!c)return [];
+  const c=courseInfo();
+  if(!p||!l||!s||!sem||!c)return [];
+
   return students.filter(st=>{
-    const active=String(st.status||"Active").toLowerCase()!=="inactive" &&
-                 String(st.status||"Active").toLowerCase()!=="withdrawn";
-    const deptMatch=(st.departmentId?String(st.departmentId)===String(d.id):norm(deptNameOf(st))===norm(d.name));
-    const progMatch=(st.programmeId?String(st.programmeId)===String(p.id):norm(progNameOf(st))===norm(p.name));
-    const levelMatch=(st.levelId?String(st.levelId)===String(l.id):norm(levelNameOf(st))===norm(l.name));
-    const sessionMatch=st.academicSessionId?String(st.academicSessionId)===String(s.id):(!sessionNameOf(st)||norm(sessionNameOf(st))===norm(s.name));
-    const semesterMatch=!semesterNameOf(st)||norm(semesterNameOf(st))===norm(sem.name)||norm(semesterNameOf(st)).includes(norm(sem.name));
-    return active&&deptMatch&&progMatch&&levelMatch&&sessionMatch&&semesterMatch;
+    const status=norm(st.status||"Active");
+    const active=!["inactive","withdrawn","graduated","suspended"].includes(status);
+
+    const progMatch=
+      (st.programmeId ? String(st.programmeId)===String(p.id) : norm(progNameOf(st))===norm(p.name));
+
+    const levelMatch=
+      (st.levelId ? String(st.levelId)===String(l.id) : norm(levelNameOf(st))===norm(l.name));
+
+    const sessionMatch=
+      st.academicSessionId
+        ? String(st.academicSessionId)===String(s.id)
+        : (!sessionNameOf(st)||norm(sessionNameOf(st))===norm(s.name));
+
+    const semesterMatch=
+      !semesterNameOf(st) ||
+      norm(semesterNameOf(st))===norm(sem.name) ||
+      norm(semesterNameOf(st)).includes(norm(sem.name));
+
+    return active&&progMatch&&levelMatch&&sessionMatch&&semesterMatch;
   });
 }
 
@@ -497,25 +530,59 @@ window.recalcRow=function(input){
 };
 
 async function saveResults(){
-  const c=selected(courses,$("course").value),d=selected(departments,$("department").value),p=selected(programmes,$("programme").value);
-  const l=selected(levels,$("level").value),s=selected(sessions,$("session").value),sem=selected(semesters,$("semester").value);
-  if(!c||!d||!p||!l||!s||!sem){showNotice("Please complete the result selection first.",true);return}
-  if(!gradeSettings.length){showNotice("No active grading settings were found. Configure Grade Settings first.",true);return}
+  const c=courseInfo();
+  const p=selected(programmes,$("programme").value);
+  const l=selected(levels,$("level").value);
+  const s=selected(sessions,$("session").value);
+  const sem=selected(semesters,$("semester").value);
+
+  if(!c||!p||!l||!s||!sem){
+    showNotice("Please select Academic Session, Semester, Programme, Level and Course first.",true);
+    return;
+  }
+  if(!gradeSettings.length){
+    showNotice("No active grading settings were found. Configure Grade Settings first.",true);
+    return;
+  }
+
   const rows=[...document.querySelectorAll("#scoreTable tr[data-student]")];
-  if(!rows.length){showNotice("No students were loaded for this course.",true);return}
+  if(!rows.length){
+    showNotice("No students were loaded for this course.",true);
+    return;
+  }
+
   const status=$("entryStatus").value;
   const note=$("resultNote").value.trim();
-  const btn=$("saveResultsBtn");btn.disabled=true;btn.textContent="Saving…";
+  const btn=$("saveResultsBtn");
+  btn.disabled=true;
+  btn.textContent="Saving…";
+
+  let saved=0;
+
   try{
     for(const tr of rows){
       if(tr.querySelector(".ca-input")?.disabled)continue;
-      const st=currentStudents.find(x=>String(x.id)===String(tr.dataset.student));if(!st)continue;
-      const ca=Number(tr.querySelector(".ca-input").value||0),ex=Number(tr.querySelector(".exam-input").value||0);
-      if(ca<0||ca>40||ex<0||ex>60)throw new Error(`Invalid score for ${nameOf(st)}. CA must be 0–40 and examination must be 0–60.`);
-      const total=Number((ca+ex).toFixed(2)),g=gradeForScore(total);
-      if(!g)throw new Error(`No grading rule covers the total score ${total} for ${nameOf(st)}. Check Grade Settings.`);
+
+      const st=currentStudents.find(x=>String(x.id)===String(tr.dataset.student));
+      if(!st)continue;
+
+      const ca=Number(tr.querySelector(".ca-input").value||0);
+      const ex=Number(tr.querySelector(".exam-input").value||0);
+
+      if(ca<0||ca>40||ex<0||ex>60){
+        throw new Error(`Invalid score for ${nameOf(st)}. CA must be 0–40 and examination must be 0–60.`);
+      }
+
+      const total=Number((ca+ex).toFixed(2));
+      const g=gradeForScore(total);
+
+      if(!g){
+        throw new Error(`No grading rule covers the total score ${total} for ${nameOf(st)}. Check Grade Settings.`);
+      }
+
       const existing=existingResultForStudent(st,c);
       const now=new Date().toISOString();
+
       const payload={
         studentDocId:st.id,
         studentUid:clean(st.studentUid||st.authUid||st.firebaseUid||st.uid),
@@ -523,15 +590,30 @@ async function saveResults(){
         admissionNo:admissionOf(st),
         studentName:nameOf(st),
         studentEmail:clean(st.email),
-        departmentId:d.id,departmentName:d.name,
-        programmeId:p.id,programmeName:p.name,programmeCode:p.code||"",
-        levelId:l.id,levelName:l.name,levelCode:l.code||"",
-        sessionId:s.id,sessionName:s.name,
-        semesterId:sem.id,semesterName:sem.name,
-        courseId:c.id,courseCode:c.code||"",courseName:c.title||c.name||"",
+
+        programmeId:p.id,
+        programmeName:p.name,
+        programmeCode:p.code||"",
+        levelId:l.id,
+        levelName:l.name,
+        levelCode:l.code||"",
+        sessionId:s.id,
+        sessionName:s.name,
+        semesterId:sem.id,
+        semesterName:sem.name,
+
+        courseId:c.id,
+        courseCode:c.code||"",
+        courseName:c.title||c.name||"",
         courseUnit:Number(c.unit??c.courseUnit??0),
-        caScore:ca,examScore:ex,totalScore:total,
-        grade:g.grade,gradePoint:Number(g.gradePoint??0),resultStatus:g.resultType||"Pass",
+
+        caScore:ca,
+        examScore:ex,
+        totalScore:total,
+        grade:g.grade,
+        gradePoint:Number(g.gradePoint??0),
+        resultStatus:g.resultType||"Pass",
+
         status,
         note,
         attempt:existing?.attempt||1,
@@ -539,32 +621,73 @@ async function saveResults(){
         updatedByUid:currentUser?.uid||"",
         updatedByEmail:currentUser?.email||""
       };
+
       if(existing){
+        if(["Approved","Published"].includes(existing.status))continue;
+
         const previous={
-          caScore:existing.caScore,examScore:existing.examScore,totalScore:existing.totalScore,
-          grade:existing.grade,gradePoint:existing.gradePoint,resultStatus:existing.resultStatus,status:existing.status
+          caScore:existing.caScore,
+          examScore:existing.examScore,
+          totalScore:existing.totalScore,
+          grade:existing.grade,
+          gradePoint:existing.gradePoint,
+          resultStatus:existing.resultStatus,
+          status:existing.status
         };
+
         await updateDoc(doc(db,"results",existing.id),payload);
+
         await addDoc(collection(db,"auditLogs"),{
-          action:"update",module:"results",entityType:"result",entityId:existing.id,
-          uid:currentUser?.uid||"",timestamp:now,result:"success",previous,newValue:{
-            caScore:ca,examScore:ex,totalScore:total,grade:g.grade,gradePoint:Number(g.gradePoint??0),resultStatus:g.resultType||"Pass",status
+          action:"update",
+          module:"results",
+          entityType:"result",
+          entityId:existing.id,
+          uid:currentUser?.uid||"",
+          timestamp:now,
+          result:"success",
+          previous,
+          newValue:{
+            caScore:ca,
+            examScore:ex,
+            totalScore:total,
+            grade:g.grade,
+            gradePoint:Number(g.gradePoint??0),
+            resultStatus:g.resultType||"Pass",
+            status
           }
         });
       }else{
-        const ref=await addDoc(collection(db,"results"),{...payload,createdAt:now,createdByUid:currentUser?.uid||"",createdByEmail:currentUser?.email||""});
+        const ref=await addDoc(collection(db,"results"),{
+          ...payload,
+          createdAt:now,
+          createdByUid:currentUser?.uid||"",
+          createdByEmail:currentUser?.email||""
+        });
+
         await addDoc(collection(db,"auditLogs"),{
-          action:"create",module:"results",entityType:"result",entityId:ref.id,
-          uid:currentUser?.uid||"",timestamp:now,result:"success"
+          action:"create",
+          module:"results",
+          entityType:"result",
+          entityId:ref.id,
+          uid:currentUser?.uid||"",
+          timestamp:now,
+          result:"success"
         });
       }
+
+      saved++;
     }
-    showNotice("Results saved successfully.");
+
+    showNotice(`${saved} student result${saved===1?"":"s"} saved successfully.`);
     await refreshResultsOnce();
     renderScoreTable();
   }catch(e){
-    console.error(e);showNotice("Unable to save results: "+(e.message||e),true);
-  }finally{btn.disabled=false;btn.textContent="Save Results"}
+    console.error(e);
+    showNotice("Unable to save results: "+(e.message||e),true);
+  }finally{
+    btn.disabled=false;
+    btn.textContent="Save Results";
+  }
 }
 
 window.editResult=function(id){
@@ -573,7 +696,8 @@ window.editResult=function(id){
   currentEditingResult=r;
   $("session").value=r.sessionId||"";
   loadSemesters();$("semester").value=r.semesterId||"";
-  $("department").value=r.departmentId||"";loadProgrammes();$("programme").value=r.programmeId||"";
+  loadProgrammes();$("programme").value=r.programmeId||"";
+  $("level").value=r.levelId||"";
   $("course").innerHTML=`<option value="${esc(r.courseId)}">${esc((r.courseCode? r.courseCode+" — ":"")+r.courseName)}</option>`;
   $("course").value=r.courseId;$("course").disabled=false;
   $("entryStatus").value=r.status||"Draft";$("resultNote").value=r.note||"";
@@ -616,25 +740,52 @@ window.requestCorrection=async function(id){
 };
 
 function clearEntry(){
-  $("session").value="";$("department").value="";$("level").value="";
-  resetSelects();$("entryStatus").value="Draft";$("resultNote").value="";
-  $("entryCard").style.display="none";$("selectionSummary").style.display="none";
-  currentStudents=[];currentEditingResult=null;hideNotice();
+  $("session").value="";
+  $("level").value="";
+  resetSelects();
+  $("programme").value="";
+  $("entryStatus").value="Draft";
+  $("resultNote").value="";
+  $("entryCard").style.display="none";
+  $("selectionSummary").style.display="none";
+  currentStudents=[];
+  currentEditingResult=null;
+  hideNotice();
 }
 
 async function loadStudents(){
-  const s=selected(sessions,$("session").value),sem=selected(semesters,$("semester").value),
-        d=selected(departments,$("department").value),p=selected(programmes,$("programme").value),
-        l=selected(levels,$("level").value),c=selected(courses,$("course").value);
-  if(!s||!sem||!d||!p||!l||!c){showNotice("Please select Academic Session, Semester, Department, Programme, Level and Course.",true);return}
-  const a=assignmentForSelection();
-  if(!a){showNotice("No active HOD Course Assignment was found for this academic structure.",true);return}
-  const assigned=(a.courses||[]).some(x=>String(x.courseId)===String(c.id));
-  if(!assigned){showNotice("This course is not part of the active HOD Course Assignment for the selected academic structure.",true);return}
+  const s=selected(sessions,$("session").value);
+  const sem=selected(semesters,$("semester").value);
+  const p=selected(programmes,$("programme").value);
+  const l=selected(levels,$("level").value);
+  const c=courseInfo();
+
+  if(!s||!sem||!p||!l||!c){
+    showNotice("Please select Academic Session, Semester, Programme, Level and Course.",true);
+    return;
+  }
+
+  const mapped=mappedCoursesForSelection().some(x=>String(x.id)===String(c.id));
+  if(!mapped){
+    showNotice("This course is not mapped to the selected Programme, Level and Semester.",true);
+    return;
+  }
+
   currentStudents=loadStudentsForCourse();
+
   $("selectionSummary").style.display="block";
-  $("selectionSummary").innerHTML=`<strong>${currentStudents.length} student(s)</strong> found for <strong>${esc(d.name)}</strong> → <strong>${esc(p.name)}</strong> → <strong>${esc(l.name)}</strong> → <strong>${esc(s.name)}</strong> → <strong>${esc(sem.name)}</strong> → <strong>${esc(c.code||"")}</strong>.`;
-  if(!currentStudents.length)showNotice("No active students matched the selected academic structure.",true);else hideNotice();
+  $("selectionSummary").innerHTML=
+    `<strong>${currentStudents.length} student(s)</strong> found for `+
+    `<strong>${esc(p.name)}</strong> → <strong>${esc(l.name)}</strong> → `+
+    `<strong>${esc(s.name)}</strong> → <strong>${esc(sem.name)}</strong> → `+
+    `<strong>${esc(c.code||"")}</strong>.`;
+
+  if(!currentStudents.length){
+    showNotice("No active students matched the selected Programme, Level and Academic Session.",true);
+  }else{
+    hideNotice();
+  }
+
   renderScoreTable();
 }
 
@@ -647,7 +798,8 @@ async function refreshResultsOnce(){
 function attachListeners(){
   onSnapshot(collection(db,"academicSessions"),snap=>{
     sessions=dataOf(snap).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
-    populate("session",sessions,"Select academic session",x=>x.name||x.sessionName||"");
+    populate("session",sessions,"Select academic session",x=>x.name||x.sessionName||x.session||"");
+    $("session").disabled=false;
     loadSemesters();
   },e=>showNotice("Unable to load academic sessions: "+e.message,true));
 
@@ -656,16 +808,29 @@ function attachListeners(){
     loadSemesters();
   },e=>showNotice("Unable to load semesters: "+e.message,true));
 
-  onSnapshot(collection(db,"departments"),snap=>{
-    departments=dataOf(snap).filter(x=>String(x.status||"Active").toLowerCase()!=="inactive");
-    populate("department",departments,"Select department",x=>x.name||x.departmentName||"");
-  },e=>showNotice("Unable to load departments: "+e.message,true));
+  onSnapshot(collection(db,"programmes"),snap=>{
+    programmes=dataOf(snap).filter(x=>String(x.status||"Active").toLowerCase()!=="inactive");
+    loadProgrammes();
+  },e=>showNotice("Unable to load programmes: "+e.message,true));
 
-  onSnapshot(collection(db,"programmes"),snap=>{programmes=dataOf(snap);loadProgrammes()},e=>showNotice("Unable to load programmes: "+e.message,true));
-  onSnapshot(collection(db,"academicLevels"),snap=>{levels=dataOf(snap).sort((a,b)=>Number(a.displayOrder??0)-Number(b.displayOrder??0));populate("level",levels,"Select academic level",x=>x.name||x.levelName||"")},e=>showNotice("Unable to load levels: "+e.message,true));
-  onSnapshot(collection(db,"courses"),snap=>{courses=dataOf(snap).filter(x=>String(x.status||"Active").toLowerCase()!=="inactive");loadCourses()},e=>showNotice("Unable to load courses: "+e.message,true));
-  onSnapshot(collection(db,"hodCourseAssignments"),snap=>{assignments=dataOf(snap);loadCourses()},e=>showNotice("Unable to load HOD course assignments: "+e.message,true));
-  onSnapshot(collection(db,"students"),snap=>{students=dataOf(snap)},e=>showNotice("Unable to load students: "+e.message,true));
+  onSnapshot(collection(db,"academicLevels"),snap=>{
+    levels=dataOf(snap).sort((a,b)=>Number(a.displayOrder??0)-Number(b.displayOrder??0));
+    populate("level",levels,"Select academic level",x=>x.name||x.levelName||"");
+  },e=>showNotice("Unable to load levels: "+e.message,true));
+
+  onSnapshot(collection(db,"courses"),snap=>{
+    courses=dataOf(snap).filter(x=>String(x.status||"Active").toLowerCase()!=="inactive");
+    loadCourses();
+  },e=>showNotice("Unable to load courses: "+e.message,true));
+
+  onSnapshot(collection(db,"curriculumMappings"),snap=>{
+    curriculumMappings=dataOf(snap);
+    loadCourses();
+  },e=>showNotice("Unable to load curriculum mappings: "+e.message,true));
+
+  onSnapshot(collection(db,"students"),snap=>{
+    students=dataOf(snap);
+  },e=>showNotice("Unable to load students: "+e.message,true));
 
   onSnapshot(collection(db,"gradeSettings"),snap=>{
     gradeSettings=dataOf(snap).sort((a,b)=>Number(b.minimumScore??0)-Number(a.minimumScore??0));
@@ -677,11 +842,25 @@ function attachListeners(){
   },e=>showNotice("Unable to load results: "+e.message,true));
 }
 
-$("session").addEventListener("change",()=>{loadSemesters();$("semester").value="";$("course").disabled=true});
+$("session").addEventListener("change",()=>{
+  loadSemesters();
+  $("semester").value="";
+  $("course").innerHTML='<option value="">Select course</option>';
+  $("course").disabled=true;
+});
+
 $("semester").addEventListener("change",()=>loadCourses());
-$("department").addEventListener("change",()=>{loadProgrammes();$("programme").value="";$("course").disabled=true});
-$("programme").addEventListener("change",()=>loadCourses());
-$("level").addEventListener("change",()=>loadCourses());
+
+$("programme").addEventListener("change",()=>{
+  $("course").value="";
+  loadCourses();
+});
+
+$("level").addEventListener("change",()=>{
+  $("course").value="";
+  loadCourses();
+});
+
 $("course").addEventListener("change",()=>{currentEditingResult=null});
 $("loadStudentsBtn").onclick=loadStudents;
 $("clearEntryBtn").onclick=clearEntry;
@@ -691,9 +870,10 @@ $("filterSession").addEventListener("change",renderResults);
 $("filterStatus").addEventListener("change",renderResults);
 $("filterResult").addEventListener("change",renderResults);
 
+let listenersAttached=false;
 onAuthStateChanged(auth,u=>{
   currentUser=u;
-  attachListeners();
+  if(!listenersAttached){listenersAttached=true;attachListeners();}
 });
 </script>
 </body>
