@@ -279,6 +279,24 @@ function fill(id,rows,placeholder,nameFn){
  rows.filter(x=>active(x.status)).sort((a,b)=>nameFn(a).localeCompare(nameFn(b))).forEach(x=>{let o=document.createElement("option");o.value=x.id;o.textContent=nameFn(x);el.appendChild(o)});
  if(rows.some(x=>x.id===old))el.value=old;
 }
+function fillSemestersForSession(){
+ const sid=$("lc_session").value;
+ const el=$("lc_semester");
+ const old=el.value;
+ el.innerHTML='<option value="">Select semester</option>';
+ const rows=semesters.filter(x=>{
+   if(!active(x.status)) return false;
+   const linked=String(x.sessionId||x.academicSessionId||"");
+   return !sid || linked===sid;
+ });
+ rows.sort((a,b)=>semname(a).localeCompare(semname(b))).forEach(x=>{
+   const o=document.createElement("option");
+   o.value=x.id;
+   o.textContent=semname(x);
+   el.appendChild(o);
+ });
+ if(rows.some(x=>x.id===old)) el.value=old;
+}
 function selectedPeriod(){
  return{sid:$("lc_session").value,mid:$("lc_semester").value,pid:$("lc_programme").value,lid:$("lc_level").value,lecid:$("lc_lecturer").value};
 }
@@ -325,7 +343,11 @@ function refresh(){
  renderCourses();renderAssignments();
 }
 
-["session","semester","programme","level","lecturer"].forEach(id=>$(id).addEventListener("change",loadSelected));
+$("lc_session").addEventListener("change",()=>{
+  fillSemestersForSession();
+  loadSelected();
+});
+["lc_semester","lc_programme","lc_level","lc_lecturer"].forEach(id=>$(id).addEventListener("change",loadSelected));
 $("lc_search").addEventListener("input",renderCourses);
 $("lc_assignmentSearch").addEventListener("input",renderAssignments);
 $("lc_courseList").addEventListener("change",e=>{let c=e.target.closest("[data-course]");if(!c)return;c.checked?selected.add(c.dataset.course):selected.delete(c.dataset.course);$("lc_selected").textContent=selected.size+" Selected"});
@@ -372,11 +394,11 @@ $("lc_assignments").onclick=async e=>{
  catch(err){msg(err.message||"Could not remove assignment.","error")}finally{b.disabled=false}
 };
 
-onSnapshot(collection(db,"academicSessions"),s=>{sessions=s.docs.map(d=>({id:d.id,...d.data()}));fill("session",sessions,"Select academic session",sname);refresh()},e=>msg("Could not load academic sessions: "+e.message,"error"));
-onSnapshot(collection(db,"semesters"),s=>{semesters=s.docs.map(d=>({id:d.id,...d.data()}));fill("semester",semesters,"Select semester",semname);refresh()},e=>msg("Could not load semesters: "+e.message,"error"));
-onSnapshot(collection(db,"programmes"),s=>{programmes=s.docs.map(d=>({id:d.id,...d.data()}));fill("programme",programmes,"Select programme",pname);refresh()},e=>msg("Could not load programmes: "+e.message,"error"));
-onSnapshot(collection(db,"academicLevels"),s=>{levels=s.docs.map(d=>({id:d.id,...d.data()}));fill("level",levels,"Select academic level",lname);refresh()},e=>msg("Could not load academic levels: "+e.message,"error"));
-onSnapshot(collection(db,"lecturers"),s=>{lecturers=s.docs.map(d=>({id:d.id,...d.data()}));fill("lecturer",lecturers,"Select lecturer",lecname);refresh()},e=>msg("Could not load lecturers: "+e.message,"error"));
+onSnapshot(collection(db,"academicSessions"),s=>{sessions=s.docs.map(d=>({id:d.id,...d.data()}));fill("lc_session",sessions,"Select academic session",sname);refresh()},e=>msg("Could not load academic sessions: "+e.message,"error"));
+onSnapshot(collection(db,"semesters"),s=>{semesters=s.docs.map(d=>({id:d.id,...d.data()}));fillSemestersForSession();refresh()},e=>msg("Could not load semesters: "+e.message,"error"));
+onSnapshot(collection(db,"programmes"),s=>{programmes=s.docs.map(d=>({id:d.id,...d.data()}));fill("lc_programme",programmes,"Select programme",pname);refresh()},e=>msg("Could not load programmes: "+e.message,"error"));
+onSnapshot(collection(db,"academicLevels"),s=>{levels=s.docs.map(d=>({id:d.id,...d.data()}));fill("lc_level",levels,"Select academic level",lname);refresh()},e=>msg("Could not load academic levels: "+e.message,"error"));
+onSnapshot(collection(db,"lecturers"),s=>{lecturers=s.docs.map(d=>({id:d.id,...d.data()}));fill("lc_lecturer",lecturers,"Select lecturer",lecname);refresh()},e=>msg("Could not load lecturers: "+e.message,"error"));
 onSnapshot(collection(db,"courses"),s=>{courses=s.docs.map(d=>({id:d.id,...d.data()}));refresh()},e=>msg("Could not load courses: "+e.message,"error"));
 onSnapshot(collection(db,"curriculumMappings"),s=>{mappings=s.docs.map(d=>({id:d.id,...d.data()}));loadSelected()},e=>msg("Could not load Programme Course Setup: "+e.message,"error"));
 onSnapshot(collection(db,"lecturerCourseAssignments"),s=>{assignments=s.docs.map(d=>({id:d.id,...d.data()}));loadSelected();renderAssignments()},e=>msg("Could not load lecturer assignments: "+e.message,"error"));
