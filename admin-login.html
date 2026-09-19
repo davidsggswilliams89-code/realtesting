@@ -50,7 +50,7 @@ button:disabled{opacity:.6;cursor:wait}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,getDocs} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {getAuth,signInWithEmailAndPassword,setPersistence,browserLocalPersistence,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getAuth,signInWithEmailAndPassword,setPersistence,browserLocalPersistence,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 /* IMPORTANT: exact working GGCHST Firebase configuration */
 const firebaseConfig={
@@ -119,7 +119,7 @@ $("login").onclick=async()=>{
     }
 
     sessionStorage.setItem("ggchstAdminVerified","1");
-    location.href="admin.html";
+    window.location.replace("admin.html");
   }catch(e){
     const m={
       "auth/invalid-credential":"Incorrect Admin email or password.",
@@ -135,16 +135,13 @@ $("login").onclick=async()=>{
   }
 };
 
-onAuthStateChanged(auth,async user=>{
-  if(user){
-    try{
-      const row=await getAdminRecord(user);
-      if(adminRecord(row)&&!["deactivated","suspended","inactive","disabled"].includes(norm(row?.status))){
-        location.href="admin.html";
-      }
-    }catch(e){}
-  }
-});
+/* 
+   IMPORTANT:
+   Do not automatically redirect based on a persisted Firebase user here.
+   The Admin Login page redirects to admin.html ONLY after an explicit
+   successful login and Admin-record verification. This prevents the
+   admin-login <-> admin.html blinking loop.
+*/
 </script>
 </body>
 </html>
