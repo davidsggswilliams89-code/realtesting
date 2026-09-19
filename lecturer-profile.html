@@ -72,6 +72,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 
 
 .attendance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}.attendance-card{border:1px solid var(--border);border-radius:16px;padding:18px;background:#fff}.attendance-card h3{margin:0 0 6px}.attendance-meta{color:var(--muted);font-size:13px;line-height:1.6}.attendance-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.live-box{text-align:center;padding:18px}.live-code{font-size:52px;font-weight:900;letter-spacing:8px;color:var(--dark);margin:14px 0}.live-timer{font-size:18px;font-weight:700;color:var(--primary)}@media(max-width:600px){.attendance-actions .btn{width:100%}.live-code{font-size:40px;letter-spacing:5px}}
+
+.page-section{display:none}.page-section.page-visible{display:block}.nav a{cursor:pointer;text-decoration:none}.nav a.active{font-weight:800}
+@media(max-width:700px){.nav{overflow-x:auto;flex-wrap:nowrap}.nav a{white-space:nowrap}}
 </style>
 
 <style id="registrar-topbar-standard">
@@ -273,18 +276,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 
   <div class="header-bottom-layer">
     <nav class="nav" id="menu"><div class="nav-label">Navigation</div>
-    <a class="active" href="#">▦ Dashboard</a>
-    <a href="#">📚 My Courses</a>
-    <a href="#">▣ Timetable</a>
-    <a href="#">📝 Assignments</a>
-    <a href="#">✓ Results</a>
+    <a class="active" href="#dashboard" data-page="dashboard">▦ Dashboard</a>
+    <a href="#courses" data-page="courses">📚 My Courses</a>
+    <a href="#timetable" data-page="timetable">▣ Timetable</a>
+    <a href="#assignments" data-page="assignments">📝 Assignments</a>
+    <a href="#results" data-page="results">✓ Results</a>
   </nav>
   </div>
 </header>
 
 <main>
 
-<section class="card">
+<section class="page-section" data-section="dashboard"><div class="card">
   <div class="profile">
     <div class="photo" id="lecturerPhoto">👨‍🏫</div>
     <div>
@@ -297,9 +300,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
       </div>
     </div>
   </div>
+</div>
 </section>
 
-<section class="section">
+<section class="page-section" data-section="dashboard">
   <div class="grid">
     <div class="card"><div class="muted">Assigned Courses</div><div class="stat">4</div><div class="muted">This session</div></div>
     <div class="card"><div class="muted">Total Registered Students</div><div class="stat">186</div><div class="muted">Across all courses</div></div>
@@ -308,7 +312,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
   </div>
 </section>
 
-<section class="section card">
+<section class="page-section" data-section="courses">
   <div class="section-title">
     <h2>My Courses</h2>
     <span class="badge">4 Courses</span>
@@ -316,7 +320,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
   <div class="course-grid" id="courseGrid"><div class="muted">Loading assigned courses…</div>  </div>
 </section>
 
-<section class="section card" id="attendanceSection">
+<section class="page-section" data-section="courses" id="attendanceSection">
   <div class="section-title">
     <div><h2>Attendance</h2><div class="muted">Take attendance only for courses assigned to you. Students are automatically determined from Programme + Level.</div></div>
     <span class="badge" id="attendanceCourseCount">0 Courses</span>
@@ -324,7 +328,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
   <div class="attendance-grid" id="attendanceCourseGrid"><div class="muted">Loading attendance courses…</div></div>
 </section>
 
-<section class="section card">
+<section class="page-section" data-section="timetable">
   <div class="section-title">
     <h2>My Timetable</h2>
     <span class="badge">Weekly</span>
@@ -335,7 +339,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
   </table>
 </section>
 
-<section class="section">
+<section class="page-section" data-section="assignments">
   <div class="assignment-grid">
     <div class="card">
       <div class="section-title"><h2>Create Assignment</h2><span class="badge">Lecturer</span></div>
@@ -358,7 +362,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
   </div>
 </section>
 
-<section class="section card">
+<section class="page-section" data-section="courses">
   <div class="section-title">
     <h2>Students in My Assigned Courses</h2>
     <span class="badge" id="studentBadge">0 Students</span>
@@ -372,7 +376,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 </section>
 
 
-<section class="section card">
+<section class="page-section" data-section="results">
   <div class="section-title">
     <div>
       <h2>Student Results</h2>
@@ -404,7 +408,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 </section>
 
 
-<section class="section card">
+<section class="page-section" data-section="results">
   <div class="section-title">
     <div>
       <h2>Add Student Results</h2>
@@ -439,7 +443,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
   <div id="resultEntryMessage" class="muted" style="margin-top:10px"></div>
 </section>
 
-<section class="section card">
+<section class="page-section" data-section="dashboard">
   <div class="section-title"><h2>Quick Actions</h2></div>
   <div class="course-actions">
     <button class="btn btn-primary" onclick="document.getElementById('assignmentTitle').focus()">Create Assignment</button>
@@ -461,6 +465,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
   </div>
 </div>
 
+<script>
+(function(){
+  const links=[...document.querySelectorAll('#menu a[data-page]')];
+  const sections=[...document.querySelectorAll('[data-section]')];
+  function show(page){
+    sections.forEach(el=>el.classList.toggle('page-visible',el.dataset.section===page));
+    links.forEach(a=>a.classList.toggle('active',a.dataset.page===page));
+    const title={dashboard:'Lecturer Dashboard',courses:'My Courses',timetable:'My Timetable',assignments:'Assignments',results:'Results'}[page]||'Lecturer Portal';
+    const pt=document.getElementById('pageTitle'); if(pt) pt.textContent=title;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  links.forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const p=a.dataset.page;history.replaceState(null,'','#'+p);show(p);}));
+  const initial=location.hash.replace('#',''); show(['dashboard','courses','timetable','assignments','results'].includes(initial)?initial:'dashboard');
+})();
+</script>
 <script type="module">
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
