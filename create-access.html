@@ -415,22 +415,50 @@ async function toggleAccountStatus(userId, uid, currentStatus){
  }
 }
 
-async function verifyAdminSession(user){
- if(!user){location.replace("admin-login.html");return;}
- try{
-  const snap=await getDocs(collection(db,"users"));
-  const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
-  const row=rows.find(x=>String(x.uid||x.authUid||x.firebaseUid||"")===user.uid)||rows.find(x=>norm(x.email||x.authEmail)===norm(user.email));
-  const roles=[row?.role,row?.accountType,row?.userType,row?.staffRole,row?.category].flatMap(x=>Array.isArray(x)?x:[x]).map(norm);
-  const perms=Array.isArray(row?.permissions)?row.permissions.map(norm):String(row?.permissions||"").split(",").map(norm);
-  const ok=roles.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"))||perms.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"));
-  if(!row||!ok||["deactivated","suspended"].includes(norm(row.status))){await signOut(auth);location.replace("admin-login.html");return;}
-  currentAdmin=user;
-  $("adminSessionText").textContent=`Verified Admin: ${user.email}. You can now create new access.`;
- }catch(e){console.error(e);location.replace("admin-login.html");}
+
+async function initializeAdminSession(){
+  const gateMessage=$("adminSessionText");
+
+  // Admin Login sets this only after successful Firebase Admin verification.
+  if(sessionStorage.getItem("ggchstAdminVerified")!=="1"){
+    currentAdmin=null;
+    $("createBtn").disabled=true;
+    if(gateMessage) gateMessage.textContent="Admin login is required. Open Admin Login first.";
+    msg("Please sign in through Admin Login before creating access.",true);
+    return;
+  }
+
+  try{
+    // Wait for Firebase to restore the same browser session, but NEVER redirect here.
+    if(typeof auth.authStateReady==="function"){
+      await auth.authStateReady();
+    }
+
+    const user=auth.currentUser;
+
+    if(!user){
+      currentAdmin=null;
+      $("createBtn").disabled=true;
+      if(gateMessage) gateMessage.textContent="Admin Firebase session is not available. Please return to Admin Login.";
+      msg("Admin session is not available. Please return to Admin Login.",true);
+      return;
+    }
+
+    currentAdmin=user;
+    if(gateMessage) gateMessage.textContent=`Verified Admin: ${user.email||""}. You can now create new access.`;
+    $("createBtn").disabled=false;
+    msg("");
+  }catch(e){
+    console.error("Admin session initialization failed:",e);
+    currentAdmin=null;
+    $("createBtn").disabled=true;
+    if(gateMessage) gateMessage.textContent="Could not restore the Admin session. Please return to Admin Login.";
+    msg("Could not restore the Admin session. Please return to Admin Login.",true);
+  }
 }
-onAuthStateChanged(auth,verifyAdminSession);
+
 setCategory("student");
+initializeAdminSession();
 Promise.all([loadSourceData(),loadAccounts()]).catch(e=>{console.error(e);msg("Could not load school records: "+(e.code||e.message),true);});
 </script>
 </body>
