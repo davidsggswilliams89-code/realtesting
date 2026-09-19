@@ -91,7 +91,7 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 
 <section class="hero">
  <h1>CREATE ACCESS</h1>
- <p>Create login access for Students, Lecturers and Staff from one place. Firebase Authentication stores the login credential; Firestore stores the school profile and Firebase UID. Passwords are never written to Firestore.</p>
+ <p>Create access records for Students, Lecturers and Staff from one place. Firestore stores the school profile and access details.</p>
 
  <div class="category-grid">
   <button type="button" class="category active" data-category="student">
@@ -109,7 +109,7 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 <section class="panel">
  <div class="identity">
   <strong id="formTitle">Student Access</strong>
-  <span id="formDescription">Create a brand-new student school record and Firebase login.</span>
+  <span id="formDescription">Create a brand-new student school record.</span>
  </div>
 
  <div id="studentForm" class="form-grid" style="margin-top:14px">
@@ -152,20 +152,11 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
   <div>
    <label id="loginEmailLabel">Email to use as login *</label>
    <input id="loginEmail" type="email" placeholder="login email">
-   <div class="hint" id="loginEmailHint">This email becomes the Firebase Authentication login email.</div>
+   <div class="hint" id="loginEmailHint">This email is saved with the school access record.</div>
   </div>
   <div>
    <label>Account Status</label>
    <input id="statusMirror" readonly>
-  </div>
-  <div>
-   <label>Password to use as login *</label>
-   <div class="password-wrap"><input id="password" type="password" minlength="6" autocomplete="new-password" placeholder="Minimum 6 characters"><button class="show" type="button" id="showPassword">Show</button></div>
-   <div class="hint">Used only by Firebase Authentication. It is never stored in Firestore.</div>
-  </div>
-  <div>
-   <label>Confirm Password *</label>
-   <input id="password2" type="password" minlength="6" autocomplete="new-password" placeholder="Repeat password">
   </div>
  </div>
 
@@ -178,10 +169,10 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 
 <section class="panel">
  <h2 class="small-title">Created Access Accounts</h2>
- <p class="hint">This table shows newly created access accounts only. Passwords are intentionally never displayed or stored here.</p>
+ <p class="hint">This table shows newly created access accounts only. Access records are stored in Firestore.</p>
  <div class="table-wrap" style="margin-top:12px">
-  <table><thead><tr><th>Category</th><th>Name</th><th>School ID</th><th>Email</th><th>Programme / Role</th><th>Level</th><th>UID</th><th>Status</th><th>Action</th></tr></thead>
-  <tbody id="rows"><tr><td colspan="9" style="text-align:center;padding:25px;color:#667c73">Loading...</td></tr></tbody></table>
+  <table><thead><tr><th>Category</th><th>Name</th><th>School ID</th><th>Email</th><th>Programme / Role</th><th>Level</th><th>Status</th><th>Action</th></tr></thead>
+  <tbody id="rows"><tr><td colspan="8" style="text-align:center;padding:25px;color:#667c73">Loading...</td></tr></tbody></table>
  </div>
 </section>
 </main>
@@ -191,7 +182,6 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,getDocs,addDoc,doc,updateDoc,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {getAuth,createUserWithEmailAndPassword,signOut,onAuthStateChanged,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig={
  apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
@@ -203,8 +193,7 @@ const firebaseConfig={
 };
 
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
-const db=getFirestore(app), auth=getAuth(app);
-let currentAdmin=null;
+const db=getFirestore(app);
 const $=id=>document.getElementById(id);
 const norm=v=>String(v??"").trim().toLowerCase();
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -214,69 +203,20 @@ const toast=t=>{const x=$("toast");x.textContent=t;x.style.display="block";clear
 
 async function initializeCreateAccess(){
   try{
-    // Create Access is a child page of admin.html.
-    // It must NOT redirect back to admin.html/admin-login.html while
-    // Firebase is restoring the existing Admin session.
-
-    // Keep the primary Admin session available across page navigation.
-    try{
-      await setPersistence(auth,browserLocalPersistence);
-    }catch(persistenceError){
-      console.warn("Could not explicitly set local Auth persistence:",persistenceError);
-    }
-
-    // Wait until Firebase finishes restoring the saved Admin session.
-    if(typeof auth.authStateReady==="function"){
-      await auth.authStateReady();
-    }else{
-      await new Promise(resolve=>{
-        let finished=false;
-        const unsub=onAuthStateChanged(auth,()=>{
-          if(!finished){
-            finished=true;
-            unsub();
-            resolve();
-          }
-        });
-      });
-    }
-
-    currentAdmin=auth.currentUser||null;
-
-    if(!currentAdmin){
-      // IMPORTANT: Do not automatically redirect.
-      // The old redirect caused the Admin/Create Access navigation loop.
-      const gateMessage=$("adminSessionText");
-      if(gateMessage){
-        gateMessage.innerHTML='No Admin Firebase session is active. <a href="admin-login.html" style="color:#166534;font-weight:800">Login as Admin</a> and then open Create Access again.';
-      }
-      $("createBtn").disabled=true;
-      return;
-    }
-
-    const gateMessage=$("adminSessionText");
-    if(gateMessage){
-      gateMessage.textContent="Verified Admin: "+(currentAdmin.email||"")+" — ready to create access.";
-    }
+    $("adminSessionText").textContent="Create Access is ready.";
     $("createBtn").disabled=false;
-
     await loadSourceData();
     await loadAccounts();
-
   }catch(e){
     console.error("Create Access initialization failed:",e);
     $("createBtn").disabled=true;
-    const gateMessage=$("adminSessionText");
-    if(gateMessage){
-      gateMessage.textContent="Admin session could not be verified. Please login as Admin, then return to Create Access.";
-    }
-    msg("Admin login session could not be restored. Please login again.",true);
+    $("adminSessionText").textContent="Could not load Create Access data.";
+    msg("Could not load school data. Please try again.",true);
   }
 }
 
 const nameOf=x=>first(x,["name","fullName","studentName","lecturerName","displayName"]);
-const emailOf=x=>first(x,["email","emailAddress","studentEmail","lecturerEmail","authEmail"]);
-const uidOf=x=>first(x,["authUid","firebaseUid","studentUid","uid"]);
+const emailOf=x=>first(x,["email","emailAddress","studentEmail","lecturerEmail"]);
 const programmeOf=x=>first(x,["programmeName","programme","programName","program"]);
 const levelOf=x=>first(x,["levelName","level","academicLevelName","academicLevel"]);
 const schoolIdOf=x=>first(x,["studentId","matricNo","matricNumber","staffId","staffID","employeeId","schoolId"]);
@@ -292,9 +232,9 @@ function setCategory(c){
  $("lecturerForm").classList.toggle("hidden",c!=="lecturer");
  $("staffForm").classList.toggle("hidden",c!=="staff");
  $("formTitle").textContent=c==="student"?"New Student Access":c==="lecturer"?"New Lecturer Access":"New Staff Access";
- $("formDescription").textContent=c==="student"?"Create a brand-new student school record and Firebase login. The student can complete the remaining profile after first login.":c==="lecturer"?"Create a brand-new lecturer school record and Firebase login. The lecturer can complete the personal profile after first login.":"Create a new staff login and school access role.";
+ $("formDescription").textContent=c==="student"?"Create a brand-new student school record. The student can complete the remaining profile after first login.":c==="lecturer"?"Create a brand-new lecturer school record.":"Create a new staff login and school access role.";
  $("loginEmail").readOnly=false;
- $("loginEmailHint").textContent="This email becomes the Firebase Authentication login email.";
+ $("loginEmailHint").textContent="This email is saved with the school access record.";
  syncGeneral(); msg("");
 }
 document.querySelectorAll(".category").forEach(b=>b.onclick=()=>setCategory(b.dataset.category));
@@ -308,81 +248,86 @@ function syncGeneral(){
 }
 ["studentStatus","lecturerStatus","staffStatus","loginEmail"].forEach(id=>$(id).addEventListener("input",syncGeneral));
 
-$("showPassword").onclick=()=>{
- const hide=$("password").type==="password";$("password").type=hide?"text":"password";$("password2").type=hide?"text":"password";$("showPassword").textContent=hide?"Hide":"Show";
 };
 $("clearBtn").onclick=()=>{
- ["password","password2","loginEmail","staffName","newStaffId","studentId","admissionNumber","studentName","lecturerName","staffId","lecturerRank"].forEach(id=>$(id).value="");
+ ["loginEmail","staffName","newStaffId","studentId","admissionNumber","studentName","lecturerName","staffId","lecturerRank"].forEach(id=>$(id).value="");
  ["studentProgramme","studentLevel","lecturerProgramme"].forEach(id=>$(id).value="");
  $("staffPermissions").value="profile"; syncGeneral(); msg("");
 };
 
-async function createSecondary(email,password){
- const cfg=app.options;
- const sa=getApps().some(a=>a.name==="GGCHSTAccountCreator")?getApp("GGCHSTAccountCreator"):initializeApp(cfg,"GGCHSTAccountCreator");
- const a=getAuth(sa);
- const c=await createUserWithEmailAndPassword(a,email,password);
- const uid=c.user.uid;await signOut(a);return uid;
-}
-function authError(e){
- const c=e?.code||"";
- const map={"auth/email-already-in-use":"This email already has a Firebase Authentication account.","auth/invalid-email":"Invalid login email.","auth/weak-password":"Password is too weak. Use at least 6 characters.","auth/operation-not-allowed":"Firebase Email/Password Authentication is not enabled.","auth/network-request-failed":"Network error. Check your internet connection."};
- return map[c]||e?.message||"Could not create the Firebase login.";
-}
-
 async function duplicateEmail(email){
  const snap=await getDocs(collection(db,"users"));
- return snap.docs.some(d=>norm(emailOf(d.data())||d.data().authEmail)===norm(email));
+ return snap.docs.some(d=>norm(emailOf(d.data()))===norm(email));
 }
 
 $("createBtn").onclick=async()=>{
- if(!currentAdmin){msg("Admin Firebase authentication is required before creating access.",true);return;}
- let name="",email=$("loginEmail").value.trim(),schoolId="",programme="",level="",role="",status="Active",accountType="",permissions=[],profileData={};
- if(category==="student"){
-   name=$("studentName").value.trim(); schoolId=$("studentId").value.trim();
-   const admission=$("admissionNumber").value.trim(), programmeId=$("studentProgramme").value, levelId=$("studentLevel").value;
-   const p=programmes.find(x=>x.id===programmeId), l=levels.find(x=>x.id===levelId);
-   programme=p?.name||""; level=l?.name||""; status=$("studentStatus").value;
-   role="Student"; accountType="Student"; permissions=["student-dashboard","profile","my-courses","timetable","assignments","results","attendance","my-payment"];
-   if(!name||!programmeId||!levelId||!email){msg("Enter full name, Programme, Level and login email.",true);return;}
-   profileData={studentId:schoolId,admissionNumber:admission,fullName:name,name,email,programmeId,programmeName:programme,levelId,levelName:level,status,accountStatus:status,accountLinked:false,profileCompleted:false};
- }
- if(category==="lecturer"){
-   name=$("lecturerName").value.trim(); schoolId=$("staffId").value.trim();
-   const programmeId=$("lecturerProgramme").value, p=programmes.find(x=>x.id===programmeId);
-   programme=p?.name||""; role="Lecturer/Staff"; accountType="Staff / Lecturer"; status=$("lecturerStatus").value;
-   permissions=["lecturer-profile","courses","timetable","assignments","lecture-notes","results","attendance"];
-   if(!name||!email||!$("lecturerRank").value.trim()){msg("Enter lecturer name, rank and login email.",true);return;}
-   profileData={staffId:schoolId,fullName:name,name,email,programmeId,programmeName:programme,rank:$("lecturerRank").value.trim(),status,accountStatus:status,accountLinked:false,profileCompleted:false};
- }
- if(category==="staff"){
-   name=$("staffName").value.trim();schoolId=$("newStaffId").value.trim();role=$("staffRole").value;status=$("staffStatus").value;
-   accountType="Staff";permissions=$("staffPermissions").value.split(",").map(x=>x.trim()).filter(Boolean);
-   if(!name||!email){msg("Enter staff name and login email.",true);return;}
- }
- const p1=$("password").value,p2=$("password2").value;
- if(!email||!/\S+@\S+\.\S+/.test(email)){msg("Enter a valid login email.",true);return;}
- if(p1.length<6){msg("Password must contain at least 6 characters.",true);return;}
- if(p1!==p2){msg("Passwords do not match.",true);return;}
- $("createBtn").disabled=true;$("createBtn").textContent="Creating account...";
- try{
-   if(await duplicateEmail(email))throw new Error("This email already exists in the school users collection.");
-   const uid=await createSecondary(email,p1), now=new Date().toISOString();
-   let profileId="";
-   if(category==="student"){
-     const ref=await addDoc(collection(db,"students"),{...profileData,authUid:uid,studentUid:uid,firebaseUid:uid,authEmail:email,createdAt:now,updatedAt:now}); profileId=ref.id;
-   }else if(category==="lecturer"){
-     const ref=await addDoc(collection(db,"lecturers"),{...profileData,authUid:uid,authEmail:email,createdAt:now,updatedAt:now}); profileId=ref.id;
-   }else{
-     profileId="staff-"+Date.now();
-     await addDoc(collection(db,"staff"),{name,fullName:name,staffId:schoolId,email,authEmail:email,authUid:uid,uid,role,accountType,status,permissions,profileCompleted:false,createdAt:now,updatedAt:now});
-   }
-   const userRef=await addDoc(collection(db,"users"),{uid,authUid:uid,authEmail:email,email,name,accountType,role,status,permissions,schoolId,studentId:category==="student"?schoolId:"",admissionNumber:category==="student"?profileData.admissionNumber:"",lecturerId:category==="lecturer"?profileId:"",staffId:category==="lecturer"?schoolId:(category==="staff"?schoolId:""),programmeId:profileData.programmeId||"",programmeName:programme,levelId:profileData.levelId||"",levelName:level,profileId,profileCompleted:false,createdAt:now,updatedAt:now});
-   await addDoc(collection(db,"auditLogs"),{action:"create_access",module:"users",entityType:category,entityId:profileId,userRecordId:userRef.id,uid,email,name,role,accountType,timestamp:now,result:"success"});
-   $("password").value="";$("password2").value="";
-   msg(`Account created successfully for ${name}. Firebase UID: ${uid}`); toast("New access created successfully."); await loadAccounts();
- }catch(e){console.error(e);msg(authError(e),true);}
- finally{$("createBtn").disabled=false;$("createBtn").textContent="CREATE ACCOUNT";}
+  let name="",email=$("loginEmail").value.trim(),schoolId="",programme="",level="",role="",status="Active",accountType="",permissions=[],profileData={};
+
+  if(category==="student"){
+    name=$("studentName").value.trim(); schoolId=$("studentId").value.trim();
+    const admission=$("admissionNumber").value.trim(), programmeId=$("studentProgramme").value, levelId=$("studentLevel").value;
+    const p=programmes.find(x=>x.id===programmeId), l=levels.find(x=>x.id===levelId);
+    programme=p?.name||""; level=l?.name||""; status=$("studentStatus").value;
+    role="Student"; accountType="Student"; permissions=["student-dashboard","profile","my-courses","timetable","assignments","results","attendance","my-payment"];
+    if(!name||!programmeId||!levelId||!email){msg("Enter full name, Programme, Level and email.",true);return;}
+    profileData={studentId:schoolId,admissionNumber:admission,fullName:name,name,email,programmeId,programmeName:programme,levelId,levelName:level,status,accountStatus:status,profileCompleted:false};
+  }
+
+  if(category==="lecturer"){
+    name=$("lecturerName").value.trim(); schoolId=$("staffId").value.trim();
+    const programmeId=$("lecturerProgramme").value, p=programmes.find(x=>x.id===programmeId);
+    programme=p?.name||""; role="Lecturer/Staff"; accountType="Staff / Lecturer"; status=$("lecturerStatus").value;
+    permissions=["lecturer-profile","courses","timetable","assignments","lecture-notes","results","attendance"];
+    if(!name||!email||!$("lecturerRank").value.trim()){msg("Enter lecturer name, rank and email.",true);return;}
+    profileData={staffId:schoolId,fullName:name,name,email,programmeId,programmeName:programme,rank:$("lecturerRank").value.trim(),status,accountStatus:status,profileCompleted:false};
+  }
+
+  if(category==="staff"){
+    name=$("staffName").value.trim(); schoolId=$("newStaffId").value.trim(); role=$("staffRole").value; status=$("staffStatus").value;
+    accountType="Staff"; permissions=$("staffPermissions").value.split(",").map(x=>x.trim()).filter(Boolean);
+    if(!name||!email){msg("Enter staff name and email.",true);return;}
+  }
+
+  if(!email||!/\S+@\S+\.\S+/.test(email)){msg("Enter a valid email.",true);return;}
+
+  $("createBtn").disabled=true;$("createBtn").textContent="Creating record...";
+  try{
+    if(await duplicateEmail(email))throw new Error("This email already exists in the school users collection.");
+    const now=new Date().toISOString(); let profileId="";
+
+    if(category==="student"){
+      const ref=await addDoc(collection(db,"students"),{...profileData,createdAt:now,updatedAt:now}); profileId=ref.id;
+    }else if(category==="lecturer"){
+      const ref=await addDoc(collection(db,"lecturers"),{...profileData,createdAt:now,updatedAt:now}); profileId=ref.id;
+    }else{
+      profileId="staff-"+Date.now();
+      await addDoc(collection(db,"staff"),{name,fullName:name,staffId:schoolId,email,role,accountType,status,permissions,profileCompleted:false,createdAt:now,updatedAt:now});
+    }
+
+    const userRef=await addDoc(collection(db,"users"),{
+      email,name,accountType,role,status,permissions,schoolId,
+      studentId:category==="student"?schoolId:"",
+      admissionNumber:category==="student"?profileData.admissionNumber:"",
+      lecturerId:category==="lecturer"?profileId:"",
+      staffId:category==="lecturer"?schoolId:(category==="staff"?schoolId:""),
+      programmeId:profileData.programmeId||"",programmeName:programme,
+      levelId:profileData.levelId||"",levelName:level,profileId,
+      profileCompleted:false,createdAt:now,updatedAt:now
+    });
+
+    await addDoc(collection(db,"auditLogs"),{
+      action:"create_access",module:"users",entityType:category,entityId:profileId,
+      userRecordId:userRef.id,email,name,role,accountType,timestamp:now,result:"success"
+    });
+
+    msg(`Access record created successfully for ${name}.`);
+    toast("New access created successfully.");
+    await loadAccounts();
+  }catch(e){
+    console.error(e); msg(e?.message||"Could not create access record.",true);
+  }finally{
+    $("createBtn").disabled=false;$("createBtn").textContent="CREATE ACCOUNT";
+  }
 };
 
 async function loadSourceData(){
@@ -399,10 +344,10 @@ async function loadSourceData(){
 async function loadAccounts(){
  const snap=await getDocs(collection(db,"users"));
  const arr=snap.docs.map(d=>({id:d.id,...d.data()}));
- const linked=arr.filter(x=>x.uid||x.authUid).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+ const linked=arr.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
  $("rows").innerHTML="";
  if(!linked.length){
-   $("rows").innerHTML='<tr><td colspan="9" style="text-align:center;padding:25px;color:#667c73">No created access accounts yet.</td></tr>';
+   $("rows").innerHTML='<tr><td colspan="8" style="text-align:center;padding:25px;color:#667c73">No created access accounts yet.</td></tr>';
    return;
  }
  linked.forEach(x=>{
@@ -418,75 +363,50 @@ async function loadAccounts(){
       <td>${esc(x.email||"—")}</td>
       <td>${esc(x.programmeName||x.role||"—")}</td>
       <td>${esc(x.levelName||"—")}</td>
-      <td><span class="badge" title="${esc(x.uid||x.authUid||"")}">${esc(String(x.uid||x.authUid||"").slice(0,18))}…</span></td>
       <td><span class="badge ${active?"status-active":"status-off"}">${statusLabel}</span></td>
-      <td><button class="status-btn ${actionClass}" data-user="${esc(x.id)}" data-uid="${esc(x.uid||x.authUid||"")}" data-status="${active?"Active":"Deactivated"}">${actionLabel}</button></td>`;
+      <td><button class="status-btn ${actionClass}" data-user="${esc(x.id)}" data-status="${active?"Active":"Deactivated"}">${actionLabel}</button></td>`;
    $("rows").appendChild(tr);
  });
- document.querySelectorAll(".status-btn").forEach(btn=>btn.onclick=()=>toggleAccountStatus(btn.dataset.user,btn.dataset.uid,btn.dataset.status));
+ document.querySelectorAll(".status-btn").forEach(btn=>btn.onclick=()=>toggleAccountStatus(btn.dataset.user,btn.dataset.status));
 }
 
-async function toggleAccountStatus(userId, uid, currentStatus){
- const next=String(currentStatus).toLowerCase()==="active"?"Deactivated":"Active";
- const action=next==="Deactivated"?"deactivate":"activate";
- if(!confirm(`${action.charAt(0).toUpperCase()+action.slice(1)} this account?`)) return;
- try{
-   await updateDoc(doc(db,"users",userId),{
-     status:next,
-     accountStatus:next,
-     updatedAt:serverTimestamp()
-   });
+async function toggleAccountStatus(userId,currentStatus){
+  const next=String(currentStatus).toLowerCase()==="active"?"Deactivated":"Active";
+  const action=next==="Deactivated"?"deactivate":"activate";
+  if(!confirm(`${action.charAt(0).toUpperCase()+action.slice(1)} this account?`)) return;
+  try{
+    const usersSnap=await getDocs(collection(db,"users"));
+    const userData=usersSnap.docs.find(d=>d.id===userId)?.data()||{};
+    const email=String(userData.email||"");
 
-   // Keep the linked school profile status synchronized.
-   const snap=await getDocs(collection(db,"students"));
-   let found=false;
-   for(const d of snap.docs){
-     const x=d.data();
-     if(String(x.authUid||x.studentUid||x.firebaseUid||"")===String(uid)){
-       await updateDoc(doc(db,"students",d.id),{status:next,accountStatus:next,updatedAt:serverTimestamp()});
-       found=true; break;
-     }
-   }
-   if(!found){
-     const ls=await getDocs(collection(db,"lecturers"));
-     for(const d of ls.docs){
-       const x=d.data();
-       if(String(x.authUid||x.firebaseUid||x.uid||"")===String(uid)){
-         await updateDoc(doc(db,"lecturers",d.id),{status:next,accountStatus:next,updatedAt:serverTimestamp()});
-         found=true; break;
-       }
-     }
-   }
+    await updateDoc(doc(db,"users",userId),{status:next,accountStatus:next,updatedAt:serverTimestamp()});
 
-   await addDoc(collection(db,"auditLogs"),{
-     action:next==="Active"?"activate_access":"deactivate_access",
-     module:"users",
-     entityType:"account",
-     entityId:userId,
-     uid,
-     status:next,
-     performedByUid:currentAdmin?.uid||"",
-     performedByEmail:currentAdmin?.email||"",
-     timestamp:new Date().toISOString(),
-     result:"success"
-   });
-   toast(`Account ${next.toLowerCase()}.`);
-   await loadAccounts();
- }catch(e){
-   console.error(e);
-   msg("Could not change account status: "+(e.code||e.message),true);
- }
+    const students=await getDocs(collection(db,"students"));
+    for(const d of students.docs){
+      if(String(d.data().email||"")===email){
+        await updateDoc(doc(db,"students",d.id),{status:next,accountStatus:next,updatedAt:serverTimestamp()}); break;
+      }
+    }
+    const lecturers=await getDocs(collection(db,"lecturers"));
+    for(const d of lecturers.docs){
+      if(String(d.data().email||"")===email){
+        await updateDoc(doc(db,"lecturers",d.id),{status:next,accountStatus:next,updatedAt:serverTimestamp()}); break;
+      }
+    }
+
+    await addDoc(collection(db,"auditLogs"),{
+      action:next==="Active"?"activate_access":"deactivate_access",
+      module:"users",entityType:"account",entityId:userId,status:next,
+      timestamp:new Date().toISOString(),result:"success"
+    });
+    toast(`Account ${next.toLowerCase()}.`);
+    await loadAccounts();
+  }catch(e){
+    console.error(e); msg("Could not change account status: "+(e.code||e.message),true);
+  }
 }
 
-
-function initializeAdminSession(){
-  const gateMessage=$("adminSessionText");
-  if(gateMessage) gateMessage.textContent="Checking the existing Admin Firebase session…";
-  $("createBtn").disabled=true;
-  msg("");
-}
 setCategory("student");
-initializeAdminSession();
 initializeCreateAccess();
 </script>
 </body>
