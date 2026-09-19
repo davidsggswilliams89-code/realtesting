@@ -86,7 +86,7 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 
 <main>
 <section class="panel" id="adminSession" style="background:#ecfdf3;border-color:#bbf7d0">
- <div class="identity"><strong>🔐 Admin Session</strong><span id="adminSessionText">Checking Admin login...</span></div>
+ <div class="identity"><strong>🔐 Create Access</strong><span id="adminSessionText">Create Access is ready.</span></div>
 </section>
 
 <section class="hero">
@@ -191,7 +191,7 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,getDocs,addDoc,doc,updateDoc,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getAuth,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig={
  apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
@@ -220,7 +220,7 @@ const schoolIdOf=x=>first(x,["studentId","matricNo","matricNumber","staffId","st
 const admissionOf=x=>first(x,["admissionNumber","admissionNo","admission"]);
 const roleOf=x=>first(x,["role","staffRole","accountType"],"Staff");
 
-let category="student", programmes=[], levels=[], currentAdmin=null;
+let category="student", programmes=[], levels=[];
 
 function setCategory(c){
  category=c;
@@ -315,7 +315,7 @@ $("createBtn").onclick=async()=>{
      await addDoc(collection(db,"staff"),{name,fullName:name,staffId:schoolId,email,authEmail:email,authUid:uid,uid,role,accountType,status,permissions,profileCompleted:false,createdAt:now,updatedAt:now});
    }
    const userRef=await addDoc(collection(db,"users"),{uid,authUid:uid,authEmail:email,email,name,accountType,role,status,permissions,schoolId,studentId:category==="student"?schoolId:"",admissionNumber:category==="student"?profileData.admissionNumber:"",lecturerId:category==="lecturer"?profileId:"",staffId:category==="lecturer"?schoolId:(category==="staff"?schoolId:""),programmeId:profileData.programmeId||"",programmeName:programme,levelId:profileData.levelId||"",levelName:level,profileId,profileCompleted:false,createdAt:now,updatedAt:now});
-   await addDoc(collection(db,"auditLogs"),{action:"create_access",module:"users",entityType:category,entityId:profileId,userRecordId:userRef.id,uid,email,name,role,accountType,performedByUid:currentAdmin.uid,performedByEmail:currentAdmin.email||"",timestamp:now,result:"success"});
+   await addDoc(collection(db,"auditLogs"),{action:"create_access",module:"users",entityType:category,entityId:profileId,userRecordId:userRef.id,uid,email,name,role,accountType,timestamp:now,result:"success"});
    $("password").value="";$("password2").value="";
    msg(`Account created successfully for ${name}. Firebase UID: ${uid}`); toast("New access created successfully."); await loadAccounts();
  }catch(e){console.error(e);msg(authError(e),true);}
@@ -416,47 +416,12 @@ async function toggleAccountStatus(userId, uid, currentStatus){
 }
 
 
-async function initializeAdminSession(){
+function initializeAdminSession(){
   const gateMessage=$("adminSessionText");
-
-  // Admin Login sets this only after successful Firebase Admin verification.
-  if(sessionStorage.getItem("ggchstAdminVerified")!=="1"){
-    currentAdmin=null;
-    $("createBtn").disabled=true;
-    if(gateMessage) gateMessage.textContent="Admin login is required. Open Admin Login first.";
-    msg("Please sign in through Admin Login before creating access.",true);
-    return;
-  }
-
-  try{
-    // Wait for Firebase to restore the same browser session, but NEVER redirect here.
-    if(typeof auth.authStateReady==="function"){
-      await auth.authStateReady();
-    }
-
-    const user=auth.currentUser;
-
-    if(!user){
-      currentAdmin=null;
-      $("createBtn").disabled=true;
-      if(gateMessage) gateMessage.textContent="Admin Firebase session is not available. Please return to Admin Login.";
-      msg("Admin session is not available. Please return to Admin Login.",true);
-      return;
-    }
-
-    currentAdmin=user;
-    if(gateMessage) gateMessage.textContent=`Verified Admin: ${user.email||""}. You can now create new access.`;
-    $("createBtn").disabled=false;
-    msg("");
-  }catch(e){
-    console.error("Admin session initialization failed:",e);
-    currentAdmin=null;
-    $("createBtn").disabled=true;
-    if(gateMessage) gateMessage.textContent="Could not restore the Admin session. Please return to Admin Login.";
-    msg("Could not restore the Admin session. Please return to Admin Login.",true);
-  }
+  if(gateMessage) gateMessage.textContent="Create Access is ready. Enter the new user's details and create the account.";
+  $("createBtn").disabled=false;
+  msg("");
 }
-
 setCategory("student");
 initializeAdminSession();
 Promise.all([loadSourceData(),loadAccounts()]).catch(e=>{console.error(e);msg("Could not load school records: "+(e.code||e.message),true);});
