@@ -212,21 +212,44 @@ const first=(o,keys,def="")=>{for(const k of keys)if(o?.[k]!==undefined&&o[k]!==
 const msg=(t,b=false)=>{$("message").textContent=t;$("message").className="message "+(b?"bad":"ok");};
 const toast=t=>{const x=$("toast");x.textContent=t;x.style.display="block";clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.style.display="none",3000)}
 
-onAuthStateChanged(auth,user=>{
-  currentAdmin=user||null;
-  if(!currentAdmin){
-    const gateMessage=$("adminSessionText");
-    if(gateMessage) gateMessage.textContent="Please login as Admin before creating access.";
-    $("createBtn").disabled=true;
-    window.location.replace("admin-login.html");
-    return;
-  }
+async function initializeCreateAccess(){
+  try{
+    // Wait until Firebase finishes restoring the Admin's saved login session.
+    if(typeof auth.authStateReady==="function"){
+      await auth.authStateReady();
+    }else{
+      await new Promise(resolve=>{
+        let finished=false;
+        const unsub=onAuthStateChanged(auth,()=>{
+          if(!finished){finished=true;unsub();resolve();}
+        });
+      });
+    }
 
-  const gateMessage=$("adminSessionText");
-  if(gateMessage) gateMessage.textContent="Verified Admin: "+(currentAdmin.email||"")+" — ready to create access.";
-  $("createBtn").disabled=false;
-});
-;
+    currentAdmin=auth.currentUser||null;
+
+    if(!currentAdmin){
+      const gateMessage=$("adminSessionText");
+      if(gateMessage) gateMessage.textContent="Please login as Admin before creating access.";
+      $("createBtn").disabled=true;
+      window.location.replace("admin-login.html");
+      return;
+    }
+
+    const gateMessage=$("adminSessionText");
+    if(gateMessage) gateMessage.textContent="Verified Admin: "+(currentAdmin.email||"")+" — ready to create access.";
+    $("createBtn").disabled=false;
+
+    await loadSourceData();
+    await loadAccounts();
+
+  }catch(e){
+    console.error("Create Access initialization failed:",e);
+    $("createBtn").disabled=true;
+    msg("Admin login session could not be restored. Please login again.",true);
+    setTimeout(()=>window.location.replace("admin-login.html"),1200);
+  }
+}
 
 const nameOf=x=>first(x,["name","fullName","studentName","lecturerName","displayName"]);
 const emailOf=x=>first(x,["email","emailAddress","studentEmail","lecturerEmail","authEmail"]);
@@ -441,7 +464,7 @@ function initializeAdminSession(){
 }
 setCategory("student");
 initializeAdminSession();
-Promise.all([loadSourceData(),loadAccounts()]).catch(e=>{console.error(e);msg("Could not load school records: "+(e.code||e.message),true);});
+initializeCreateAccess();
 </script>
 </body>
 </html>
