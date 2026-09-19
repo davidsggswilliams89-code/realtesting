@@ -224,7 +224,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+  apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
   authDomain: "ggchst-sms-new.firebaseapp.com",
   projectId: "ggchst-sms-new",
   storageBucket: "ggchst-sms-new.firebasestorage.app",
@@ -707,7 +707,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+  apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
   authDomain: "ggchst-sms-new.firebaseapp.com",
   projectId: "ggchst-sms-new",
   storageBucket: "ggchst-sms-new.firebasestorage.app",
@@ -855,7 +855,7 @@ onSnapshot(collection(db,"results"),snap=>{
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 const GGCHST_CONFIG = {
-  apiKey: "AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+  apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
   authDomain: "ggchst-sms-new.firebaseapp.com",
   projectId: "ggchst-sms-new",
   storageBucket: "ggchst-sms-new.firebasestorage.app",
@@ -869,7 +869,7 @@ const ready=setPersistence(auth,browserLocalPersistence).catch(e=>console.warn("
 window.GGCHST_AUTH_READY=ready;
 window.GGCHST_UID=()=>auth.currentUser?.uid||null;
 window.GGCHST_CURRENT_USER=()=>auth.currentUser||null;
-onAuthStateChanged(auth,async user=>{await ready; window.GGCHST_AUTH_USER=user||null; window.GGCHST_AUTH_UID=user?.uid||null; window.dispatchEvent(new CustomEvent("ggchst-auth-changed",{detail:{user,uid:user?.uid||null}}));});
+onAuthStateChanged(auth,async user=>{await ready; window.GGCHST_AUTH_USER=user||null; window.GGCHST_AUTH_UID=user?.uid||null; window.dispatchEvent(new CustomEvent("ggchst-auth-changed",{detail:{user,uid:user?.uid||null}));});
 </script>
 
 <script type="module" id="ggchst-hod-course-level-fix">

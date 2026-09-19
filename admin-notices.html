@@ -54,9 +54,9 @@ window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':
 </div><div class="actions"><button>Save Notice</button></div></form>
 <div class="tablewrap"><table><thead><tr><th>Title</th><th>Audience</th><th>Status</th><th>Publish</th><th>Action</th></tr></thead><tbody id="rows"></tbody></table></div>
 <script type="module">
-const {{db,collection,addDoc,deleteDoc,doc,onSnapshot}}=window.GG;f.onsubmit=async e=>{{e.preventDefault();await addDoc(collection(db,'notifications'),{{title:title.value,audience:audience.value,status:status.value,publishAt:publishAt.value,message:message.value,createdAt:new Date().toISOString()}});f.reset();toast('Notice saved')}};
-onSnapshot(collection(db,'notifications'),s=>{{rows.innerHTML='';s.forEach(x=>{{const d=x.data();rows.innerHTML+=`<tr><td>${esc(d.title)}<br><small>${esc(d.message)}</small></td><td>${esc(d.audience)}</td><td>${esc(d.status)}</td><td>${esc(d.publishAt)}</td><td><button class="danger" onclick="del('${x.id}')">Delete</button></td></tr>`}})}});
-window.del=async id=>{{if(confirm('Delete notice?'))await deleteDoc(doc(db,'notifications',id))}};
+const {db,collection,addDoc,deleteDoc,doc,onSnapshot}=window.GG;f.onsubmit=async e=>{e.preventDefault();await addDoc(collection(db,'notifications'),{title:title.value,audience:audience.value,status:status.value,publishAt:publishAt.value,message:message.value,createdAt:new Date().toISOString()});f.reset();toast('Notice saved')};
+onSnapshot(collection(db,'notifications'),s=>{rows.innerHTML='';s.forEach(x=>{const d=x.data();rows.innerHTML+=`<tr><td>${esc(d.title)}<br><small>${esc(d.message)}</small></td><td>${esc(d.audience)}</td><td>${esc(d.status)}</td><td>${esc(d.publishAt)}</td><td><button class="danger" onclick="del('${x.id}')">Delete</button></td></tr>`})});
+window.del=async id=>{if(confirm('Delete notice?'))await deleteDoc(doc(db,'notifications',id))};
 </script>
 </main><div id="toast" class="toast"></div>
 </body></html>

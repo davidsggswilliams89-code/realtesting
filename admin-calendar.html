@@ -54,9 +54,9 @@ window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':
 </div><div class="actions"><button>Save Calendar Event</button></div></form>
 <div class="tablewrap"><table><thead><tr><th>Event</th><th>Type</th><th>Start</th><th>End</th><th>Session</th><th>Action</th></tr></thead><tbody id="rows"></tbody></table></div>
 <script type="module">
-const {{db,collection,addDoc,deleteDoc,doc,onSnapshot}}=window.GG;f.onsubmit=async e=>{{e.preventDefault();await addDoc(collection(db,'academicCalendar'),{{title:title.value,type:type.value,start:start.value,end:end.value,session:session.value,semester:semester.value,description:description.value,createdAt:new Date().toISOString()}});f.reset();toast('Calendar event saved')}};
-onSnapshot(collection(db,'academicCalendar'),s=>{{rows.innerHTML='';s.forEach(x=>{{const d=x.data();rows.innerHTML+=`<tr><td>${esc(d.title)}</td><td>${esc(d.type)}</td><td>${esc(d.start)}</td><td>${esc(d.end)}</td><td>${esc(d.session)}</td><td><button class="danger" onclick="del('${x.id}')">Delete</button></td></tr>`}})}});
-window.del=async id=>{{if(confirm('Delete event?'))await deleteDoc(doc(db,'academicCalendar',id))}};
+const {db,collection,addDoc,deleteDoc,doc,onSnapshot}=window.GG;f.onsubmit=async e=>{e.preventDefault();await addDoc(collection(db,'academicCalendar'),{title:title.value,type:type.value,start:start.value,end:end.value,session:session.value,semester:semester.value,description:description.value,createdAt:new Date().toISOString()});f.reset();toast('Calendar event saved')};
+onSnapshot(collection(db,'academicCalendar'),s=>{rows.innerHTML='';s.forEach(x=>{const d=x.data();rows.innerHTML+=`<tr><td>${esc(d.title)}</td><td>${esc(d.type)}</td><td>${esc(d.start)}</td><td>${esc(d.end)}</td><td>${esc(d.session)}</td><td><button class="danger" onclick="del('${x.id}')">Delete</button></td></tr>`})});
+window.del=async id=>{if(confirm('Delete event?'))await deleteDoc(doc(db,'academicCalendar',id))};
 </script>
 </main><div id="toast" class="toast"></div>
 </body></html>

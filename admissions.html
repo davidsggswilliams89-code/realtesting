@@ -218,7 +218,7 @@ function render(){
 
 function formatDate(v){
  if(!v)return "—";
- if(v?.toDate){try{return v.toDate().toLocaleDateString()}catch{}}
+ if(v?.toDate){try{return v.toDate().toLocaleDateString()}catch{}
  const d=new Date(v);return isNaN(d)?String(v):d.toLocaleDateString();
 }
 
@@ -372,7 +372,7 @@ $("rows").onclick=e=>{
  const l=e.target.closest("[data-letter]")?.dataset.letter;
  const c=e.target.closest("[data-convert]")?.dataset.convert;
  if(v)viewApplication(v);
- if(ed){const x=applications.find(a=>a.id===ed);if(x){fillForm(x);$("modal").classList.remove("show")}}
+ if(ed){const x=applications.find(a=>a.id===ed);if(x){fillForm(x);$("modal").classList.remove("show")}
  if(l)printLetter(l);
  if(c)verifyAndConvert(c);
 };
@@ -380,7 +380,7 @@ $("modalContent").onclick=e=>{
  const ed=e.target.closest("[data-modal-edit]")?.dataset.modalEdit;
  const l=e.target.closest("[data-modal-letter]")?.dataset.modalLetter;
  const c=e.target.closest("[data-modal-convert]")?.dataset.modalConvert;
- if(ed){const x=applications.find(a=>a.id===ed);if(x){fillForm(x);$("modal").classList.remove("show")}}
+ if(ed){const x=applications.find(a=>a.id===ed);if(x){fillForm(x);$("modal").classList.remove("show")}
  if(l)printLetter(l);
  if(c)verifyAndConvert(c);
 };

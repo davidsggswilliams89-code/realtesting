@@ -50,8 +50,8 @@ window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':
 <section class="panel"><div class="fields"><div><label>Module filter</label><input id="filter" placeholder="e.g. results"></div><div><label>Action filter</label><input id="actionFilter" placeholder="create / update / delete"></div></div></section>
 <div class="tablewrap"><table><thead><tr><th>Timestamp</th><th>User</th><th>Role</th><th>Action</th><th>Module</th><th>Entity</th><th>Result</th></tr></thead><tbody id="rows"></tbody></table></div>
 <script type="module">
-let all=[];const render=()=>{{const a=(filter.value||'').toLowerCase(),b=(actionFilter.value||'').toLowerCase();rows.innerHTML='';all.filter(d=>(!a||String(d.module||'').toLowerCase().includes(a))&&(!b||String(d.action||'').toLowerCase().includes(b))).forEach(d=>rows.innerHTML+=`<tr><td>${esc(d.timestamp||'')}</td><td>${esc(d.userId||'')}</td><td>${esc(d.role||'')}</td><td>${esc(d.action||'')}</td><td>${esc(d.module||'')}</td><td>${esc(d.entityType||'')}<br>${esc(d.entityId||'')}</td><td>${esc(d.result||'')}</td></tr>`)}};filter.oninput=actionFilter.oninput=render;
-window.GG.onSnapshot(window.GG.collection(window.GG.db,'auditLogs'),s=>{{all=s.docs.map(x=>x.data()).sort((a,b)=>String(b.timestamp).localeCompare(String(a.timestamp)));render()}});
+let all=[];const render=()=>{const a=(filter.value||'').toLowerCase(),b=(actionFilter.value||'').toLowerCase();rows.innerHTML='';all.filter(d=>(!a||String(d.module||'').toLowerCase().includes(a))&&(!b||String(d.action||'').toLowerCase().includes(b))).forEach(d=>rows.innerHTML+=`<tr><td>${esc(d.timestamp||'')}</td><td>${esc(d.userId||'')}</td><td>${esc(d.role||'')}</td><td>${esc(d.action||'')}</td><td>${esc(d.module||'')}</td><td>${esc(d.entityType||'')}<br>${esc(d.entityId||'')}</td><td>${esc(d.result||'')}</td></tr>`)};filter.oninput=actionFilter.oninput=render;
+window.GG.onSnapshot(window.GG.collection(window.GG.db,'auditLogs'),s=>{all=s.docs.map(x=>x.data()).sort((a,b)=>String(b.timestamp).localeCompare(String(a.timestamp)));render()});
 </script>
 </main><div id="toast" class="toast"></div>
 </body></html>

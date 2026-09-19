@@ -52,7 +52,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;p
     <span class="role" id="roleLabel">LECTURER</span>
   </div>
   <nav>
-    <a href="lecturer.html">▦ Dashboard</a>
+    <a href="lecturer-profile.html">▦ Dashboard</a>
     <a href="lecturer-profile.html">👨‍🏫 My Profile</a>
     <a class="active" href="registrar-attendance.html">📋 Attendance</a>
     <a href="timetable.html">▣ Timetable</a>
@@ -123,7 +123,7 @@ import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/12.1.0
 import{getFirestore,collection,getDocs,addDoc,onSnapshot,query,orderBy,where,doc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+  apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
   authDomain: "ggchst-sms-new.firebaseapp.com",
   projectId: "ggchst-sms-new",
   storageBucket: "ggchst-sms-new.firebasestorage.app",
@@ -363,7 +363,7 @@ onAuthStateChanged(auth,async u=>{
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 const GGCHST_CONFIG = {
-  apiKey: "AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+  apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
   authDomain: "ggchst-sms-new.firebaseapp.com",
   projectId: "ggchst-sms-new",
   storageBucket: "ggchst-sms-new.firebasestorage.app",
@@ -377,7 +377,7 @@ const ready=setPersistence(auth,browserLocalPersistence).catch(e=>console.warn("
 window.GGCHST_AUTH_READY=ready;
 window.GGCHST_UID=()=>auth.currentUser?.uid||null;
 window.GGCHST_CURRENT_USER=()=>auth.currentUser||null;
-onAuthStateChanged(auth,async user=>{await ready; window.GGCHST_AUTH_USER=user||null; window.GGCHST_AUTH_UID=user?.uid||null; window.dispatchEvent(new CustomEvent("ggchst-auth-changed",{detail:{user,uid:user?.uid||null}}));});
+onAuthStateChanged(auth,async user=>{await ready; window.GGCHST_AUTH_USER=user||null; window.GGCHST_AUTH_UID=user?.uid||null; window.dispatchEvent(new CustomEvent("ggchst-auth-changed",{detail:{user,uid:user?.uid||null}));});
 </script>
 </body>
 </html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GGCHST | Assign HOD</title>
+<style>
+:root{
+  --green:#08783f;--dark:#07552f;--light:#eef8f2;--border:#dce8e1;
+  --danger:#c62828;--text:#17221c;--muted:#66736b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;max-width:100%;overflow-x:hidden}
+body{font-family:Arial,Helvetica,sans-serif;background:#f5f8f6;color:var(--text)}
+.school-header{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.06);position:sticky;top:0;z-index:20}
+.school-header-inner{width:100%;max-width:1180px;margin:auto;padding:10px 18px;display:flex;align-items:center;gap:14px;min-height:76px}
+.school-logo{width:62px;height:62px;flex:0 0 62px;border-radius:50%;object-fit:cover;border:2px solid #e1eee7;background:#fff}
+.school-title{min-width:0;flex:1;text-align:center}
+.school-title h1{margin:0;color:var(--dark);font-size:18px;line-height:1.25;font-weight:800}
+.school-title p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.back-btn{display:inline-flex;align-items:center;justify-content:center;color:#fff;background:var(--green);text-decoration:none;padding:9px 13px;border-radius:8px;font-size:13px;font-weight:700;white-space:nowrap}
+main{width:100%;max-width:1180px;margin:22px auto;padding:0 16px}
+.hero{background:linear-gradient(135deg,#08783f,#0a9850);color:#fff;border-radius:30px;padding:38px 50px;margin-bottom:20px;box-shadow:0 8px 24px rgba(8,120,63,.14)}
+.hero h2{margin:0 0 12px;font-size:36px}.hero p{margin:0;font-size:18px;line-height:1.55}
+.grid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;align-items:start}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.06);padding:18px;min-width:0}
+.card h2{margin:0 0 15px;color:var(--dark);font-size:17px}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+select,input{width:100%;padding:11px 12px;border:1px solid #cbd8d0;border-radius:8px;background:#fff;font-size:14px;outline:none}
+select:focus,input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(8,120,63,.1)}
+select:disabled{background:#f1f4f2;color:#78837d;cursor:not-allowed}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+button{border:0;border-radius:8px;padding:11px 14px;cursor:pointer;font-weight:700;font-size:13px}
+.primary{background:var(--green);color:#fff}.secondary{background:#e9f0ec;color:var(--dark)}
+.danger{background:#fdecec;color:var(--danger)}button:disabled{opacity:.6;cursor:not-allowed}
+.message{display:none;margin:0 0 12px;padding:10px 12px;border-radius:8px;font-size:13px}
+.success{background:#e8f7ed;color:#126237}.error{background:#fdeaea;color:#a51e1e}
+.hint{margin-top:10px;color:var(--muted);font-size:11px;line-height:1.5}
+.toolbar{display:flex;gap:10px;margin-bottom:14px;align-items:center}
+.toolbar input{flex:1}.count{background:var(--light);color:var(--dark);border-radius:8px;padding:10px 12px;font-size:13px;font-weight:700;white-space:nowrap}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+table{width:100%;min-width:820px;border-collapse:collapse}
+th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+th{background:#f3f7f4;color:var(--dark);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.badge{display:inline-block;padding:5px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.active{background:#e3f5ea;color:#08783f}.inactive{background:#eee;color:#666}
+.actions{display:flex;gap:6px;flex-wrap:wrap}.actions button{padding:7px 9px;font-size:11px}
+.empty{text-align:center;padding:32px 10px;color:var(--muted)}
+footer{text-align:center;padding:24px 15px;color:var(--muted);font-size:12px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+@media(max-width:600px){
+ .school-header-inner{min-height:66px;padding:7px 10px;gap:9px}.school-logo{width:48px;height:48px;flex-basis:48px}
+ .school-title h1{font-size:14px}.school-title p{font-size:10px}.back-btn{padding:8px 9px;font-size:11px}
+ main{margin:16px auto;padding:0 10px}.hero{padding:25px 20px;border-radius:22px}.hero h2{font-size:26px}.hero p{font-size:15px}
+ .card{padding:14px}.toolbar{flex-direction:column;align-items:stretch}.count{text-align:center}
+}
+</style>
+</head>
+<body>
+<header class="school-header">
+  <div class="school-header-inner">
+    <img src="logo.png" alt="Green Garden College of Health Sciences & Technology logo" class="school-logo">
+    <div class="school-title">
+      <h1>Green Garden College of Health Sciences &amp; Technology, Gusau</h1>
+      <p>Assign HOD</p>
+    </div>
+    <a class="back-btn" href="admin.html">← Back</a>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <h2>Assign HOD</h2>
+  <p>Assign a lecturer as the HOD responsible for a Programme. No Faculty or Department is used.</p>
+</section>
+
+<div class="grid">
+<section class="card">
+  <h2 id="formTitle">Assign HOD to Programme</h2>
+  <div id="message" class="message"></div>
+  <form id="assignmentForm">
+    <label for="programme">Programme *</label>
+    <select id="programme" required disabled><option value="">Loading programmes...</option></select>
+
+    <label for="hod">HOD / Lecturer *</label>
+    <select id="hod" required disabled><option value="">Loading lecturers...</option></select>
+
+    <label for="staffId">Staff ID</label>
+    <input id="staffId" readonly placeholder="Automatically shown">
+
+    <label for="email">Email</label>
+    <input id="email" readonly placeholder="Automatically shown">
+
+    <label for="status">Status</label>
+    <select id="status"><option>Active</option><option>Inactive</option></select>
+
+    <div class="btns">
+      <button class="primary" id="saveBtn" type="submit">Assign HOD</button>
+      <button class="secondary" id="cancelBtn" type="button" style="display:none">Cancel</button>
+    </div>
+  </form>
+  <div class="hint">Each Programme can have one active HOD assignment. Reassigning the Programme automatically deactivates its previous active HOD assignment.</div>
+</section>
+
+<section class="card">
+  <h2>Programme HOD Assignments</h2>
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Search programme, HOD, Staff ID or email...">
+    <span class="count" id="count">0 Assignments</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Programme</th><th>HOD</th><th>Staff ID</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="table"><tr><td colspan="6" class="empty">Loading assignments...</td></tr></tbody>
+    </table>
+  </div>
+</section>
+</div>
+</main>
+<footer>GGCHST Student &amp; Management System</footer>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {getFirestore,collection,addDoc,updateDoc,doc,onSnapshot,query,orderBy,serverTimestamp,writeBatch}
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
+ authDomain:"ggchst-sms-new.firebaseapp.com",
+ projectId:"ggchst-sms-new",
+ storageBucket:"ggchst-sms-new.firebasestorage.app",
+ messagingSenderId:"942770190211",
+ appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+const app=initializeApp(firebaseConfig),db=getFirestore(app);
+const $=id=>document.getElementById(id);
+let programmes=[],lecturers=[],assignments=[],editingId=null;
+
+function norm(v){return String(v??"").trim().toLowerCase()}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function active(a){return a.filter(x=>norm(x.status)!=="inactive")}
+function nameOf(l){return l.name||l.fullName||l.lecturerName||l.staffName||""}
+function staffIdOf(l){return l.staffId||l.staffID||l.employeeId||l.employeeID||""}
+function emailOf(l){return l.email||l.emailAddress||l.lecturerEmail||""}
+function show(msg,type="success"){ $("message").textContent=msg;$("message").className="message "+type;$("message").style.display="block";setTimeout(()=>{$("message").style.display="none"},4500)}
+function fillProgrammes(selected=""){
+ const list=active(programmes).sort((a,b)=>norm(a.name).localeCompare(norm(b.name)));
+ $("programme").innerHTML='<option value="">Select programme</option>';
+ list.forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent=p.name+(p.code?` (${p.code})`:"");$("programme").appendChild(o)});
+ $("programme").disabled=!list.length;
+ if(selected)$("programme").value=selected;
+}
+function fillLecturers(selected=""){
+ const list=active(lecturers).sort((a,b)=>norm(nameOf(a)).localeCompare(norm(nameOf(b))));
+ $("hod").innerHTML='<option value="">Select HOD / Lecturer</option>';
+ list.forEach(l=>{const o=document.createElement("option");o.value=l.id;o.textContent=nameOf(l)+(staffIdOf(l)?` — ${staffIdOf(l)}`:"");$("hod").appendChild(o)});
+ $("hod").disabled=!list.length;
+ if(selected)$("hod").value=selected;
+ updateLecturerDetails();
+}
+function updateLecturerDetails(){
+ const l=lecturers.find(x=>x.id===$("hod").value);
+ $("staffId").value=l?staffIdOf(l):"";
+ $("email").value=l?emailOf(l):"";
+}
+$("hod").addEventListener("change",updateLecturerDetails);
+
+function resetForm(){
+ editingId=null;$("assignmentForm").reset();
+ $("formTitle").textContent="Assign HOD to Programme";$("saveBtn").textContent="Assign HOD";$("cancelBtn").style.display="none";
+ fillProgrammes();fillLecturers();$("staffId").value="";$("email").value="";$("status").value="Active";
+}
+
+function render(){
+ const term=norm($("search").value);
+ const list=assignments.filter(a=>[
+   a.programmeName,a.hodName,a.staffId,a.hodEmail,a.status
+ ].some(v=>norm(v).includes(term)));
+ $("count").textContent=`${list.length} ${list.length===1?"Assignment":"Assignments"}`;
+ if(!list.length){$("table").innerHTML='<tr><td colspan="6" class="empty">No Programme HOD assignments found.</td></tr>';return}
+ $("table").innerHTML=list.map(a=>`<tr>
+ <td><strong>${esc(a.programmeName||"—")}</strong></td>
+ <td>${esc(a.hodName||"—")}</td>
+ <td>${esc(a.staffId||"—")}</td>
+ <td>${esc(a.hodEmail||"—")}</td>
+ <td><span class="badge ${norm(a.status)==="inactive"?"inactive":"active"}">${esc(a.status||"Active")}</span></td>
+ <td><div class="actions"><button class="secondary" data-edit="${esc(a.id)}">Edit</button>
+ <button class="danger" data-deactivate="${esc(a.id)}">${norm(a.status)==="inactive"?"Delete":"Deactivate"}</button></div></td>
+ </tr>`).join("");
+}
+
+$("programme").addEventListener("change",()=>{
+ const existing=assignments.find(a=>a.programmeId===$("programme").value && norm(a.status)!=="inactive");
+ if(existing && !editingId) show("This Programme already has an active HOD. Saving another will replace the current assignment.","error");
+});
+
+$("assignmentForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const programme=programmes.find(x=>x.id===$("programme").value);
+ const hod=lecturers.find(x=>x.id===$("hod").value);
+ if(!programme||!hod){show("Please select a Programme and HOD.","error");return}
+ const duplicate=assignments.find(a=>a.id!==editingId&&a.programmeId===programme.id&&norm(a.status)!=="inactive");
+ const btn=$("saveBtn");btn.disabled=true;btn.textContent="Saving...";
+ try{
+   const payload={
+    programmeId:programme.id,programmeName:programme.name||"",programmeCode:programme.code||"",
+    hodId:hod.id,hodName:nameOf(hod),hodEmail:emailOf(hod),staffId:staffIdOf(hod),
+    status:$("status").value,updatedAt:serverTimestamp()
+   };
+   if(editingId){
+     await updateDoc(doc(db,"programmeHodAssignments",editingId),payload);
+     show("Programme HOD assignment updated successfully.");
+   }else{
+     if(duplicate) await updateDoc(doc(db,"programmeHodAssignments",duplicate.id),payload);
+     else await addDoc(collection(db,"programmeHodAssignments"),{...payload,createdAt:serverTimestamp()});
+     show(duplicate?"Programme HOD reassigned successfully.":"HOD assigned to Programme successfully.");
+   }
+   resetForm();
+ }catch(err){console.error(err);show("Could not save the HOD assignment. Check Firebase permissions.","error")}
+ finally{btn.disabled=false;btn.textContent="Assign HOD"}
+});
+
+$("cancelBtn").addEventListener("click",resetForm);
+$("search").addEventListener("input",render);
+
+$("table").addEventListener("click",e=>{
+ const edit=e.target.closest("[data-edit]"),de=e.target.closest("[data-deactivate]");
+ if(edit){
+  const a=assignments.find(x=>x.id===edit.dataset.edit);if(!a)return;
+  editingId=a.id;$("formTitle").textContent="Edit Programme HOD Assignment";$("saveBtn").textContent="Update Assignment";$("cancelBtn").style.display="inline-block";
+  fillProgrammes(a.programmeId);fillLecturers(a.hodId);$("status").value=a.status||"Active";window.scrollTo({top:0,behavior:"smooth"});
+ }
+ if(de){
+  const a=assignments.find(x=>x.id===de.dataset.deactivate);if(!a)return;
+  if(confirm(`Deactivate HOD assignment for ${a.programmeName||"this Programme"}?`)){
+   updateDoc(doc(db,"programmeHodAssignments",a.id),{status:"Inactive",updatedAt:serverTimestamp()})
+    .then(()=>show("HOD assignment deactivated successfully."))
+    .catch(err=>{console.error(err);show("Could not deactivate assignment.","error")});
+  }
+ }
+});
+
+onSnapshot(query(collection(db,"programmes"),orderBy("name","asc")),snap=>{
+ programmes=snap.docs.map(d=>({id:d.id,...d.data()}));fillProgrammes($("programme").value);render();
+},err=>{console.error(err);$("programme").innerHTML='<option value="">Unable to load programmes</option>';show("Could not load programmes.","error")});
+
+onSnapshot(query(collection(db,"lecturers"),orderBy("name","asc")),snap=>{
+ lecturers=snap.docs.map(d=>({id:d.id,...d.data()}));fillLecturers($("hod").value);
+},err=>{console.error(err);$("hod").innerHTML='<option value="">Unable to load lecturers</option>';show("Could not load lecturers.","error")});
+
+onSnapshot(query(collection(db,"programmeHodAssignments"),orderBy("programmeName","asc")),snap=>{
+ assignments=snap.docs.map(d=>({id:d.id,...d.data()}));render();
+},err=>{console.error(err);$("table").innerHTML='<tr><td colspan="6" class="empty">Could not load HOD assignments. Check Firestore permissions.</td></tr>';show("Could not load Programme HOD assignments.","error")});
+
+resetForm();
+</script>
+</body>
+</html>

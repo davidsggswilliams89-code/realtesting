@@ -236,11 +236,11 @@ function normalizeCourse(d,id){
   status:d.status||"Active"
  };
 }
-function normalizeVenue(d,id){return {id:d.id||id,name:d.name||d.venueName||"",code:d.code||d.venueCode||"",status:d.status||"Active"}}
-function normalizeDepartment(d,id){return {id:d.id||id,name:d.name||d.departmentName||"",code:d.code||d.departmentCode||"",status:d.status||"Active"}}
-function normalizeProgramme(d,id){return {id:d.id||id,name:d.name||d.programmeName||"",code:d.code||d.programmeCode||"",departmentId:d.departmentId||"",department:d.departmentName||d.department||"",status:d.status||"Active"}}
-function normalizeLevel(d,id){return {id:d.id||id,name:d.name||d.levelName||d.levelCode||"",code:d.code||d.levelCode||"",status:d.status||"Active"}}
-function normalizeLecturer(d,id){return {id:d.id||id,name:d.name||d.fullName||d.lecturerName||d.displayName||"",status:d.status||"Active"}}
+function normalizeVenue(d,id){return {id:d.id||id,name:d.name||d.venueName||"",code:d.code||d.venueCode||"",status:d.status||"Active"}
+function normalizeDepartment(d,id){return {id:d.id||id,name:d.name||d.departmentName||"",code:d.code||d.departmentCode||"",status:d.status||"Active"}
+function normalizeProgramme(d,id){return {id:d.id||id,name:d.name||d.programmeName||"",code:d.code||d.programmeCode||"",departmentId:d.departmentId||"",department:d.departmentName||d.department||"",status:d.status||"Active"}
+function normalizeLevel(d,id){return {id:d.id||id,name:d.name||d.levelName||d.levelCode||"",code:d.code||d.levelCode||"",status:d.status||"Active"}
+function normalizeLecturer(d,id){return {id:d.id||id,name:d.name||d.fullName||d.lecturerName||d.displayName||"",status:d.status||"Active"}
 
 function fillTimes(){
  $("startTime").innerHTML='<option value="">Select start time</option>'+times.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join("");

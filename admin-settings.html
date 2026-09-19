@@ -56,9 +56,9 @@ window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':
 </div><div class="actions"><button>Save Settings</button></div></form>
 <section class="panel"><h3>Important</h3><p class="muted">Client-side settings do not replace Firestore Security Rules. Role enforcement, result locking and financial controls must be enforced server-side.</p></section>
 <script type="module">
-const {{db,doc,setDoc,getDocs}}=window.GG;const ref=doc(db,'systemSettings','main');
-(async()=>{{const x=await getDocs(window.GG.collection(db,'systemSettings'));const a=x.docs.find(d=>d.id==='main');if(a){{const d=a.data();for(const k of ['schoolName','address','session','semester','grading','registrationOpen','currency','notificationMode','note'])if(document.getElementById(k))document.getElementById(k).value=d[k]??''}}}})();
-f.onsubmit=async e=>{{e.preventDefault();await setDoc(ref,{{schoolName:schoolName.value,address:address.value,session:session.value,semester:semester.value,grading:grading.value,registrationOpen:registrationOpen.value==='true',currency:currency.value,notificationMode:notificationMode.value,note:note.value,updatedAt:new Date().toISOString()}});toast('Settings saved')}};
+const {db,doc,setDoc,getDocs}=window.GG;const ref=doc(db,'systemSettings','main');
+(async()=>{const x=await getDocs(window.GG.collection(db,'systemSettings'));const a=x.docs.find(d=>d.id==='main');if(a){const d=a.data();for(const k of ['schoolName','address','session','semester','grading','registrationOpen','currency','notificationMode','note'])if(document.getElementById(k))document.getElementById(k).value=d[k]??''}})();
+f.onsubmit=async e=>{e.preventDefault();await setDoc(ref,{schoolName:schoolName.value,address:address.value,session:session.value,semester:semester.value,grading:grading.value,registrationOpen:registrationOpen.value==='true',currency:currency.value,notificationMode:notificationMode.value,note:note.value,updatedAt:new Date().toISOString()});toast('Settings saved')};
 </script>
 </main><div id="toast" class="toast"></div>
 </body></html>
