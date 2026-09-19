@@ -191,7 +191,7 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,getDocs,addDoc,doc,updateDoc,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {getAuth,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getAuth,createUserWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig={
  apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
@@ -204,12 +204,29 @@ const firebaseConfig={
 
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
 const db=getFirestore(app), auth=getAuth(app);
+let currentAdmin=null;
 const $=id=>document.getElementById(id);
 const norm=v=>String(v??"").trim().toLowerCase();
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const first=(o,keys,def="")=>{for(const k of keys)if(o?.[k]!==undefined&&o[k]!==null&&String(o[k]).trim()!=="")return String(o[k]).trim();return def;};
 const msg=(t,b=false)=>{$("message").textContent=t;$("message").className="message "+(b?"bad":"ok");};
-const toast=t=>{const x=$("toast");x.textContent=t;x.style.display="block";clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.style.display="none",3000)};
+const toast=t=>{const x=$("toast");x.textContent=t;x.style.display="block";clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.style.display="none",3000)}
+
+onAuthStateChanged(auth,user=>{
+  currentAdmin=user||null;
+  if(!currentAdmin){
+    const gateMessage=$("adminSessionText");
+    if(gateMessage) gateMessage.textContent="Please login as Admin before creating access.";
+    $("createBtn").disabled=true;
+    window.location.replace("admin-login.html");
+    return;
+  }
+
+  const gateMessage=$("adminSessionText");
+  if(gateMessage) gateMessage.textContent="Verified Admin: "+(currentAdmin.email||"")+" — ready to create access.";
+  $("createBtn").disabled=false;
+});
+;
 
 const nameOf=x=>first(x,["name","fullName","studentName","lecturerName","displayName"]);
 const emailOf=x=>first(x,["email","emailAddress","studentEmail","lecturerEmail","authEmail"]);
