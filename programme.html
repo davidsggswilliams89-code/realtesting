@@ -51,11 +51,48 @@ th{background:#f3f7f4;color:var(--dark);position:sticky;top:0}
 footer{text-align:center;padding:24px 15px;color:var(--muted);font-size:12px}
 @media(max-width:900px){.module-grid{grid-template-columns:1fr}}
 @media(max-width:600px){
- .school-header-inner{min-height:66px;padding:7px 10px;gap:9px}.school-logo{width:46px;height:46px;flex-basis:46px}
- .school-title h1{font-size:14px;line-height:1.18}.school-title p{font-size:10px}.back-btn{padding:8px 9px;font-size:11px}
- main{margin:14px auto;padding:0 10px 30px}.switcher{position:sticky;top:66px;z-index:90}
- .tab{font-size:12px;padding:11px 7px}.panel .module-intro{padding:21px 15px;border-radius:18px}.panel .module-intro h2{font-size:20px}
- .module-grid{grid-template-columns:1fr}.card{padding:14px;border-radius:12px}.toolbar{align-items:stretch;flex-direction:column}.count{text-align:center}
+ html,body{width:100%;max-width:100%;overflow-x:hidden}
+ .school-header{width:100%}
+ .school-header-inner{width:100%;min-height:62px;padding:7px 8px;gap:7px}
+ .school-logo{width:42px;height:42px;flex:0 0 42px}
+ .school-title{min-width:0;overflow:hidden}
+ .school-title h1{font-size:12px;line-height:1.2;white-space:normal;overflow-wrap:anywhere}
+ .school-title p{font-size:9px;margin-top:2px}
+ .back-btn{padding:7px 8px;font-size:10px;flex:0 0 auto}
+ main{width:100%;max-width:100%;margin:10px auto;padding:0 8px 24px}
+ .switcher{width:100%;margin-bottom:12px;padding:5px;gap:5px;position:static}
+ .tab{min-width:0;width:50%;font-size:11px;line-height:1.25;padding:10px 5px;white-space:normal}
+ .panel{width:100%;max-width:100%;overflow:hidden}
+ .panel .module-intro{width:100%;margin-bottom:12px;padding:18px 12px;border-radius:16px}
+ .panel .module-intro h2{font-size:18px;line-height:1.25}
+ .panel .module-intro p{font-size:12px;line-height:1.45}
+ .module-grid{width:100%;grid-template-columns:minmax(0,1fr);gap:12px}
+ .card{width:100%;min-width:0;padding:12px;border-radius:11px;overflow:hidden}
+ .card h3{font-size:15px}
+ label{font-size:12px}
+ input,select,textarea{width:100%;min-width:0;font-size:13px;padding:10px}
+ .actions{width:100%;gap:7px}
+ .actions button{min-width:0;flex:1}
+ .toolbar{width:100%;align-items:stretch;flex-direction:column;gap:7px}
+ .toolbar input{width:100%;min-width:0}
+ .count{width:100%;text-align:center}
+ .table-wrap{width:100%;max-width:100%;overflow-x:auto}
+ table{min-width:600px}
+ footer{padding:18px 10px;font-size:11px}
+}
+@media(max-width:380px){
+ .school-header-inner{padding:6px 6px;gap:5px}
+ .school-logo{width:38px;height:38px;flex-basis:38px}
+ .school-title h1{font-size:11px}
+ .school-title p{display:none}
+ .back-btn{font-size:9px;padding:6px 7px}
+ main{padding-left:6px;padding-right:6px}
+ .switcher{padding:4px}
+ .tab{font-size:10px;padding:9px 3px}
+ .panel .module-intro{padding:16px 10px}
+ .panel .module-intro h2{font-size:17px}
+ .panel .module-intro p{font-size:11px}
+ .card{padding:10px}
 }
 </style>
 </head>
