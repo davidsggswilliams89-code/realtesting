@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GGCHST | Admin Login</title>
+<style>
+:root{--bg:#eef8f2;--card:#fff;--brand:#15803d;--dark:#064b39;--text:#17352b;--muted:#667c73;--line:#d8e9df;--danger:#b42318}
+*{box-sizing:border-box} html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}
+.card{width:100%;max-width:470px;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 12px 35px #064b3914;overflow:hidden}
+.head{padding:22px 20px 16px;text-align:center;border-bottom:1px solid var(--line)}
+.logo{width:70px;height:70px;object-fit:contain}
+.school{font-size:18px;font-weight:800;line-height:1.25;color:var(--dark);margin-top:8px}
+.title{font-size:25px;font-weight:900;margin-top:18px;color:var(--dark)}
+.body{padding:22px}
+.info{background:#ecfdf3;border:1px solid #bbf7d0;border-radius:12px;padding:13px;font-size:12px;line-height:1.5;margin-bottom:18px}
+label{display:block;font-size:12px;font-weight:800;margin:0 0 6px}
+input{width:100%;padding:13px;border:1px solid #cbded3;border-radius:10px;font:inherit;margin-bottom:14px;outline:none}
+input:focus{border-color:#22c55e;box-shadow:0 0 0 3px #22c55e18}
+.password{position:relative} .password input{padding-right:75px} .show{position:absolute;right:7px;top:5px;border:0;background:#e8f0ed;padding:7px 10px;border-radius:8px;font-weight:700;color:var(--text);cursor:pointer}
+button.login{width:100%;padding:13px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-weight:900;font-size:15px;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.msg{min-height:22px;margin-top:12px;font-size:12px;font-weight:700;color:var(--danger);line-height:1.4}
+.footer{text-align:center;color:var(--muted);font-size:11px;padding:0 20px 20px}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+ <div class="head">
+  <img class="logo" src="logo.png" alt="Green Garden College of Health Sciences & Technology logo">
+  <div class="school">Green Garden College of Health Sciences &amp; Technology, Gusau</div>
+  <div class="title">Admin Login</div>
+ </div>
+ <div class="body">
+  <div class="info"><b>Administration access only.</b><br>Sign in with an authorized Admin account to enter the GGCHST Administration Portal.</div>
+  <label for="email">Admin Email</label>
+  <input id="email" type="email" autocomplete="username" placeholder="admin email">
+  <label for="password">Admin Password</label>
+  <div class="password"><input id="password" type="password" autocomplete="current-password" placeholder="Password"><button class="show" id="show" type="button">Show</button></div>
+  <button class="login" id="login">LOGIN TO ADMIN PORTAL</button>
+  <div class="msg" id="msg"></div>
+ </div>
+ <div class="footer">GGCHST School Management System</div>
+</div></div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {getFirestore,collection,getDocs} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {getAuth,signInWithEmailAndPassword,setPersistence,browserLocalPersistence,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
+  authDomain: "ggchst-sms-new.firebaseapp.com",
+  projectId: "ggchst-sms-new",
+  storageBucket: "ggchst-sms-new.firebasestorage.app",
+  messagingSenderId: "942770190211",
+  appId: "1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+const app=initializeApp(firebaseConfig),db=getFirestore(app),auth=getAuth(app);
+const $=id=>document.getElementById(id),norm=v=>String(v??"").trim().toLowerCase();
+function adminRecord(row){
+ if(!row)return false;
+ const roles=[row.role,row.accountType,row.userType,row.staffRole,row.category].flatMap(x=>Array.isArray(x)?x:[x]).map(norm);
+ const perms=Array.isArray(row.permissions)?row.permissions.map(norm):String(row.permissions||"").split(",").map(norm);
+ return roles.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"))
+   || perms.some(x=>x==="admin"||x.includes("administrator")||x.includes("super admin")||x.includes("system admin"));
+}
+async function getAdminRecord(user){
+ const snap=await getDocs(collection(db,"users"));
+ const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
+ return rows.find(x=>String(x.uid||x.authUid||x.firebaseUid||"")===user.uid)
+   || rows.find(x=>norm(x.email||x.authEmail)===norm(user.email));
+}
+$("show").onclick=()=>{const h=$("password").type==="password";$("password").type=h?"text":"password";$("show").textContent=h?"Hide":"Show"};
+$("login").onclick=async()=>{
+ const email=$("email").value.trim(),password=$("password").value;
+ if(!email||!password){$("msg").textContent="Enter Admin email and password.";return}
+ $("login").disabled=true;$("login").textContent="Signing in...";
+ try{
+   await setPersistence(auth,browserLocalPersistence);
+   const cred=await signInWithEmailAndPassword(auth,email,password);
+   const row=await getAdminRecord(cred.user);
+   if(!row)throw new Error("No matching Admin record was found in the users collection.");
+   if(!adminRecord(row))throw new Error("This Firebase account is not registered with an Admin role.");
+   if(norm(row.status)==="deactivated"||norm(row.status)==="suspended")throw new Error("This Admin account is deactivated.");
+   sessionStorage.setItem("ggchstAdminVerified","1");
+   location.href="admin.html";
+ }catch(e){
+   const m={"auth/invalid-credential":"Incorrect Admin email or password.","auth/user-not-found":"Admin account not found.","auth/wrong-password":"Incorrect Admin password.","auth/too-many-requests":"Too many attempts. Please wait and try again."};
+   $("msg").textContent=m[e.code]||e.message||"Admin login failed.";
+ }finally{$("login").disabled=false;$("login").textContent="LOGIN TO ADMIN PORTAL"}
+};
+onAuthStateChanged(auth,async user=>{
+ if(user){
+   try{const row=await getAdminRecord(user);if(adminRecord(row)&&!["deactivated","suspended"].includes(norm(row?.status)))location.href="admin.html";}catch(e){}
+ }
+});
+</script>
+</body></html>
