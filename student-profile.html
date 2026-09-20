@@ -240,7 +240,7 @@ import {getFirestore,collection,getDocs,query,where,limit} from "https://www.gst
 const firebaseConfig={apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
 const app=getApps().length?getApp():initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
 const val=(o,ks,d="—")=>{for(const k of ks)if(o&&o[k]!=null&&String(o[k]).trim()!=="")return o[k];return d};
-const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#039;"}[m]));
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","'"':'&quot;',"'":"&#039;"}[m]));
 const initials=s=>String(s||"Student").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"S";
 function load(t="Loading student profile…"){if($("loading")){ $("loading").classList.remove("hide");$("loading").textContent=t }}function done(){if($("loading"))$("loading").classList.add("hide")}
 async function findStudent(u){for(const f of ["studentUid","authUid","firebaseUid","uid"]){try{const q=await getDocs(query(collection(db,"students"),where(f,"==",u.uid),limit(1)));if(!q.empty)return{id:q.docs[0].id,...q.docs[0].data()}}catch(e){console.warn(f,e)}}try{const q=await getDocs(collection(db,"students"));for(const d of q.docs){const x=d.data()||{};if(String(x.email||x.authEmail||"").trim().toLowerCase()===String(u.email||"").trim().toLowerCase())return{id:d.id,...x}}}catch(e){console.error(e)}return null}
