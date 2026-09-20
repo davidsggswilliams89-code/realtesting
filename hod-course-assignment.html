@@ -229,12 +229,21 @@ const db=getFirestore(app);
 const tabHod=document.getElementById('tabHod'),tabLecturer=document.getElementById('tabLecturer');
 const hodModule=document.getElementById('hodModule'),lecturerModule=document.getElementById('lecturerModule');
 function showModule(which){
-  const hod=which==='hod';
-  tabHod.classList.toggle('active',hod);tabLecturer.classList.toggle('active',!hod);
-  hodModule.classList.toggle('active',hod);lecturerModule.classList.toggle('active',!hod);
+  const hod = which === 'hod';
+  tabHod.classList.toggle('active', hod);
+  tabLecturer.classList.toggle('active', !hod);
+  hodModule.classList.toggle('active', hod);
+  lecturerModule.classList.toggle('active', !hod);
+
+  // Explicit display prevents other CSS rules from interfering.
+  hodModule.style.display = hod ? 'block' : 'none';
+  lecturerModule.style.display = hod ? 'none' : 'block';
+
   window.scrollTo({top:0,behavior:'smooth'});
 }
-tabHod.onclick=()=>showModule('hod');tabLecturer.onclick=()=>showModule('lecturer');
+tabHod.addEventListener('click',()=>showModule('hod'));
+tabLecturer.addEventListener('click',()=>showModule('lecturer'));
+showModule('hod');
 
 // ===== Assign HOD module =====
 const $h=id=>document.getElementById(id);
@@ -242,7 +251,7 @@ let programmesH=[],lecturersH=[],assignmentsH=[],editingH=null;
 const normH=v=>String(v??'').trim().toLowerCase();
 const escH=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const activeH=x=>x.filter(a=>normH(a.status)!=='inactive');
-const nameH=l=>l.name||l.fullName||l.lecturerName||l.staffName||'';
+const nameH=l=>l.name||l.fullName||l.lecturerName||l.staffName||l.displayName||l.email||'';
 const staffH=l=>l.staffId||l.staffID||l.employeeId||l.employeeID||'';
 const emailH=l=>l.email||l.emailAddress||l.lecturerEmail||'';
 function showH(m,type='success'){const e=$h('message');e.textContent=m;e.className='message '+type;e.style.display='block';setTimeout(()=>e.style.display='none',4500)}
@@ -264,7 +273,7 @@ const $=id=>document.getElementById(id);
 const norm=x=>String(x??"").trim().toLowerCase(),
 active=x=>{let s=norm(x);return x!==false&&s!=="inactive"&&s!=="disabled"},
 esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])),
-pname=x=>x?.name||x?.programmeName||x?.title||"",
+pname=x=>x?.name||x?.programmeName||x?.programName||x?.title||x?.label||"",
 lname=x=>x?.name||x?.levelName||x?.label||"",
 cc=x=>x?.courseCode||x?.code||"",
 ct=x=>x?.courseTitle||x?.courseName||x?.title||"",
@@ -275,9 +284,24 @@ lecname=x=>x?.fullName||x?.name||x?.lecturerName||x?.displayName||x?.staffName||
 
 function msg(t,type="success"){$("lc_msg").textContent=t;$("lc_msg").className="message "+type;$("lc_msg").style.display="block";clearTimeout(window.mt);window.mt=setTimeout(()=>$("lc_msg").style.display="none",4500)}
 function fill(id,rows,placeholder,nameFn){
- const el=$(id),old=el.value;el.innerHTML='<option value="">'+placeholder+'</option>';
- rows.filter(x=>active(x.status)).sort((a,b)=>nameFn(a).localeCompare(nameFn(b))).forEach(x=>{let o=document.createElement("option");o.value=x.id;o.textContent=nameFn(x);el.appendChild(o)});
- if(rows.some(x=>x.id===old))el.value=old;
+  const el=$(id), old=el.value;
+  el.innerHTML='<option value="">'+placeholder+'</option>';
+
+  rows
+    .filter(x=>active(x.status))
+    .sort((a,b)=>String(nameFn(a)||'').localeCompare(String(nameFn(b)||'')))
+    .forEach(x=>{
+      const label=String(nameFn(x)||'').trim();
+      if(!label) return;
+      const o=document.createElement("option");
+      o.value=x.id;
+      o.textContent=label;
+      el.appendChild(o);
+    });
+
+  // Always allow the user to open the dropdown when data exists.
+  el.disabled=false;
+  if(rows.some(x=>x.id===old)) el.value=old;
 }
 function fillSemestersForSession(){
  const sid=$("lc_session").value;
@@ -405,10 +429,20 @@ onSnapshot(collection(db,"lecturerCourseAssignments"),s=>{assignments=s.docs.map
 
 
 // Load HOD-side listeners
-onSnapshot(query(collection(db,'programmes'),orderBy('name','asc')),snap=>{programmesH=snap.docs.map(d=>({id:d.id,...d.data()}));fillPH($h('programme').value);renderH()},err=>{console.error(err);$h('programme').innerHTML='<option value="">Unable to load programmes</option>';showH('Could not load programmes.','error')});
-onSnapshot(query(collection(db,'lecturers'),orderBy('name','asc')),snap=>{lecturersH=snap.docs.map(d=>({id:d.id,...d.data()}));fillLH($h('hod').value)},err=>{console.error(err);$h('hod').innerHTML='<option value="">Unable to load lecturers</option>';showH('Could not load lecturers.','error')});
+onSnapshot(collection(db,'programmes'),snap=>{
+  programmesH=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const current=$h('programme').value;
+  fillPH(current);
+  renderH();
+},err=>{
+  console.error(err);
+  $h('programme').disabled=false;
+  $h('programme').innerHTML='<option value="">Unable to load programmes</option>';
+  showH('Could not load programmes. '+(err.message||''),'error');
+});
 onSnapshot(query(collection(db,'programmeHodAssignments'),orderBy('programmeName','asc')),snap=>{assignmentsH=snap.docs.map(d=>({id:d.id,...d.data()}));renderH()},err=>{console.error(err);$h('table').innerHTML='<tr><td colspan="6" class="empty">Could not load HOD assignments. Check Firestore permissions.</td></tr>';showH('Could not load Programme HOD assignments.','error')});
 resetH();
+showModule('hod');
 </script>
 </body>
 </html>
