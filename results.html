@@ -108,7 +108,7 @@ const auth=getAuth(app);
 const $=id=>document.getElementById(id);
 const norm=v=>String(v??"").trim().toLowerCase();
 const val=(o,keys,d="")=>{for(const k of keys){if(o&&o[k]!==undefined&&o[k]!==null&&String(o[k]).trim()!=="")return o[k]}return d};
-let sessions=[],semesters=[],programmes=[],courses=[],students=[],results=[],currentUser=null;
+let sessions=[],semesters=[],programmes=[],levels=[],courses=[],students=[],results=[],currentUser=null;
 
 function idOf(r){return r?.id||""}
 function nameOf(r){return val(r,["fullName","studentName","name"],"Unnamed Student")}
@@ -152,10 +152,11 @@ function optionData(list,nameFn,allText){
 function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 
 async function loadAll(){
- const [ss,sem,ps,cs,st,rs]=await Promise.all([
+ const [ss,sem,ps,lv,cs,st,rs]=await Promise.all([
    getDocs(collection(db,"academicSessions")),
    getDocs(collection(db,"semesters")),
    getDocs(collection(db,"programmes")),
+   getDocs(collection(db,"academicLevels")),
    getDocs(collection(db,"courses")),
    getDocs(collection(db,"students")),
    getDocs(collection(db,"results"))
@@ -163,6 +164,7 @@ async function loadAll(){
  sessions=ss.docs.map(d=>({id:d.id,...d.data()}));
  semesters=sem.docs.map(d=>({id:d.id,...d.data()}));
  programmes=ps.docs.map(d=>({id:d.id,...d.data()}));
+ levels=lv.docs.map(d=>({id:d.id,...d.data()}));
  courses=cs.docs.map(d=>({id:d.id,...d.data()}));
  students=st.docs.map(d=>({id:d.id,...d.data()}));
  results=rs.docs.map(d=>({id:d.id,...d.data()}));
@@ -193,8 +195,12 @@ function populateFilters(){
   $("entryProgramme").innerHTML='<option value="">All Programmes</option>'+
     programmeList.map(p=>`<option value="${escapeHtml(idOf(p))}">${escapeHtml(programmeLabel(p))}</option>`).join("");
 
+  const usableLevels=[...levels]
+    .filter(l=>norm(val(l,["status"],"active"))!=="inactive")
+    .sort((a,b)=>Number(val(a,["displayOrder"],9999))-Number(val(b,["displayOrder"],9999)));
+
   $("entryLevel").innerHTML='<option value="">All Levels</option>'+
-    [...new Set(courses.map(levelName).filter(Boolean))].map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");
+    usableLevels.map(l=>`<option value="${escapeHtml(idOf(l))}">${escapeHtml(val(l,["name","levelName","title"],"Unnamed Level"))}</option>`).join("");
 
   updateSemesters();
   updateCourses();
@@ -229,19 +235,36 @@ function selectedSemester(){
  const s=semesters.find(x=>idOf(x)===$("entrySemester").value);
  return s||{};
 }
+function selectedLevel(){
+  const id=$("entryLevel").value;
+  return levels.find(x=>idOf(x)===id)||{};
+}
+function levelMatches(record, selected){
+  if(!selected || !idOf(selected)) return true;
+  const selectedName=norm(val(selected,["name","levelName","title"],""));
+  const selectedCode=norm(val(selected,["code","levelCode"],""));
+  const recordId=String(val(record,["levelId","academicLevelId"],""));
+  const recordName=norm(levelName(record));
+  const recordCode=norm(val(record,["levelCode","academicLevelCode"],""));
+  return recordId===idOf(selected) ||
+         (!!selectedName && recordName===selectedName) ||
+         (!!selectedCode && recordCode===selectedCode);
+}
+
 function updateCourses(){
  const sid=$("entrySession").value, sem=$("entrySemester").value, pid=$("entryProgramme").value, lvl=$("entryLevel").value;
  const sn=sessionName(selectedSession()), sm=semesterName(selectedSemester());
+ const selectedProgramme=programmes.find(p=>idOf(p)===pid)||{};
+ const selectedLvl=selectedLevel();
  let list=courses.filter(c=>{
    const cp=val(c,["programmeId"]);
    const cl=levelName(c);
    const cs=sessionName(c), cm=semesterName(c);
-   const selectedProgramme=programmes.find(p=>idOf(p)===pid)||{};
    const pOk=!pid||
      cp===pid||
      norm(programmeName(c))===norm(programmeName(selectedProgramme))||
      norm(val(c,["programmeCode","programCode"]))===norm(programmeCode(selectedProgramme));
-   const lOk=!lvl||norm(cl)===norm(lvl);
+   const lOk=!lvl||levelMatches(c,selectedLvl);
    const sOk=!sid||!cs||norm(cs)===norm(sn);
    const mOk=!sem||!cm||norm(cm)===norm(sm);
    return pOk&&lOk&&sOk&&mOk;
@@ -254,10 +277,17 @@ function courseStudents(){
  if(!c)return [];
  const cp=val(c,["programmeId"]);
  const cl=levelName(c), cs=sessionName(c), cm=semesterName(c);
+ const courseLevelId=val(c,["levelId","academicLevelId"],"");
+ const courseLevelCode=norm(val(c,["levelCode","academicLevelCode"],""));
  return students.filter(s=>{
    const sp=val(s,["programmeId"]);
    const pOk=cp?sp===cp:norm(programmeName(s))===norm(programmeName(c));
-   const lOk=!cl||norm(levelName(s))===norm(cl);
+   const studentLevelId=String(val(s,["levelId","academicLevelId"],""));
+   const studentLevelCode=norm(val(s,["levelCode","academicLevelCode"],""));
+   const lOk=!cl ||
+     (courseLevelId && studentLevelId===String(courseLevelId)) ||
+     (courseLevelCode && studentLevelCode===courseLevelCode) ||
+     norm(levelName(s))===norm(cl);
    const ss=sessionName(s), sm=semesterName(s);
    const sOk=!cs||!ss||norm(ss)===norm(cs);
    const mOk=!cm||!sm||norm(sm)===norm(cm);
