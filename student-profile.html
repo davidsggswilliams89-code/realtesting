@@ -118,6 +118,75 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
   .stat-tile .stat-value{font-size:34px}
   .stat-tile .stat-help{font-size:11px}
 }
+
+/* Examination slip */
+.exam-slip{position:relative;padding:30px;margin-top:30px}
+.exam-actions{text-align:right;margin-bottom:18px}
+.print-btn{border:0;background:var(--green);color:#fff;border-radius:10px;padding:12px 18px;font-weight:800;cursor:pointer}
+.exam-header{display:grid;grid-template-columns:90px 1fr 190px;align-items:center;gap:18px}
+.exam-logo{width:82px;height:82px;object-fit:contain}
+.exam-school h2{margin:0;color:#075c45;font-size:21px;line-height:1.2}
+.exam-school p{margin:7px 0 0;color:var(--muted);font-size:14px}
+.exam-address{text-align:right;color:var(--text);font-weight:800;font-size:13px}
+.exam-address small{display:block;color:var(--muted);font-weight:600;margin-top:5px}
+.exam-rule{height:3px;background:var(--green);margin:16px 0 20px}
+.exam-title{text-align:center;margin:0;font-size:31px;letter-spacing:.3px}
+.exam-type{margin:14px auto 22px;max-width:650px;text-align:center;background:#dff8e7;color:#075c45;border-radius:12px;padding:12px 18px;font-size:20px;font-weight:900}
+.exam-student-box{display:grid;grid-template-columns:1fr 180px;gap:24px;border:1px solid var(--line);border-radius:15px;padding:22px;margin-bottom:24px}
+.exam-student-details{display:grid;grid-template-columns:1fr 1fr;gap:10px 22px}
+.exam-student-details div{display:grid;grid-template-columns:125px 1fr;gap:8px;line-height:1.4}
+.exam-student-details span{color:var(--muted)}
+.exam-student-details b{font-weight:800}
+.exam-photo-box{text-align:center}
+.exam-photo-box img{width:135px;height:150px;object-fit:cover;border:1px solid var(--line);border-radius:8px;background:#eef7f3}
+.exam-sign-line{width:135px;border-top:1px solid #667789;margin:14px auto 5px}
+.exam-photo-box small{color:var(--muted)}
+.exam-section-heading{font-size:26px;font-weight:900;margin:8px 0 12px}
+.exam-table-wrap table{min-width:760px}
+.exam-table-wrap th{background:#e8f8ee;color:#075c45}
+.exam-notes{display:grid;grid-template-columns:1.4fr 1fr;gap:30px;border:1px solid var(--line);border-radius:15px;padding:22px;margin-top:24px}
+.exam-notes h3{margin:0 0 10px;color:#075c45}
+.exam-notes ol{margin:0;padding-left:22px;color:#4d6070;line-height:1.7}
+.exam-office{border-left:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.office-sign{width:150px;border-top:1px solid #667789;margin-bottom:8px}
+.exam-office small{color:var(--muted);margin-top:5px}
+.exam-success{text-align:center;font-style:italic;color:#4d6070;margin:22px 0 0}
+
+@media(max-width:750px){
+  .exam-slip{padding:18px 14px}
+  .exam-header{grid-template-columns:60px 1fr;gap:10px}
+  .exam-logo{width:58px;height:58px}
+  .exam-school h2{font-size:14px}
+  .exam-school p{font-size:11px}
+  .exam-address{grid-column:1/-1;text-align:left;font-size:11px}
+  .exam-title{font-size:25px}
+  .exam-type{font-size:16px}
+  .exam-student-box{grid-template-columns:1fr}
+  .exam-student-details{grid-template-columns:1fr}
+  .exam-photo-box{order:-1}
+  .exam-notes{grid-template-columns:1fr}
+  .exam-office{border-left:0;border-top:1px solid var(--line);padding-top:20px}
+}
+
+
+@page{size:A4 portrait;margin:10mm}
+@media print{
+  body{background:#fff}
+  header,.top-title,#message,.footer,.exam-actions{display:none!important}
+  main{max-width:none;margin:0;padding:0}
+  .card{box-shadow:none}
+  #examSlip{display:block!important;border:0!important;border-radius:0!important;margin:0!important;padding:0!important}
+  #examSlip .exam-header{grid-template-columns:80px 1fr 160px}
+  #examSlip .exam-title{font-size:25px}
+  #examSlip .exam-type{font-size:17px;margin-bottom:15px}
+  #examSlip .exam-student-box{break-inside:avoid}
+  #examSlip .exam-table-wrap{overflow:visible}
+  #examSlip .exam-table-wrap table{min-width:0;width:100%;font-size:11px}
+  #examSlip th,#examSlip td{padding:7px 6px;font-size:11px}
+  #examSlip .exam-notes{break-inside:avoid}
+  a{color:inherit;text-decoration:none}
+}
+
 </style>
 </head>
 <body>
@@ -295,6 +364,75 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
       <a class="pill" href="hostel.html">Hostel</a>
       <a class="pill" href="medical.html">Medical</a>
     </div>
+  </section>
+
+
+  <!-- EXAMINATION SLIP -->
+  <section class="card exam-slip" id="examSlip">
+    <div class="exam-actions">
+      <button type="button" class="print-btn" id="printExamSlip">🖨 Print Examination Slip</button>
+    </div>
+
+    <div class="exam-header">
+      <img src="logo.png" class="exam-logo" alt="GGCHST Logo">
+      <div class="exam-school">
+        <h2>GREEN GARDEN COLLEGE OF HEALTH SCIENCES &amp; TECHNOLOGY</h2>
+        <p>Knowledge for a Healthier Society</p>
+      </div>
+      <div class="exam-address">
+        <div>GGCHST SMS</div>
+        <small>Student Examination Slip</small>
+      </div>
+    </div>
+
+    <div class="exam-rule"></div>
+
+    <h1 class="exam-title">EXAMINATION SLIP</h1>
+    <div class="exam-type" id="examType">EXAMINATION</div>
+
+    <div class="exam-student-box">
+      <div class="exam-student-details">
+        <div><span>Student Name:</span><b id="examStudentName">—</b></div>
+        <div><span>Student ID:</span><b id="examStudentId">—</b></div>
+        <div><span>Admission No:</span><b id="examAdmissionNo">—</b></div>
+        <div><span>Programme:</span><b id="examProgramme">—</b></div>
+        <div><span>Department:</span><b id="examDepartment">—</b></div>
+        <div><span>Faculty / School:</span><b id="examFaculty">—</b></div>
+        <div><span>Level:</span><b id="examLevel">—</b></div>
+        <div><span>Academic Session:</span><b id="examSession">—</b></div>
+        <div><span>Status:</span><b id="examStatus">—</b></div>
+      </div>
+      <div class="exam-photo-box">
+        <img id="examPhoto" alt="Student profile photo">
+        <div class="exam-sign-line"></div>
+        <small>Student's Signature</small>
+      </div>
+    </div>
+
+    <div class="exam-section-heading">Examination Timetable</div>
+    <div id="examSlipTable" class="table-wrap exam-table-wrap">
+      <div class="empty">Loading examination timetable...</div>
+    </div>
+
+    <div class="exam-notes">
+      <div>
+        <h3>Important Notes</h3>
+        <ol>
+          <li>This slip must be presented at the examination hall.</li>
+          <li>Arrive at least 30 minutes before the scheduled time.</li>
+          <li>No mobile phones or unauthorized materials are allowed.</li>
+          <li>Follow all examination rules and regulations.</li>
+          <li>For any issue, contact the Examination Office.</li>
+        </ol>
+      </div>
+      <div class="exam-office">
+        <div class="office-sign"></div>
+        <b>Examination Officer</b>
+        <small>Green Garden College of Health Sciences &amp; Technology</small>
+      </div>
+    </div>
+
+    <p class="exam-success">Wishing you success in your examinations!</p>
   </section>
 
   <div class="footer">Green Garden • Student Profile</div>
@@ -661,6 +799,53 @@ function renderFees(payments){
   }).join("");
 }
 
+
+function renderExamStudent(){
+  const name=val(student,["fullName","studentName","name"],"—");
+  const photo=photoUrl(student);
+  $("examStudentName").textContent=name;
+  $("examStudentId").textContent=val(student,["studentId","studentID","matricNo"],"—");
+  $("examAdmissionNo").textContent=val(student,["admissionNo"],"—");
+  $("examProgramme").textContent=val(student,["programme","courseOfStudy"],"—");
+  $("examDepartment").textContent=val(student,["department","departmentName"],val(student,["programme","courseOfStudy"],"—"));
+  $("examFaculty").textContent=val(student,["faculty","school","facultyName"],"School of Health & Technology");
+  $("examLevel").textContent=val(student,["level"],"—");
+  $("examSession").textContent=val(student,["academicSession","session"],"—");
+  $("examStatus").textContent=String(val(student,["status"],"Active")).toUpperCase();
+
+  const img=$("examPhoto");
+  if(photo){
+    img.src=photo;
+    img.onerror=()=>{img.onerror=null;img.style.display="none";};
+  }else{
+    img.style.display="none";
+  }
+}
+function semesterLabel(){
+  const s=norm(val(student,["semester","currentSemester","activeSemester"],""));
+  if(s.includes("second")||s==="2"||s==="2nd")return"SECOND SEMESTER EXAMINATION";
+  if(s.includes("first")||s==="1"||s==="1st")return"FIRST SEMESTER EXAMINATION";
+  return s?`${String(val(student,["semester","currentSemester","activeSemester"])).toUpperCase()} EXAMINATION`:"EXAMINATION";
+}
+function renderExamSlip(records){
+  $("examType").textContent=`${val(student,["academicSession","session"],"")} ${semesterLabel()}`.trim();
+
+  if(!records.length){
+    $("examSlipTable").innerHTML='<div class="empty">No examination timetable is currently available for this student.</div>';
+    return;
+  }
+  $("examSlipTable").innerHTML=`<table><thead><tr><th>S/N</th><th>Date</th><th>Time</th><th>Course Code</th><th>Course Title</th><th>Venue</th></tr></thead><tbody>${
+    records.map((r,i)=>`<tr>
+      <td>${i+1}</td>
+      <td>${esc(val(r,["date","examDate"],"—"))}</td>
+      <td>${esc(val(r,["startTime","time"],"—"))}${val(r,["endTime"])?" - "+esc(r.endTime):""}</td>
+      <td class="course-code">${esc(val(r,["courseCode","code"],"—"))}</td>
+      <td>${esc(val(r,["courseTitle","courseName","name"],"—"))}</td>
+      <td>${esc(val(r,["venue","venueName"],"—"))}</td>
+    </tr>`).join("")
+  }</tbody></table>`;
+}
+
 async function loadData(){
   const [
     courses,results,payments,attendance,timetables,exams,notes,assignments,announcements,notices
@@ -682,7 +867,15 @@ async function loadData(){
   attendanceRecords=attendance.filter(matchStudent).filter(r=>!val(r,["courseCode","code","courseId"])||matchCourse(r));
 
   const timetableRecords=timetables.filter(matchCourse);
-  const examRecords=exams.filter(matchCourse);
+  const targetSemester=norm(val(student,["semester","currentSemester","activeSemester"]));
+  const examRecords=exams.filter(matchCourse).filter(r=>{
+    const rs=norm(val(r,["academicSession","session","sessionName"]));
+    const rm=norm(val(r,["semester","semesterName","term"]));
+    const studentSession=norm(val(student,["academicSession","session"]));
+    const semesterOK=!targetSemester||!rm||rm===targetSemester||rm.includes(targetSemester)||targetSemester.includes(rm);
+    const sessionOK=!studentSession||!rs||rs===studentSession;
+    return sessionOK&&semesterOK;
+  }).sort((a,b)=>String(val(a,["date","examDate"],"")).localeCompare(String(val(b,["date","examDate"],""))));
   const noteRecords=notes.filter(matchCourse);
   const assignmentRecords=assignments.filter(matchCourse);
 
@@ -711,6 +904,8 @@ async function loadData(){
   renderList("announcements",combinedAnnouncements,"announcements");
   renderAttendanceDetail(attendanceRecords);
   renderFees(payments.filter(matchStudent));
+  renderExamStudent();
+  renderExamSlip(examRecords);
 }
 async function start(user){
   student=await findStudent(user);
@@ -725,6 +920,7 @@ async function start(user){
   await loadData();
 }
 $("logout").onclick=async()=>{try{await signOut(auth)}finally{location.href="login.html"}};
+$("printExamSlip").onclick=()=>window.print();
 
 let started=false;
 onAuthStateChanged(auth,async user=>{
