@@ -49,7 +49,7 @@ tr:last-child td{border-bottom:0}
 .payment-part{background:#e8f0ff;color:#225aa0}
 .payment-notpaid{background:#fde8e8;color:#a51d1d}
 .actions{display:flex;gap:6px}
-.view{border:0;background:#e8f0ff;color:#225aa0;border-radius:7px;padding:7px 9px;font-weight:700;cursor:pointer}
+.view{border:0;background:#e8f0ff;color:#225aa0;border-radius:7px;padding:7px 9px;font-weight:700;cursor:pointer}.edit{border:0;background:#e3f6ea;color:#11733f;border-radius:7px;padding:7px 9px;font-weight:700;cursor:pointer}
 .empty{text-align:center;padding:35px;color:#718078}
 .loading{padding:35px;text-align:center;color:#68756f}
 .mobile-list{display:none}
@@ -430,7 +430,7 @@ function render() {
       <td>${esc(session(s))}</td>
       <td><span class="badge ${norm(status(s)) === "active" ? "active" : "inactive"}">${esc(status(s))}</span></td>
       <td><span class="badge payment-${paymentClass(paymentStatus(s))}">${esc(paymentStatus(s))}</span></td>
-      <td><div class="actions"><button class="view" data-view="${esc(s.id)}">View</button></div></td>
+      <td><div class="actions"><button class="view" data-view="${esc(s.id)}">View</button><button class="edit" data-edit="${esc(s.id)}">Edit</button></div></td>
     </tr>
   `).join("");
 
@@ -453,7 +453,7 @@ function render() {
         <div><small>Admission No.</small><b>${esc(admissionNo(s))}</b></div>
       </div>
       <div style="margin-top:10px">
-        <button class="view" data-view="${esc(s.id)}">View Student</button>
+        <button class="view" data-view="${esc(s.id)}">View Student</button> <button class="edit" data-edit="${esc(s.id)}">Edit Student</button>
       </div>
     </div>
   `).join("");
@@ -479,16 +479,31 @@ function viewStudent(id) {
   const s = students.find(x => x.id === id);
   if (!s) return;
 
-  // Opens the existing admin student page when available.
-  // Student ID is passed so the master record can be resolved there.
+  // Opens the existing student page.
   const sid = studentId(s);
   const url = `student.html?studentId=${encodeURIComponent(sid)}`;
   window.location.href = url;
 }
 
+function editStudent(id) {
+  const s = students.find(x => x.id === id);
+  if (!s) return;
+
+  // Opens the separate Admin Edit Student Profile page.
+  const sid = studentId(s);
+  const url = `student-profile-admin-edit.html?studentId=${encodeURIComponent(sid)}`;
+  window.location.href = url;
+}
+
 document.addEventListener("click", e => {
-  const btn = e.target.closest("[data-view]");
-  if (btn) viewStudent(btn.dataset.view);
+  const viewBtn = e.target.closest("[data-view]");
+  if (viewBtn) {
+    viewStudent(viewBtn.dataset.view);
+    return;
+  }
+
+  const editBtn = e.target.closest("[data-edit]");
+  if (editBtn) editStudent(editBtn.dataset.edit);
 });
 
 onSnapshot(collection(db,"students"), snap => {
