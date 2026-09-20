@@ -119,6 +119,33 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
   .stat-tile .stat-help{font-size:11px}
 }
 
+/* Examination slip countdown */
+.exam-actions{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:22px}
+.exam-countdown{
+  width:100%;max-width:760px;text-align:center;background:#fff4f4;
+  border:2px solid #dc2626;border-radius:16px;padding:16px 18px;
+}
+.countdown-label{font-size:14px;font-weight:900;letter-spacing:.7px;color:#b42318;margin-bottom:10px}
+.countdown-values{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap}
+.countdown-values span{
+  min-width:66px;background:#fff;border:1px solid #f0caca;border-radius:10px;
+  padding:7px 6px;display:flex;flex-direction:column;align-items:center;
+}
+.countdown-values b{font-size:24px;line-height:1.1;color:#b42318}
+.countdown-values small{font-size:9px;color:#8a5b5b;font-weight:900;margin-top:4px}
+.countdown-values i{font-style:normal;font-weight:900;color:#b42318}
+.countdown-note{font-size:12px;color:#7a5555;margin-top:9px}
+.print-btn{min-width:230px}
+.print-btn.print-locked{background:#dc2626;color:#fff;cursor:not-allowed;opacity:.95}
+.exam-slip.exam-ready .exam-countdown{background:#effaf3;border-color:#16a34a}
+.exam-slip.exam-ready .countdown-label,
+.exam-slip.exam-ready .countdown-values b,
+.exam-slip.exam-ready .countdown-values i{color:#087443}
+.exam-slip.exam-ready .countdown-values span{border-color:#b9e4c8}
+.exam-slip.exam-ready .countdown-note{color:#38664b}
+.exam-slip.exam-ready .print-btn{background:#087443;cursor:pointer}
+.exam-slip.exam-ready .print-btn:hover{background:#075c45}
+
 /* Examination slip */
 .exam-slip{position:relative;padding:30px;margin-top:30px}
 .exam-actions{text-align:right;margin-bottom:18px}
@@ -154,6 +181,11 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
 
 @media(max-width:750px){
   .exam-slip{padding:18px 14px}
+  .countdown-values{gap:4px}
+  .countdown-values span{min-width:48px;padding:6px 3px}
+  .countdown-values b{font-size:19px}
+  .countdown-values small{font-size:7px}
+  .countdown-values i{font-size:13px}
   .exam-header{grid-template-columns:60px 1fr;gap:10px}
   .exam-logo{width:58px;height:58px}
   .exam-school h2{font-size:14px}
@@ -370,7 +402,24 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
   <!-- EXAMINATION SLIP -->
   <section class="card exam-slip" id="examSlip">
     <div class="exam-actions">
-      <button type="button" class="print-btn" id="printExamSlip">🖨 Print Examination Slip</button>
+      <div class="exam-countdown" id="examCountdown" aria-live="polite">
+        <div class="countdown-label" id="countdownLabel">EXAM SLIP PRINTING OPENS IN</div>
+        <div class="countdown-values">
+          <span><b id="countMonths">0</b><small>MONTHS</small></span>
+          <i>:</i>
+          <span><b id="countWeeks">0</b><small>WEEKS</small></span>
+          <i>:</i>
+          <span><b id="countDays">0</b><small>DAYS</small></span>
+          <i>:</i>
+          <span><b id="countHours">00</b><small>HOURS</small></span>
+          <i>:</i>
+          <span><b id="countMinutes">00</b><small>MIN</small></span>
+          <i>:</i>
+          <span><b id="countSeconds">00</b><small>SEC</small></span>
+        </div>
+        <div class="countdown-note" id="countdownNote">The Print Examination Slip button will become available when the countdown reaches zero.</div>
+      </div>
+      <button type="button" class="print-btn print-locked" id="printExamSlip" disabled aria-disabled="true">🖨 Print Examination Slip</button>
     </div>
 
     <div class="exam-header">
@@ -800,6 +849,94 @@ function renderFees(payments){
 }
 
 
+
+let examCountdownTimer=null;
+let examPrintReady=false;
+
+function getExamStartDate(record){
+  const rawDate=val(record,["date","examDate","scheduledDate"],"");
+  const rawStart=val(record,["startTime","time","examTime"],"00:00");
+  if(!rawDate)return null;
+
+  const dateText=String(rawDate).trim();
+  const timeText=String(rawStart).trim();
+  let d=null;
+
+  // ISO date/time or a browser-parseable date.
+  if(/^\d{4}-\d{2}-\d{2}$/.test(dateText)){
+    const m=timeText.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+    let hh=m?Number(m[1]):0;
+    const mm=m?Number(m[2]):0;
+    const ap=m&&m[3]?m[3].toLowerCase():"";
+    if(ap==="pm"&&hh<12)hh+=12;
+    if(ap==="am"&&hh===12)hh=0;
+    d=new Date(`${dateText}T${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:00`);
+  }else{
+    const candidate=new Date(`${dateText} ${timeText}`);
+    if(!Number.isNaN(candidate.getTime()))d=candidate;
+    else{
+      const candidate2=new Date(dateText);
+      if(!Number.isNaN(candidate2.getTime()))d=candidate2;
+    }
+  }
+  return d&&!Number.isNaN(d.getTime())?d:null;
+}
+
+function splitCountdown(ms){
+  const totalSeconds=Math.max(0,Math.floor(ms/1000));
+  let seconds=totalSeconds;
+  const minutes=Math.floor(seconds/60); seconds%=60;
+  const hours=Math.floor(minutes/60); const mins=minutes%60;
+  const days=Math.floor(hours/24); const hrs=hours%24;
+  const weeks=Math.floor(days/7); const remDays=days%7;
+  const months=Math.floor(weeks/4); const remWeeks=weeks%4;
+  return {months,weeks:remWeeks,days:remDays,hours:hrs,minutes:mins,seconds};
+}
+
+function setCountdownValues(x){
+  $("countMonths").textContent=x.months;
+  $("countWeeks").textContent=x.weeks;
+  $("countDays").textContent=x.days;
+  $("countHours").textContent=String(x.hours).padStart(2,"0");
+  $("countMinutes").textContent=String(x.minutes).padStart(2,"0");
+  $("countSeconds").textContent=String(x.seconds).padStart(2,"0");
+}
+
+function setExamReady(){
+  if(examCountdownTimer)clearInterval(examCountdownTimer);
+  examPrintReady=true;
+  $("examSlip").classList.add("exam-ready");
+  $("countdownLabel").textContent="EXAM SLIP PRINTING IS NOW OPEN";
+  $("countdownNote").textContent="The examination slip is ready to print.";
+  $("countMonths").textContent="00";
+  $("countWeeks").textContent="00";
+  $("countDays").textContent="00";
+  $("countHours").textContent="00";
+  $("countMinutes").textContent="00";
+  $("countSeconds").textContent="00";
+  const btn=$("printExamSlip");
+  btn.disabled=false;
+  btn.removeAttribute("aria-disabled");
+  btn.classList.remove("print-locked");
+}
+
+function startExamCountdown(firstExamDate){
+  if(!firstExamDate){
+    $("countdownLabel").textContent="EXAM SLIP PRINTING DATE NOT AVAILABLE";
+    $("countdownNote").textContent="The examination timetable does not contain a valid first examination date yet.";
+    return;
+  }
+
+  const tick=()=>{
+    const diff=firstExamDate.getTime()-Date.now();
+    if(diff<=0){setExamReady();return;}
+    setCountdownValues(splitCountdown(diff));
+  };
+  tick();
+  if(examCountdownTimer)clearInterval(examCountdownTimer);
+  examCountdownTimer=setInterval(tick,1000);
+}
+
 function renderExamStudent(){
   const name=val(student,["fullName","studentName","name"],"—");
   const photo=photoUrl(student);
@@ -832,8 +969,16 @@ function renderExamSlip(records){
 
   if(!records.length){
     $("examSlipTable").innerHTML='<div class="empty">No examination timetable is currently available for this student.</div>';
+    $("countdownLabel").textContent="EXAM SLIP PRINTING DATE NOT AVAILABLE";
+    $("countdownNote").textContent="The examination timetable does not contain a valid first examination date yet.";
     return;
   }
+
+  const firstExam=records.map(r=>({record:r,date:getExamStartDate(r)}))
+    .filter(x=>x.date)
+    .sort((a,b)=>a.date-b.date)[0];
+  startExamCountdown(firstExam?firstExam.date:null);
+
   $("examSlipTable").innerHTML=`<table><thead><tr><th>S/N</th><th>Date</th><th>Time</th><th>Course Code</th><th>Course Title</th><th>Venue</th></tr></thead><tbody>${
     records.map((r,i)=>`<tr>
       <td>${i+1}</td>
@@ -920,7 +1065,7 @@ async function start(user){
   await loadData();
 }
 $("logout").onclick=async()=>{try{await signOut(auth)}finally{location.href="login.html"}};
-$("printExamSlip").onclick=()=>window.print();
+$("printExamSlip").onclick=()=>{if(examPrintReady)window.print();};
 
 let started=false;
 onAuthStateChanged(auth,async user=>{
