@@ -43,7 +43,7 @@ main{max-width:1180px;margin:auto;padding:20px 18px 45px}.section{background:#ff
       <div class="field"><label>Status *</label><select id="sessionStatus"><option>Active</option><option>Inactive</option><option>Closed</option></select></div>
       <div class="field"><label>Description</label><input id="sessionDescription" placeholder="Optional description"></div>
     </div>
-    <div class="actions-row"><button class="btn clear" type="button" id="sessionClear">Clear</button><button class="btn save" type="submit" id="sessionSave">＋ Save Session</button></div>
+    <div class="actions-row"><button class="btn clear" type="button" id="sessionClear">Clear</button><button class="btn save" type="submit" id="sessionSave" disabled>＋ Save Session</button></div>
   </form>
   <div class="tools"><input id="sessionSearch" placeholder="Search academic session..."><select id="sessionFilter"><option value="">All Statuses</option><option>Active</option><option>Inactive</option><option>Closed</option></select></div>
   <div class="table-wrap"><table><thead><tr><th>#</th><th>Session</th><th>Start</th><th>End</th><th>Status</th><th>Description</th><th>Actions</th></tr></thead><tbody id="sessionRows"><tr><td colspan="7" class="empty">Loading sessions...</td></tr></tbody></table></div>
@@ -60,7 +60,7 @@ main{max-width:1180px;margin:auto;padding:20px 18px 45px}.section{background:#ff
       <div class="field"><label>Status *</label><select id="semesterStatus"><option>Active</option><option>Inactive</option><option>Closed</option></select></div>
       <div class="field"><label>Description</label><input id="semesterDescription" placeholder="Optional description"></div>
     </div>
-    <div class="actions-row"><button class="btn clear" type="button" id="semesterClear">Clear</button><button class="btn save" type="submit" id="semesterSave">＋ Save Semester</button></div>
+    <div class="actions-row"><button class="btn clear" type="button" id="semesterClear">Clear</button><button class="btn save" type="submit" id="semesterSave" disabled>＋ Save Semester</button></div>
   </form>
   <div class="tools"><input id="semesterSearch" placeholder="Search session or semester..."><select id="semesterFilter"><option value="">All Statuses</option><option>Active</option><option>Inactive</option><option>Closed</option></select></div>
   <div class="table-wrap"><table><thead><tr><th>#</th><th>Academic Session</th><th>Semester</th><th>Start</th><th>End</th><th>Status</th><th>Description</th><th>Actions</th></tr></thead><tbody id="semesterRows"><tr><td colspan="8" class="empty">Loading semesters...</td></tr></tbody></table></div>
@@ -73,7 +73,7 @@ import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebase
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig={
- apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
+ apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
  authDomain:"ggchst-sms-new.firebaseapp.com",
  projectId:"ggchst-sms-new",
  storageBucket:"ggchst-sms-new.firebasestorage.app",
@@ -82,6 +82,10 @@ const firebaseConfig={
 };
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
 const db=getFirestore(app);
+
+// The forms are usable as soon as Firebase is initialized.
+$("sessionSave")?.removeAttribute("disabled");
+$("semesterSave")?.removeAttribute("disabled");
 const $=id=>document.getElementById(id), clean=v=>String(v??"").trim();
 const esc=v=>clean(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
 let sessions=[],semesters=[];
@@ -107,7 +111,7 @@ $("sessionClear").onclick=resetSession;$("semesterClear").onclick=resetSemester;
 $("sessionRows").addEventListener("click",async e=>{const activate=e.target.closest("[data-activate-session]")?.dataset.activateSession,edit=e.target.closest("[data-edit-session]")?.dataset.editSession,del=e.target.closest("[data-delete-session]")?.dataset.deleteSession;if(activate){await activateSession(activate);return}if(edit){const x=sessions.find(s=>s.id===edit);if(!x)return;$("sessionDocId").value=x.id;$("sessionName").value=x.name||"";$("sessionStart").value=x.startDate||"";$("sessionEnd").value=x.endDate||"";$("sessionStatus").value=x.status||"Inactive";$("sessionDescription").value=x.description||"";$("sessionSave").textContent="Update Session";window.scrollTo({top:0,behavior:"smooth"});return}if(del){const x=sessions.find(s=>s.id===del);if(!x)return;const linked=semesters.some(s=>s.sessionId===del);if(linked){alert("This session cannot be deleted while semesters are connected to it. Delete or move its semesters first.");return}if(!confirm(`Delete academic session "${x.name}"? This cannot be undone.`))return;try{await deleteDoc(doc(db,"academicSessions",del));await writeAudit("delete","academic-session","academicSession",del,"success",{sessionName:x.name});toast("Academic session deleted.")}catch(err){console.error(err);alert(err.message||"Could not delete session.")}});
 $("semesterRows").addEventListener("click",async e=>{const activate=e.target.closest("[data-activate-semester]")?.dataset.activateSemester,edit=e.target.closest("[data-edit-semester]")?.dataset.editSemester,del=e.target.closest("[data-delete-semester]")?.dataset.deleteSemester;if(activate){await activateSemester(activate);return}if(edit){const x=semesters.find(s=>s.id===edit);if(!x)return;$("semesterDocId").value=x.id;$("semesterSession").value=x.sessionId||"";$("semesterName").value=x.name||"";$("semesterStart").value=x.startDate||"";$("semesterEnd").value=x.endDate||"";$("semesterStatus").value=x.status||"Inactive";$("semesterDescription").value=x.description||"";$("semesterSave").textContent="Update Semester";document.querySelectorAll(".section")[2].scrollIntoView({behavior:"smooth"});return}if(del){const x=semesters.find(s=>s.id===del);if(!x)return;if(!confirm(`Delete ${x.name} Semester for "${x.sessionName}"? This cannot be undone.`))return;try{await deleteDoc(doc(db,"semesters",del));await writeAudit("delete","academic-session","semester",del,"success",{semester:x.name,sessionName:x.sessionName});toast("Semester deleted.")}catch(err){console.error(err);alert(err.message||"Could not delete semester.")}});
 
-onSnapshot(collection(db,"academicSessions"),snap=>{sessions=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.name).localeCompare(String(a.name)));fillSessionSelect();renderSessions();renderCurrent()},err=>{$("sessionRows").innerHTML=`<tr><td colspan="7" class="empty">${esc(err.message||"Could not read academicSessions.")}</td></tr>`});
-onSnapshot(collection(db,"semesters"),snap=>{semesters=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.sessionName).localeCompare(String(a.sessionName))||String(a.name).localeCompare(String(b.name)));renderSemesters();renderCurrent()},err=>{$("semesterRows").innerHTML=`<tr><td colspan="8" class="empty">${esc(err.message||"Could not read semesters.")}</td></tr>`});
+onSnapshot(collection(db,"academicSessions"),snap=>{sessions=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.name).localeCompare(String(a.name)));fillSessionSelect();renderSessions();renderCurrent()},err=>{console.error("academicSessions:",err);$("sessionRows").innerHTML=`<tr><td colspan="7" class="empty">${esc(err.message||"Could not read academicSessions.")}</td></tr>`;toast("Could not load academic sessions. Check Firebase/Firestore rules.");});
+onSnapshot(collection(db,"semesters"),snap=>{semesters=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.sessionName).localeCompare(String(a.sessionName))||String(a.name).localeCompare(String(b.name)));renderSemesters();renderCurrent()},err=>{console.error("semesters:",err);$("semesterRows").innerHTML=`<tr><td colspan="8" class="empty">${esc(err.message||"Could not read semesters.")}</td></tr>`;toast("Could not load semesters. Check Firebase/Firestore rules.");});
 </script>
 </body></html>
