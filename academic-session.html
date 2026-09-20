@@ -43,7 +43,7 @@ main{max-width:1180px;margin:auto;padding:20px 18px 45px}.section{background:#ff
       <div class="field"><label>Status *</label><select id="sessionStatus"><option>Active</option><option>Inactive</option><option>Closed</option></select></div>
       <div class="field"><label>Description</label><input id="sessionDescription" placeholder="Optional description"></div>
     </div>
-    <div class="actions-row"><button class="btn clear" type="button" id="sessionClear">Clear</button><button class="btn save" type="submit" id="sessionSave" disabled>＋ Save Session</button></div>
+    <div class="actions-row"><button class="btn clear" type="button" id="sessionClear">Clear</button><button class="btn save" type="submit" id="sessionSave">＋ Save Session</button></div>
   </form>
   <div class="tools"><input id="sessionSearch" placeholder="Search academic session..."><select id="sessionFilter"><option value="">All Statuses</option><option>Active</option><option>Inactive</option><option>Closed</option></select></div>
   <div class="table-wrap"><table><thead><tr><th>#</th><th>Session</th><th>Start</th><th>End</th><th>Status</th><th>Description</th><th>Actions</th></tr></thead><tbody id="sessionRows"><tr><td colspan="7" class="empty">Loading sessions...</td></tr></tbody></table></div>
@@ -60,7 +60,7 @@ main{max-width:1180px;margin:auto;padding:20px 18px 45px}.section{background:#ff
       <div class="field"><label>Status *</label><select id="semesterStatus"><option>Active</option><option>Inactive</option><option>Closed</option></select></div>
       <div class="field"><label>Description</label><input id="semesterDescription" placeholder="Optional description"></div>
     </div>
-    <div class="actions-row"><button class="btn clear" type="button" id="semesterClear">Clear</button><button class="btn save" type="submit" id="semesterSave" disabled>＋ Save Semester</button></div>
+    <div class="actions-row"><button class="btn clear" type="button" id="semesterClear">Clear</button><button class="btn save" type="submit" id="semesterSave">＋ Save Semester</button></div>
   </form>
   <div class="tools"><input id="semesterSearch" placeholder="Search session or semester..."><select id="semesterFilter"><option value="">All Statuses</option><option>Active</option><option>Inactive</option><option>Closed</option></select></div>
   <div class="table-wrap"><table><thead><tr><th>#</th><th>Academic Session</th><th>Semester</th><th>Start</th><th>End</th><th>Status</th><th>Description</th><th>Actions</th></tr></thead><tbody id="semesterRows"><tr><td colspan="8" class="empty">Loading semesters...</td></tr></tbody></table></div>
@@ -73,12 +73,12 @@ import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebase
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig={
- apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
- authDomain:"ggchst-sms-new.firebaseapp.com",
- projectId:"ggchst-sms-new",
- storageBucket:"ggchst-sms-new.firebasestorage.app",
- messagingSenderId:"942770190211",
- appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
+  apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+  authDomain:"ggchst-sms-new.firebaseapp.com",
+  projectId:"ggchst-sms-new",
+  storageBucket:"ggchst-sms-new.firebasestorage.app",
+  messagingSenderId:"942770190211",
+  appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
 };
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
 const db=getFirestore(app);
