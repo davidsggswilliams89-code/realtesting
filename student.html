@@ -32,7 +32,7 @@ input:focus,select:focus{outline:none;border-color:#087443;box-shadow:0 0 0 2px 
 .stat{background:#edf5f1;color:#087443;border-radius:8px;padding:8px 11px;font-size:12px;font-weight:700}
 .stat span{font-size:15px;margin-right:4px}
 .table-wrap{width:100%;overflow-x:auto;border:1px solid #e1e8e4;border-radius:9px;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;min-width:950px}
+table{width:100%;border-collapse:collapse;min-width:1050px}
 th,td{padding:11px 10px;border-bottom:1px solid #e7ece9;text-align:left;font-size:13px;vertical-align:middle}
 th{background:#f0f5f2;color:#24533e;white-space:nowrap}
 tr:last-child td{border-bottom:0}
@@ -43,6 +43,11 @@ tr:last-child td{border-bottom:0}
 .badge{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:700}
 .active{background:#e3f6ea;color:#11733f}
 .inactive{background:#eee;color:#666}
+
+.payment-paid{background:#e3f6ea;color:#11733f}
+.payment-pending{background:#fff4d6;color:#8a5a00}
+.payment-part{background:#e8f0ff;color:#225aa0}
+.payment-notpaid{background:#fde8e8;color:#a51d1d}
 .actions{display:flex;gap:6px}
 .view{border:0;background:#e8f0ff;color:#225aa0;border-radius:7px;padding:7px 9px;font-weight:700;cursor:pointer}
 .empty{text-align:center;padding:35px;color:#718078}
@@ -83,7 +88,7 @@ tr:last-child td{border-bottom:0}
   .table-wrap{display:none}
   .mobile-list{display:block}
   .stats{gap:6px}
-  .stat{flex:1;min-width:95px;text-align:center}
+  .stat{flex:1;min-width:90px;text-align:center}
 }
 @media(max-width:390px){
   .school-name strong{font-size:12px}
@@ -162,12 +167,27 @@ tr:last-child td{border-bottom:0}
           <option value="Withdrawn">Withdrawn</option>
         </select>
       </div>
+
+      <div class="field">
+        <label>Payment Status</label>
+        <select id="paymentFilter">
+          <option value="">All Payment Statuses</option>
+          <option value="Paid">Paid</option>
+          <option value="Pending">Pending</option>
+          <option value="Part Payment">Part Payment</option>
+          <option value="Not Paid">Not Paid</option>
+        </select>
+      </div>
     </div>
 
     <div class="stats">
       <div class="stat"><span id="totalCount">0</span>Total Students</div>
       <div class="stat"><span id="visibleCount">0</span>Showing</div>
       <div class="stat"><span id="activeCount">0</span>Active</div>
+      <div class="stat"><span id="paidCount">0</span>Paid</div>
+      <div class="stat"><span id="pendingCount">0</span>Pending</div>
+      <div class="stat"><span id="partCount">0</span>Part Payment</div>
+      <div class="stat"><span id="notPaidCount">0</span>Not Paid</div>
     </div>
   </section>
 
@@ -188,11 +208,12 @@ tr:last-child td{border-bottom:0}
             <th>Semester</th>
             <th>Academic Session</th>
             <th>Status</th>
+            <th>Payment Status</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody id="studentTable">
-          <tr><td colspan="9" class="loading">Loading students...</td></tr>
+          <tr><td colspan="10" class="loading">Loading students...</td></tr>
         </tbody>
       </table>
     </div>
@@ -228,6 +249,7 @@ const levelFilter = $("levelFilter");
 const semesterFilter = $("semesterFilter");
 const sessionFilter = $("sessionFilter");
 const statusFilter = $("statusFilter");
+const paymentFilter = $("paymentFilter");
 const table = $("studentTable");
 const mobileList = $("mobileList");
 
@@ -290,6 +312,25 @@ function status(s) {
   return val(s,["status","accountStatus"],"Active");
 }
 
+function paymentStatus(s) {
+  return val(s,[
+    "paymentStatus",
+    "feesStatus",
+    "feeStatus",
+    "schoolFeesStatus",
+    "payment_state",
+    "fee_state"
+  ],"Not Paid");
+}
+
+function paymentClass(value) {
+  const v = norm(value);
+  if (v === "paid") return "paid";
+  if (v === "pending") return "pending";
+  if (v === "part payment" || v === "partpaid" || v === "part-paid") return "part";
+  return "notpaid";
+}
+
 function email(s) {
   return val(s,["email","authEmail"],"");
 }
@@ -328,6 +369,7 @@ function filteredStudents() {
   const sem = norm(semesterFilter.value);
   const ses = norm(sessionFilter.value);
   const st = norm(statusFilter.value);
+  const pay = norm(paymentFilter.value);
 
   return students.filter(s => {
     const haystack = [
@@ -340,7 +382,8 @@ function filteredStudents() {
            (!l || norm(level(s)) === l) &&
            (!sem || norm(semester(s)) === sem) &&
            (!ses || norm(session(s)) === ses) &&
-           (!st || norm(status(s)) === st);
+           (!st || norm(status(s)) === st) &&
+           (!pay || norm(paymentStatus(s)) === pay);
   });
 }
 
@@ -357,9 +400,13 @@ function render() {
   $("totalCount").textContent = students.length;
   $("visibleCount").textContent = list.length;
   $("activeCount").textContent = students.filter(s => norm(status(s)) === "active").length;
+  $("paidCount").textContent = students.filter(s => norm(paymentStatus(s)) === "paid").length;
+  $("pendingCount").textContent = students.filter(s => norm(paymentStatus(s)) === "pending").length;
+  $("partCount").textContent = students.filter(s => paymentClass(paymentStatus(s)) === "part").length;
+  $("notPaidCount").textContent = students.filter(s => paymentClass(paymentStatus(s)) === "notpaid").length;
 
   if (!list.length) {
-    table.innerHTML = '<tr><td colspan="9" class="empty">No students match the selected filters.</td></tr>';
+    table.innerHTML = '<tr><td colspan="10" class="empty">No students match the selected filters.</td></tr>';
     mobileList.innerHTML = '<div class="empty">No students match the selected filters.</div>';
     return;
   }
@@ -382,6 +429,7 @@ function render() {
       <td>${esc(semester(s))}</td>
       <td>${esc(session(s))}</td>
       <td><span class="badge ${norm(status(s)) === "active" ? "active" : "inactive"}">${esc(status(s))}</span></td>
+      <td><span class="badge payment-${paymentClass(paymentStatus(s))}">${esc(paymentStatus(s))}</span></td>
       <td><div class="actions"><button class="view" data-view="${esc(s.id)}">View</button></div></td>
     </tr>
   `).join("");
@@ -401,6 +449,7 @@ function render() {
         <div><small>Semester</small><b>${esc(semester(s))}</b></div>
         <div><small>Session</small><b>${esc(session(s))}</b></div>
         <div><small>Status</small><b>${esc(status(s))}</b></div>
+        <div><small>Payment Status</small><b>${esc(paymentStatus(s))}</b></div>
         <div><small>Admission No.</small><b>${esc(admissionNo(s))}</b></div>
       </div>
       <div style="margin-top:10px">
@@ -417,10 +466,11 @@ function clearFilters() {
   semesterFilter.value = "";
   sessionFilter.value = "";
   statusFilter.value = "";
+  paymentFilter.value = "";
   render();
 }
 
-[search,programmeFilter,levelFilter,semesterFilter,sessionFilter,statusFilter]
+[search,programmeFilter,levelFilter,semesterFilter,sessionFilter,statusFilter,paymentFilter]
   .forEach(el => el.addEventListener(el === search ? "input" : "change", render));
 
 $("clearFilters").addEventListener("click", clearFilters);
@@ -447,7 +497,7 @@ onSnapshot(collection(db,"students"), snap => {
   render();
 }, err => {
   console.error(err);
-  table.innerHTML = '<tr><td colspan="9" class="empty">Could not load students.</td></tr>';
+  table.innerHTML = '<tr><td colspan="10" class="empty">Could not load students.</td></tr>';
   mobileList.innerHTML = '<div class="empty">Could not load students from Firebase. Check Firestore permissions.</div>';
   $("message").textContent = "Could not load student records from Firebase. Check your Firestore Security Rules.";
   $("message").style.display = "block";
