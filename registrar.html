@@ -1054,8 +1054,24 @@ function replaceStaticSessionFields(){
  });
 }
 
+async function waitForRegistrarAuth(){
+  try{
+    if(typeof auth.authStateReady==="function") await auth.authStateReady();
+  }catch(e){console.warn("Registrar Auth state restore:",e)}
+  return auth.currentUser||null;
+}
+
 onAuthStateChanged(auth,async user=>{
- if(!user){lockPage("You must sign in through the school login before opening the Registrar Portal.");return;}
+ const restoredUser=await waitForRegistrarAuth();
+ user=restoredUser||user;
+ if(!user){
+   setMsg("Waiting for the school login session…",false);
+   setTimeout(async()=>{
+     const again=await waitForRegistrarAuth();
+     if(!again) lockPage("You must sign in through the school login before opening the Registrar Portal.");
+   },1500);
+   return;
+ }
  try{
   const record=await findUser(user.uid,user.email);
   if(!record){lockPage("Your Firebase Authentication UID is not linked to a school users record.");return;}
