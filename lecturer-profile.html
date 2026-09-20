@@ -873,28 +873,136 @@ function populateLecturerDetails(){
 }
 window.openLecturerDetails=()=>{populateLecturerDetails();$("lecturerDetailsMessage").textContent="";$("lecturerDetailsModal").style.display="flex"};
 window.closeLecturerDetails=()=>{$("lecturerDetailsModal").style.display="none"};
-async function saveLecturerDetails(e){
-  e.preventDefault(); if(detailsLocked(currentLecturer)){populateLecturerDetails();return}
-  const msg=$("lecturerDetailsMessage"), file=$("detailPhoto").files?.[0];
-  try{
-    msg.textContent="Saving details…";
-    let photoUrl=lecturerPhotoUrl(currentLecturer), storagePath=val(currentLecturer,["profilePhotoPath","photoPath"],"");
-    if(file){
-      const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-      storagePath=`lecturers/${currentUser.uid}/profile_${Date.now()}_${safe}`;
-      const sr=ref(storage,storagePath); await uploadBytes(sr,file); photoUrl=await getDownloadURL(sr);
-    }
-    const payload={name:$("detailFullName").value.trim(),fullName:$("detailFullName").value.trim(),email:$("detailEmail").value.trim(),phone:$("detailPhone").value.trim(),gender:$("detailGender").value,dateOfBirth:$("detailDob").value,qualification:$("detailQualification").value.trim(),department:$("detailDepartment").value.trim(),specialization:$("detailSpecialization").value.trim(),address:$("detailAddress").value.trim(),detailsUpdatedAt:serverTimestamp(),detailsUpdatedBy:currentUser.uid};
-    if(photoUrl)payload.profilePhoto=photoUrl; if(storagePath)payload.profilePhotoPath=storagePath;
-    const targetId=currentLecturer.id;
-    if(!targetId)throw Error("Lecturer record ID was not found.");
-    await updateDoc(doc(db,"lecturers",targetId),payload);
-    currentLecturer={...currentLecturer,...payload,detailsUpdatedAt:new Date()};
-    renderLecturerHeader();
-    msg.textContent="Details saved successfully.";
-    setTimeout(()=>closeLecturerDetails(),700);
-  }catch(e){console.error(e);msg.textContent=e.message||"Could not save lecturer details."}
+async function compressLecturerPhoto(file){
+  if(!file) return "";
+  if(!file.type.startsWith("image/")) throw new Error("Please select a valid image file.");
+
+  const dataUrl = await new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(new Error("Could not read the selected profile picture."));
+    reader.readAsDataURL(file);
+  });
+
+  const img = await new Promise((resolve,reject)=>{
+    const image = new Image();
+    image.onload=()=>resolve(image);
+    image.onerror=()=>reject(new Error("Could not process the selected profile picture."));
+    image.src=dataUrl;
+  });
+
+  const maxSize=600;
+  const scale=Math.min(1,maxSize/Math.max(img.width,img.height));
+  const canvas=document.createElement("canvas");
+  canvas.width=Math.max(1,Math.round(img.width*scale));
+  canvas.height=Math.max(1,Math.round(img.height*scale));
+
+  const ctx=canvas.getContext("2d");
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+
+  return canvas.toDataURL("image/jpeg",0.72);
 }
+
+async function saveLecturerDetails(e){
+  e.preventDefault();
+
+  const btn=$("saveLecturerDetailsBtn");
+  const msg=$("lecturerDetailsMessage");
+
+  if(detailsLocked(currentLecturer)){
+    populateLecturerDetails();
+    msg.textContent="Editing is locked because more than one week has passed since the last update.";
+    return;
+  }
+
+  if(!currentLecturer?.id){
+    msg.textContent="Lecturer record ID was not found. Please reload the page.";
+    return;
+  }
+
+  const fullName=$("detailFullName").value.trim();
+  const email=$("detailEmail").value.trim();
+  const file=$("detailPhoto").files?.[0];
+
+  if(!fullName){
+    msg.textContent="Please enter your full name.";
+    $("detailFullName").focus();
+    return;
+  }
+
+  try{
+    btn.disabled=true;
+    btn.textContent="Saving…";
+    msg.textContent="Saving lecturer details…";
+
+    /*
+      The previous version uploaded the picture to Firebase Storage BEFORE
+      saving the lecturer record. If Storage rules/bucket access blocked,
+      the page stayed on “Saving details…”.
+
+      This version compresses the selected picture in the browser and stores
+      the optimized image directly in the lecturer Firestore document.
+      The image is limited to 600px and JPEG quality 0.72 to keep the
+      document size reasonable.
+    */
+    let photoUrl=lecturerPhotoUrl(currentLecturer);
+
+    if(file){
+      msg.textContent="Processing profile picture…";
+      photoUrl=await compressLecturerPhoto(file);
+
+      // Prevent an unusually large Firestore document.
+      if(photoUrl.length > 850000){
+        throw new Error("The profile picture is still too large. Please choose a smaller image.");
+      }
+    }
+
+    const payload={
+      name:fullName,
+      fullName:fullName,
+      email:email,
+      phone:$("detailPhone").value.trim(),
+      gender:$("detailGender").value,
+      dateOfBirth:$("detailDob").value,
+      qualification:$("detailQualification").value.trim(),
+      department:$("detailDepartment").value.trim(),
+      specialization:$("detailSpecialization").value.trim(),
+      address:$("detailAddress").value.trim(),
+      detailsUpdatedAt:serverTimestamp(),
+      detailsUpdatedBy:currentUser?.uid || currentLecturer.id
+    };
+
+    if(photoUrl) payload.profilePhoto=photoUrl;
+
+    msg.textContent="Saving to Firestore…";
+    await updateDoc(doc(db,"lecturers",currentLecturer.id),payload);
+
+    currentLecturer={
+      ...currentLecturer,
+      ...payload,
+      detailsUpdatedAt:new Date()
+    };
+
+    renderLecturerHeader();
+    populateLecturerDetails();
+
+    msg.textContent="Details saved successfully.";
+    btn.textContent="Saved ✓";
+
+    setTimeout(()=>{
+      closeLecturerDetails();
+      btn.disabled=false;
+      btn.textContent="Save Details";
+    },900);
+
+  }catch(e){
+    console.error("saveLecturerDetails:",e);
+    msg.textContent=e?.message || "Could not save lecturer details. Please try again.";
+    btn.disabled=false;
+    btn.textContent="Save Details";
+  }
+}
+
 $("lecturerDetailsForm")?.addEventListener("submit",saveLecturerDetails);
 function renderLecturerHeader(){
   const l=currentLecturer||{}, name=val(l,["name","fullName","lecturerName","displayName"],currentUser?.email||"Lecturer"), role=val(l,["role","designation","position"],"Lecturer");
