@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Profile | GGCHST SMS</title>
+<style>
+:root{
+  --green:#087443;--green2:#075c45;--soft:#e8f8ee;--soft2:#f1fbf5;
+  --bg:#f4f9f7;--card:#fff;--text:#172033;--muted:#667789;
+  --line:#dce7e3;--danger:#b42318;--shadow:0 2px 12px rgba(21,53,43,.06)
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.head{max-width:1120px;margin:auto;padding:12px 18px;display:flex;align-items:center;gap:14px}
+.logo{width:54px;height:54px;object-fit:contain}
+.school{flex:1;text-align:center;font-size:18px;font-weight:900;color:var(--green2)}
+.logout{border:0;background:var(--green);color:#fff;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer}
+main{max-width:1120px;margin:auto;padding:24px 18px 60px}
+.top-title{margin:4px 0 20px}
+.top-title h1{font-size:32px;margin:0 0 6px}
+.top-title p{margin:0;color:var(--muted);font-size:16px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:28px;margin-bottom:22px;box-shadow:var(--shadow)}
+.profile-card{padding:36px 28px}
+.avatar-wrap{display:flex;justify-content:center;margin-bottom:24px}
+.avatar{width:150px;height:150px;border-radius:50%;object-fit:cover;border:1px solid #d9e7df;background:#dff8e7}
+.initials{display:grid;place-items:center;background:#dff8e7;color:var(--green);font-size:58px;font-weight:900}
+.student-name{text-align:center;font-size:38px;line-height:1.15;margin:0 0 12px}
+.identity{text-align:center;color:var(--muted);font-size:22px;line-height:1.5;margin-bottom:22px}
+.pills{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.pill{background:#dff8e7;color:#075c45;border-radius:999px;padding:10px 20px;font-size:16px;font-weight:800}
+.status{margin:28px auto 0;width:max-content;max-width:100%;background:#dff8e7;color:#138344;border-radius:999px;padding:12px 28px;font-size:17px;font-weight:900}
+
+.stat-card{min-height:150px;display:flex;flex-direction:column;justify-content:center}
+.stat-label{font-size:18px;color:var(--muted);margin-bottom:15px}
+.stat-value{font-size:48px;font-weight:900;line-height:1}
+.stat-help{font-size:17px;color:var(--muted);margin-top:18px}
+
+.section-card{padding:32px 30px}
+.section-title{font-size:32px;margin:0 0 8px}
+.section-sub{font-size:18px;color:var(--muted);margin:0 0 28px}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;min-width:680px}
+th,td{padding:17px 20px;text-align:left;border-bottom:1px solid var(--line);font-size:16px}
+th{background:#edfaf2;color:#526878;font-size:15px;text-transform:uppercase}
+tr:last-child td{border-bottom:0}
+.course-code{font-weight:900;color:var(--green)}
+.course-title{font-weight:700}
+.empty{padding:30px;text-align:center;color:var(--muted);font-size:15px}
+
+.list{display:grid;gap:14px}
+.list-item{border:1px solid var(--line);border-left:5px solid #22a75a;border-radius:12px;background:var(--soft2);padding:20px}
+.list-item h3{margin:0 0 8px;font-size:20px}
+.list-item p{margin:0;color:#4d6070;font-size:16px;line-height:1.5}
+.list-item small{display:block;color:var(--muted);margin-top:8px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.notice{border-left:5px solid #22a75a;background:var(--soft2);padding:18px;border-radius:10px}
+.notice h3{margin:0 0 8px;font-size:18px}
+.notice p{margin:0;color:#4d6070;line-height:1.5}
+
+.message{display:none;padding:14px 16px;border-radius:10px;margin-bottom:18px;font-weight:700}
+.message.show{display:block}.message.error{background:#fff0ee;color:var(--danger)}.message.info{background:#eef7f3;color:var(--green2)}
+
+.loading{padding:34px;text-align:center;color:var(--muted)}
+.spinner{width:32px;height:32px;border:4px solid #d8eee1;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:35px}
+a.file-link{color:var(--green);font-weight:800;text-decoration:none}
+
+@media(max-width:750px){
+  .head{padding:10px 12px}.logo{width:45px;height:45px}.school{font-size:13px}.logout{padding:9px 11px;font-size:11px}
+  main{padding:18px 12px 45px}
+  .top-title h1{font-size:27px}.top-title p{font-size:14px}
+  .card{border-radius:18px;padding:22px 16px;margin-bottom:16px}.profile-card{padding:28px 16px}
+  .avatar{width:130px;height:130px}.initials{font-size:48px}
+  .student-name{font-size:31px}.identity{font-size:18px}
+  .pill{font-size:14px;padding:8px 15px}.status{font-size:14px;padding:10px 20px}
+  .stat-card{min-height:135px}.stat-label{font-size:16px}.stat-value{font-size:42px}.stat-help{font-size:15px}
+  .section-card{padding:24px 16px}.section-title{font-size:26px}.section-sub{font-size:16px;margin-bottom:20px}
+  th,td{padding:14px;font-size:14px}.two-col{grid-template-columns:1fr}
+}
+@media(max-width:420px){
+  .school{text-align:left}.student-name{font-size:27px}.identity{font-size:16px}.avatar{width:115px;height:115px}
+  .pill{font-size:12px}.status{font-size:12px}.section-title{font-size:23px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head">
+    <img class="logo" src="logo.png" alt="GGCHST logo">
+    <div class="school">Green Garden College of Health Sciences &amp; Technology, Gusau</div>
+    <button class="logout" id="logout">Logout</button>
+  </div>
+</header>
+
+<main>
+  <div class="top-title">
+    <h1>Student Profile</h1>
+    <p>Your academic and student information</p>
+  </div>
+
+  <div id="message" class="message"></div>
+
+  <!-- STUDENT PROFILE -->
+  <section class="card profile-card">
+    <div class="avatar-wrap">
+      <img id="photo" class="avatar" alt="Student profile photo">
+    </div>
+    <h2 id="studentName" class="student-name">Loading...</h2>
+    <div id="identity" class="identity">Loading student record...</div>
+    <div class="pills">
+      <span class="pill" id="faculty">School of Health &amp; Technology</span>
+      <span class="pill" id="programme">Programme</span>
+      <span class="pill" id="level">Level</span>
+      <span class="pill" id="session">Academic Session</span>
+    </div>
+    <div class="status" id="status">LOADING</div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section class="card stat-card">
+    <div class="stat-label">Current CGPA</div>
+    <div class="stat-value" id="cgpa">—</div>
+    <div class="stat-help">Cumulative Grade Point Average</div>
+  </section>
+
+  <section class="card stat-card">
+    <div class="stat-label">Current GPA</div>
+    <div class="stat-value" id="gpa">—</div>
+    <div class="stat-help">Current semester GPA</div>
+  </section>
+
+  <section class="card stat-card">
+    <div class="stat-label">Registered Courses</div>
+    <div class="stat-value" id="courseCount">0</div>
+    <div class="stat-help">This session</div>
+  </section>
+
+  <section class="card stat-card">
+    <div class="stat-label">Attendance</div>
+    <div class="stat-value" id="attendanceRate">—</div>
+    <div class="stat-help">Overall recorded attendance</div>
+  </section>
+
+  <!-- COURSES -->
+  <section class="card section-card">
+    <h2 class="section-title">Courses Registered This Session</h2>
+    <p class="section-sub">Current academic registration</p>
+    <div id="courses" class="table-wrap">
+      <div class="loading"><div class="spinner"></div>Loading courses...</div>
+    </div>
+  </section>
+
+  <!-- CARRYOVER -->
+  <section class="card section-card">
+    <h2 class="section-title">Carryover Courses</h2>
+    <p class="section-sub">Outstanding courses</p>
+    <div id="carryovers" class="list">
+      <div class="empty">Loading carryover records...</div>
+    </div>
+  </section>
+
+  <!-- GRADE SUMMARY -->
+  <section class="card section-card">
+    <h2 class="section-title">Grade Summary</h2>
+    <p class="section-sub">Current academic performance</p>
+    <div id="results" class="table-wrap">
+      <div class="loading"><div class="spinner"></div>Loading results...</div>
+    </div>
+  </section>
+
+  <!-- TIMETABLE -->
+  <section class="card section-card">
+    <h2 class="section-title">Class Timetable</h2>
+    <p class="section-sub">Lectures and practical sessions</p>
+    <div id="timetable" class="table-wrap">
+      <div class="loading"><div class="spinner"></div>Loading timetable...</div>
+    </div>
+  </section>
+
+  <!-- EXAMS -->
+  <section class="card section-card">
+    <h2 class="section-title">Examination Timetable</h2>
+    <p class="section-sub">Dates, times and venues</p>
+    <div id="exams" class="table-wrap">
+      <div class="loading"><div class="spinner"></div>Loading examination timetable...</div>
+    </div>
+  </section>
+
+  <!-- ANNOUNCEMENTS -->
+  <section class="card section-card">
+    <h2 class="section-title">Announcements</h2>
+    <p class="section-sub">Important school information</p>
+    <div id="announcements" class="list">
+      <div class="empty">Loading announcements...</div>
+    </div>
+  </section>
+
+  <!-- NOTES -->
+  <section class="card section-card">
+    <h2 class="section-title">Lecture Notes</h2>
+    <p class="section-sub">Available learning materials</p>
+    <div id="notes" class="list">
+      <div class="empty">Loading lecture notes...</div>
+    </div>
+  </section>
+
+  <!-- ASSIGNMENTS -->
+  <section class="card section-card">
+    <h2 class="section-title">Assignments</h2>
+    <p class="section-sub">Active and recent coursework</p>
+    <div id="assignments" class="list">
+      <div class="empty">Loading assignments...</div>
+    </div>
+  </section>
+
+
+  <!-- ATTENDANCE -->
+  <section class="card section-card">
+    <h2 class="section-title">Attendance</h2>
+    <p class="section-sub">Course attendance record</p>
+    <div class="card" style="margin:0 0 18px;padding:24px;border-radius:16px">
+      <div class="stat-label">Overall attendance</div>
+      <div class="stat-value" id="overallAttendance">—</div>
+    </div>
+    <div id="attendanceTable" class="table-wrap">
+      <div class="empty">Loading attendance...</div>
+    </div>
+  </section>
+
+  <!-- SCHOOL FEES -->
+  <section class="card section-card">
+    <h2 class="section-title">School Fees &amp; Payment Status</h2>
+    <p class="section-sub">Current session financial status</p>
+    <div id="fees" class="list">
+      <div class="empty">Loading payment status...</div>
+    </div>
+  </section>
+
+  <!-- STUDENT SERVICES -->
+  <section class="card section-card">
+    <h2 class="section-title">Student Services</h2>
+    <p class="section-sub">Quick access</p>
+    <div class="pills" style="justify-content:flex-start">
+      <a class="pill" href="course-registration.html">Course Registration</a>
+      <a class="pill" href="results.html">Results</a>
+      <a class="pill" href="transcript.html">Transcript</a>
+      <a class="pill" href="announcements.html">Announcements</a>
+      <a class="pill" href="library.html">Library</a>
+      <a class="pill" href="hostel.html">Hostel</a>
+      <a class="pill" href="medical.html">Medical</a>
+    </div>
+  </section>
+
+  <div class="footer">Green Garden • Student Profile</div>
+</main>
+
+<script type="module">
+import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import{getAuth,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import{getFirestore,collection,getDocs}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+  authDomain:"ggchst-sms-new.firebaseapp.com",
+  projectId:"ggchst-sms-new",
+  storageBucket:"ggchst-sms-new.firebasestorage.app",
+  messagingSenderId:"942770190211",
+  appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+
+const app=getApps().length?getApp():initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const $=id=>document.getElementById(id);
+
+const norm=v=>String(v??"").trim().toLowerCase();
+const val=(o,keys,def="")=>{
+  for(const k of keys){
+    if(o&&o[k]!==undefined&&o[k]!==null&&String(o[k]).trim()!=="")return o[k];
+  }
+  return def;
+};
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+}[m]));
+
+let student=null;
+let assignedCourses=[];
+let allResults=[];
+let attendanceRecords=[];
+
+function showMessage(text,type="info"){
+  const el=$("message");
+  el.textContent=text;
+  el.className="message show "+type;
+}
+function initials(name){
+  return String(name||"Student").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"ST";
+}
+function photoUrl(s){
+  return val(s,["photo","photoURL","photoUrl","profilePhoto","profilePicture"],"");
+}
+function setPhoto(src,name){
+  const el=$("photo");
+  if(src){
+    el.src=src;
+    el.style.display="block";
+    el.classList.remove("initials");
+    el.onerror=()=>{
+      el.onerror=null;
+      el.src="";
+      el.style.display="grid";
+      el.classList.add("initials");
+      el.alt=initials(name);
+    };
+  }else{
+    el.removeAttribute("src");
+    el.style.display="grid";
+    el.classList.add("initials");
+    el.alt=initials(name);
+  }
+}
+async function rows(name){
+  try{
+    const snap=await getDocs(collection(db,name));
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(err){
+    console.warn("Collection read failed:",name,err);
+    return [];
+  }
+}
+async function findStudent(user){
+  const list=await rows("students");
+  const uid=user.uid;
+  const email=norm(user.email);
+  return list.find(s=>[s.studentUid,s.authUid,s.firebaseUid,s.uid].some(x=>String(x||"").trim()===uid))
+      || list.find(s=>norm(s.email)===email);
+}
+async function findCourses(s){
+  const [maps,courses,programmes,levels]=await Promise.all([
+    rows("curriculumMappings"),rows("courses"),rows("programmes"),rows("academicLevels")
+  ]);
+  const programme=val(s,["programme","courseOfStudy"]);
+  const level=val(s,["level"]);
+  const semester=val(s,["semester"]);
+  const p=programmes.find(x=>norm(val(x,["name","programmeName","title"]))===norm(programme)||norm(x.code)===norm(programme));
+  const l=levels.find(x=>norm(val(x,["name","levelName","title"]))===norm(level)||norm(x.code)===norm(level));
+  const filtered=maps.filter(m=>{
+    const pm=!p||!m.programmeId||norm(m.programmeId)===norm(p.id)||norm(m.programmeName)===norm(programme);
+    const lm=!l||!m.levelId||norm(m.levelId)===norm(l.id)||norm(m.levelName)===norm(level);
+    const sm=!semester||!m.semesterName||norm(m.semesterName)===norm(semester)||norm(m.semester)===norm(semester);
+    return pm&&lm&&sm;
+  });
+  return filtered.map(m=>courses.find(c=>c.id===m.courseId)||{
+    id:m.courseId||m.id,
+    courseCode:val(m,["courseCode","code"]),
+    courseTitle:val(m,["courseTitle","courseName","name"]),
+    courseUnit:val(m,["courseUnit","unit"]),
+    semester:val(m,["semesterName","semester"])
+  }).filter(c=>val(c,["courseCode","code"]));
+}
+function courseCodes(){
+  return new Set(assignedCourses.map(c=>norm(val(c,["courseCode","code"]))));
+}
+function matchStudent(r){
+  const ids=[
+    r.studentId,r.studentID,r.matricNo,r.matricNumber,r.registrationNumber,
+    r.admissionNo,r.studentUid,r.authUid,r.firebaseUid,r.uid,r.studentDocId
+  ].map(norm);
+  const me=[
+    student.id,student.studentId,student.admissionNo,student.registrationNumber,
+    student.studentUid,student.authUid,student.firebaseUid,student.uid
+  ].map(norm);
+  return ids.some(x=>x&&me.includes(x));
+}
+function matchCourse(r){
+  const code=norm(val(r,["courseCode","course_code","code"]));
+  const id=norm(val(r,["courseId","courseID"]));
+  return courseCodes().has(code)||assignedCourses.some(c=>id&&norm(c.id)===id);
+}
+function numeric(v){
+  const n=Number(v);
+  return Number.isFinite(n)?n:null;
+}
+function calculateGpa(results){
+  let points=0,units=0;
+  for(const r of results){
+    const point=numeric(val(r,["point","gradePoint"]));
+    const unit=numeric(val(r,["unit","courseUnit","creditUnit"]));
+    if(point!==null&&unit!==null&&unit>0){points+=point*unit;units+=unit;}
+  }
+  return units?points/units:null;
+}
+function gradePointFromGrade(g){
+  const x=norm(g);
+  const map={a:4,a1:4,b:3,c:2,d:1,e:0,f:0};
+  return Object.prototype.hasOwnProperty.call(map,x)?map[x]:null;
+}
+function calculateGpaFallback(results){
+  let points=0,units=0;
+  for(const r of results){
+    const point=numeric(val(r,["point","gradePoint"]));
+    const unit=numeric(val(r,["unit","courseUnit","creditUnit"]));
+    const p=point!==null?point:gradePointFromGrade(val(r,["grade","letterGrade"]));
+    if(p!==null&&unit!==null&&unit>0){points+=p*unit;units+=unit;}
+  }
+  return units?points/units:null;
+}
+function calculateAttendance(records){
+  if(!records.length)return null;
+  let present=0,total=0;
+  for(const r of records){
+    const status=norm(val(r,["status","attendanceStatus"],r.present===true?"Present":""));
+    if(status==="present"||status==="p"||r.present===true)present++;
+    if(status||r.present!==undefined)total++;
+  }
+  return total?Math.round((present/total)*100):null;
+}
+function renderProfile(){
+  const name=val(student,["fullName","studentName","name"],"Student");
+  const sid=val(student,["studentId","studentID","matricNo"],"—");
+  const adm=val(student,["admissionNo"],"—");
+  const programme=val(student,["programme","courseOfStudy"],"—");
+  const level=val(student,["level"],"—");
+  const session=val(student,["academicSession","session"],"—");
+  const status=val(student,["status"],"Active");
+
+  $("studentName").textContent=name;
+  $("identity").textContent=`${sid} • ${programme}`;
+  $("faculty").textContent=val(student,["faculty","school","facultyName"],"School of Health & Technology");
+  $("programme").textContent=programme;
+  $("level").textContent=level;
+  $("session").textContent=session;
+  $("status").textContent=String(status).toUpperCase();
+  $("status").style.color=norm(status)==="active"?"#138344":"#8a3b12";
+  setPhoto(photoUrl(student),name);
+}
+function renderCourses(){
+  $("courseCount").textContent=assignedCourses.length;
+  if(!assignedCourses.length){
+    $("courses").innerHTML='<div class="empty">No courses are currently assigned to your Programme and Level.</div>';
+    return;
+  }
+  $("courses").innerHTML=`
+    <table>
+      <thead><tr><th>Code</th><th>Course Title</th><th>Unit</th></tr></thead>
+      <tbody>
+        ${assignedCourses.map(c=>`<tr>
+          <td class="course-code">${esc(val(c,["courseCode","code"],"—"))}</td>
+          <td class="course-title">${esc(val(c,["courseTitle","courseName","name"],"Course"))}</td>
+          <td>${esc(val(c,["courseUnit","unit"],"—"))}</td>
+        </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+function renderResults(){
+  if(!allResults.length){
+    $("results").innerHTML='<div class="empty">No result records are available yet.</div>';
+  }else{
+    $("results").innerHTML=`
+      <table>
+        <thead><tr><th>Course</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th><th>Point</th></tr></thead>
+        <tbody>${allResults.map(r=>`<tr>
+          <td>${esc(val(r,["courseCode","code"],"—"))} — ${esc(val(r,["courseName","courseTitle"],""))}</td>
+          <td>${esc(val(r,["ca","caGrade","caScore"],"—"))}</td>
+          <td>${esc(val(r,["exam","examGrade","examScore"],"—"))}</td>
+          <td>${esc(val(r,["total","totalGrade","score"],"—"))}</td>
+          <td>${esc(val(r,["grade","letterGrade"],"—"))}</td>
+          <td>${esc(val(r,["point","gradePoint"],"—"))}</td>
+        </tr>`).join("")}</tbody>
+      </table>`;
+  }
+
+  const storedCgpa=numeric(val(student,["cgpa","CGPA","cumulativeGPA"]));
+  const storedGpa=numeric(val(student,["gpa","GPA","currentGPA"]));
+  const computedGpa=calculateGpa(allResults)??calculateGpaFallback(allResults);
+  $("cgpa").textContent=storedCgpa!==null?storedCgpa.toFixed(2):allResults.length&&computedGpa!==null?computedGpa.toFixed(2):"—";
+  $("gpa").textContent=storedGpa!==null?storedGpa.toFixed(2):allResults.length&&computedGpa!==null?computedGpa.toFixed(2):"—";
+}
+function renderAttendance(){
+  const rate=calculateAttendance(attendanceRecords);
+  const stored=numeric(val(student,["attendanceRate","attendance","attendancePercentage"]));
+  $("attendanceRate").textContent=stored!==null?`${stored}%`:rate!==null?`${rate}%`:"—";
+}
+function renderCarryovers(){
+  const carry=allResults.filter(r=>{
+    const g=norm(val(r,["grade","letterGrade"]));
+    return g==="f"||g==="fail"||g==="carryover"||norm(val(r,["status"]))==="carryover";
+  });
+  if(!carry.length){
+    $("carryovers").innerHTML='<div class="empty">— No carryover course</div>';
+    return;
+  }
+  $("carryovers").innerHTML=carry.map(r=>`
+    <div class="list-item">
+      <h3>${esc(val(r,["courseCode","code"],"—"))} — ${esc(val(r,["courseName","courseTitle"],"Course"))}</h3>
+      <p>Previous session: ${esc(val(r,["session","academicSession"],"Previous session"))} • Unit: ${esc(val(r,["unit","courseUnit","creditUnit"],"0"))}</p>
+    </div>`).join("");
+}
+function renderTimetable(records){
+  if(!records.length){$("timetable").innerHTML='<div class="empty">No class timetable records available.</div>';return;}
+  $("timetable").innerHTML=`<table><thead><tr><th>Day</th><th>Time</th><th>Course</th><th>Venue</th></tr></thead><tbody>${
+    records.map(r=>`<tr><td>${esc(val(r,["day"],"—"))}</td><td>${esc(val(r,["startTime","time"],""))}${val(r,["endTime"])?" - "+esc(r.endTime):""}</td><td class="course-code">${esc(val(r,["courseCode","code"],"—"))}</td><td>${esc(val(r,["venue","venueName"],"—"))}</td></tr>`).join("")
+  }</tbody></table>`;
+}
+function renderExams(records){
+  if(!records.length){$("exams").innerHTML='<div class="empty">No examination timetable records available.</div>';return;}
+  $("exams").innerHTML=`<table><thead><tr><th>Date</th><th>Time</th><th>Course</th><th>Venue</th><th>Exam</th></tr></thead><tbody>${
+    records.map(r=>`<tr><td>${esc(val(r,["date","examDate"],"—"))}</td><td>${esc(val(r,["startTime","time"],"—"))}${val(r,["endTime"])?" - "+esc(r.endTime):""}</td><td class="course-code">${esc(val(r,["courseCode","code"],"—"))}</td><td>${esc(val(r,["venue","venueName"],"—"))}</td><td>${esc(val(r,["examinationName","examName","name"],"—"))}</td></tr>`).join("")
+  }</tbody></table>`;
+}
+function renderList(id,records,kind){
+  if(!records.length){
+    $(id).innerHTML='<div class="empty">No records available.</div>';
+    return;
+  }
+  if(kind==="notes"){
+    $(id).innerHTML=records.map(r=>{
+      const url=val(r,["fileUrl","url","downloadUrl"]);
+      return `<div class="list-item">
+        <h3>${esc(val(r,["title","topic","courseTitle"],"Lecture Note"))}</h3>
+        <p>${esc(val(r,["courseCode","code"],""))}${val(r,["courseCode","code"])?" • ":""}${esc(val(r,["description"],""))}</p>
+        <small>${esc(val(r,["date","createdDate","session","academicSession"],""))}${url?` • <a class="file-link" href="${esc(url)}" target="_blank" rel="noopener">Open file</a>`:""}</small>
+      </div>`;
+    }).join("");
+  }else if(kind==="assignments"){
+    $(id).innerHTML=records.map(r=>`<div class="list-item">
+      <h3>${esc(val(r,["title","assignmentTitle"],"Assignment"))}</h3>
+      <p>${esc(val(r,["courseCode","code"],""))}${val(r,["courseCode","code"])?" • ":""}Due: ${esc(val(r,["dueDate","due"],"—"))}</p>
+      <small>${esc(val(r,["status"],"Active"))}</small>
+    </div>`).join("");
+  }else{
+    $(id).innerHTML=records.map(r=>`<div class="list-item">
+      <h3>${esc(val(r,["title","subject","headline"],"Announcement"))}</h3>
+      <p>${esc(val(r,["message","content","description","body"],""))}</p>
+      <small>${esc(val(r,["date","announcementDate","createdDate","createdAt"],""))}</small>
+    </div>`).join("");
+  }
+}
+
+function money(v){
+  const n=Number(v);
+  return Number.isFinite(n) ? "₦"+n.toLocaleString("en-NG",{minimumFractionDigits:0,maximumFractionDigits:2}) : String(v??"—");
+}
+function renderAttendanceDetail(records){
+  const grouped=new Map();
+  for(const r of records){
+    const code=val(r,["courseCode","code"],"—");
+    const key=norm(code);
+    if(!grouped.has(key)) grouped.set(key,{code,classes:0,present:0,absent:0});
+    const g=grouped.get(key);
+    const classes=numeric(val(r,["classes","totalClasses","classesHeld"],1))||1;
+    g.classes+=classes;
+    const status=norm(val(r,["status","attendanceStatus"],r.present===true?"Present":""));
+    if(status==="present"||status==="p"||r.present===true) g.present+=1;
+    else if(status==="absent"||status==="a"||r.present===false) g.absent+=1;
+  }
+  const arr=[...grouped.values()];
+  const totalClasses=arr.reduce((a,x)=>a+x.classes,0);
+  const totalPresent=arr.reduce((a,x)=>a+x.present,0);
+  const overall=totalClasses?Math.round(totalPresent/totalClasses*100):null;
+  $("overallAttendance").textContent=overall!==null?overall+"%":$("attendanceRate").textContent;
+  if(!arr.length){
+    $("attendanceTable").innerHTML='<div class="empty">No course attendance records available.</div>';
+    return;
+  }
+  $("attendanceTable").innerHTML=`<table><thead><tr><th>Course</th><th>Classes</th><th>Present</th><th>Absent</th><th>Attendance</th></tr></thead><tbody>${
+    arr.map(x=>{
+      const rate=x.classes?Math.round(x.present/x.classes*100):0;
+      return `<tr><td class="course-code">${esc(x.code)}</td><td>${x.classes}</td><td>${x.present}</td><td>${x.absent}</td><td>${rate}%</td></tr>`;
+    }).join("")
+  }</tbody></table>`;
+}
+function renderFees(payments){
+  const session=norm(val(student,["academicSession","session"]));
+  const current=payments.filter(r=>{
+    const s=norm(val(r,["academicSession","session"]));
+    return !s||!session||s===session;
+  });
+  if(!current.length){
+    $("fees").innerHTML='<div class="empty">No school-fee payment record is available for the current session.</div>';
+    return;
+  }
+
+  const groups=new Map();
+  for(const r of current){
+    const s=val(r,["academicSession","session"],val(student,["academicSession","session"],"Current Session"));
+    if(!groups.has(s)) groups.set(s,{session:s,total:0,paid:0,balance:0,status:""});
+    const g=groups.get(s);
+    const total=numeric(val(r,["total","totalAmount","feeAmount","amountDue","expectedAmount"]));
+    const paid=numeric(val(r,["paid","amountPaid","paymentAmount","amount"]));
+    const balance=numeric(val(r,["balance","amountBalance","outstanding"]));
+    if(total!==null)g.total+=total;
+    if(paid!==null)g.paid+=paid;
+    if(balance!==null)g.balance+=balance;
+    g.status=val(r,["paymentStatus","status"],g.status);
+  }
+
+  $("fees").innerHTML=[...groups.values()].map(g=>{
+    const calculatedBalance=g.balance||(g.total&&g.paid?Math.max(0,g.total-g.paid):0);
+    const status=g.status||(
+      calculatedBalance===0&&g.total>0?"Paid":
+      g.paid>0?"Part Payment":"Unpaid"
+    );
+    const statusColor=norm(status).includes("paid")&& !norm(status).includes("part")?"#087443":"#b42318";
+    return `<div class="list-item" style="border-left-color:${statusColor}">
+      <div style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:flex-start">
+        <div>
+          <h3>${esc(g.session)}</h3>
+          <p>Total: ${money(g.total)} • Paid: ${money(g.paid)} • Balance: ${money(calculatedBalance)}</p>
+        </div>
+        <strong style="font-size:22px;color:${statusColor}">${esc(status)}</strong>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function loadData(){
+  const [
+    courses,results,payments,attendance,timetables,exams,notes,assignments,announcements,notices
+  ]=await Promise.all([
+    findCourses(student),
+    rows("results"),
+    rows("payments"),
+    rows("attendance"),
+    rows("timetables"),
+    rows("examinationSchedules"),
+    rows("lectureNotes"),
+    rows("assignments"),
+    rows("announcements"),
+    rows("notices")
+  ]);
+
+  assignedCourses=courses;
+  allResults=results.filter(matchStudent).filter(r=>!val(r,["courseCode","code","courseId"])||matchCourse(r));
+  attendanceRecords=attendance.filter(matchStudent).filter(r=>!val(r,["courseCode","code","courseId"])||matchCourse(r));
+
+  const timetableRecords=timetables.filter(matchCourse);
+  const examRecords=exams.filter(matchCourse);
+  const noteRecords=notes.filter(matchCourse);
+  const assignmentRecords=assignments.filter(matchCourse);
+
+  const targetProgram=norm(val(student,["programme","courseOfStudy"]));
+  const targetLevel=norm(val(student,["level"]));
+  const targetSession=norm(val(student,["academicSession","session"]));
+
+  const combinedAnnouncements=[...announcements,...notices].filter((r,i,a)=>{
+    const key=norm(r.id||`${r.title}|${r.message}|${r.date}`);
+    return a.findIndex(x=>norm(x.id||`${x.title}|${x.message}|${x.date}`)===key)===i;
+  }).filter(r=>{
+    const p=norm(val(r,["programme","programmeName"]));
+    const l=norm(val(r,["level","levelName"]));
+    const s=norm(val(r,["session","academicSession"]));
+    return (!p||p===targetProgram)&&(!l||l===targetLevel)&&(!s||s===targetSession);
+  }).slice(0,10);
+
+  renderCourses();
+  renderResults();
+  renderAttendance();
+  renderCarryovers();
+  renderTimetable(timetableRecords);
+  renderExams(examRecords);
+  renderList("notes",noteRecords,"notes");
+  renderList("assignments",assignmentRecords,"assignments");
+  renderList("announcements",combinedAnnouncements,"announcements");
+  renderAttendanceDetail(attendanceRecords);
+  renderFees(payments.filter(matchStudent));
+}
+async function start(user){
+  student=await findStudent(user);
+  if(!student){
+    showMessage("Your Firebase account is logged in, but no matching student record was found in the Admin students collection.","error");
+    $("studentName").textContent="Student record not found";
+    $("identity").textContent=user.email||"";
+    $("status").textContent="NOT LINKED";
+    return;
+  }
+  renderProfile();
+  await loadData();
+}
+$("logout").onclick=async()=>{try{await signOut(auth)}finally{location.href="login.html"}};
+
+let started=false;
+onAuthStateChanged(auth,async user=>{
+  if(started)return;
+  started=true;
+  if(!user){location.href="login.html";return;}
+  try{
+    await Promise.race([
+      start(user),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error("The student profile took too long to load. Please refresh and try again.")),15000))
+    ]);
+  }catch(err){
+    console.error(err);
+    showMessage(err.message||"Could not load the student profile.","error");
+    $("studentName").textContent="Unable to load profile";
+    $("identity").textContent="Please refresh the page or contact the administrator.";
+    $("status").textContent="ERROR";
+  }
+});
+</script>
+</body>
+</html>
