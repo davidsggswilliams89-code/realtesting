@@ -82,11 +82,11 @@ const firebaseConfig={
 };
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
 const db=getFirestore(app);
+const $=id=>document.getElementById(id), clean=v=>String(v??"").trim();
 
 // The forms are usable as soon as Firebase is initialized.
 $("sessionSave")?.removeAttribute("disabled");
 $("semesterSave")?.removeAttribute("disabled");
-const $=id=>document.getElementById(id), clean=v=>String(v??"").trim();
 const esc=v=>clean(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
 let sessions=[],semesters=[];
 
