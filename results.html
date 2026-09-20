@@ -116,8 +116,12 @@ function uidOf(r){return val(r,["studentUid","firebaseUid","authUid","uid"],"")}
 function admissionOf(r){return val(r,["admissionNo","registrationNumber","matricNo","studentId","studentID"],"")}
 function courseCode(r){return val(r,["courseCode","code"],"")}
 function courseName(r){return val(r,["courseName","courseTitle","name","title"],"")}
-function sessionName(r){return val(r,["academicSession","session","sessionName","name"],"")}
-function semesterName(r){return val(r,["semester","semesterName","term"],"")}
+function sessionName(r){
+  return val(r,["name","academicSession","session","sessionName"],"");
+}
+function semesterName(r){
+  return val(r,["name","semester","semesterName","term"],"");
+}
 function programmeName(r){
   return val(r,["name","programmeName","programme","programName","title","label","courseOfStudy"],"");
 }
