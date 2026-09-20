@@ -144,7 +144,7 @@ body:before{
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapshot,getDocs,query,orderBy,limit} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {getAuth,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
@@ -159,59 +159,13 @@ const app=initializeApp(firebaseConfig); const db=getFirestore(app); const auth=
 window.GG={app,db,auth,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapshot,getDocs,query,orderBy,limit};
 window.toast=(m)=>{const e=document.getElementById('toast');if(!e)return;e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',2600)};
 window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-
-// Admin security: login.html/admin-login.html verifies the Admin role.
-// This page only checks that Firebase still has the signed-in user and that
-// this browser session was explicitly verified by the Admin login page.
-async function ggProtectAdmin(){
-  try{
-    if(typeof auth.authStateReady==='function') await auth.authStateReady();
-    else await new Promise(resolve=>{
-      let done=false;
-      const unsub=onAuthStateChanged(auth,()=>{if(!done){done=true;unsub();resolve();}});
-    });
-
-    const user=auth.currentUser;
-    const verified=sessionStorage.getItem('ggchstAdminVerified')==='1';
-
-    // No Firebase user or no explicit Admin login verification = go to login.
-    if(!user || !verified){
-      sessionStorage.removeItem('ggchstAdminVerified');
-      window.location.replace('admin-login.html');
-      return;
-    }
-
-    // IMPORTANT: Do not query Firestore again here. The old page did that
-    // and any temporary Firestore/rules error sent a valid Admin straight
-    // back to login, producing the rapid login -> admin -> login loop.
-    document.getElementById('ggchstAdminGate')?.remove();
-  }catch(error){
-    console.error('GGCHST Admin session check failed:',error);
-    // Do not loop because of a transient verification error.
-    // Keep the page usable if Firebase has already restored the user/session.
-    if(auth.currentUser && sessionStorage.getItem('ggchstAdminVerified')==='1'){
-      document.getElementById('ggchstAdminGate')?.remove();
-      return;
-    }
-    sessionStorage.removeItem('ggchstAdminVerified');
-    window.location.replace('admin-login.html');
-  }
-}
-ggProtectAdmin();
 </script>
 </head><body>
-<style id="ggchst-admin-security-css">
-#ggchstAdminGate{position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:#eef8f2;color:#064b39;font-family:Arial,Helvetica,sans-serif}
-#ggchstAdminGate .box{width:min(92%,390px);padding:24px;text-align:center;background:#fff;border:1px solid #d8e9df;border-radius:18px;box-shadow:0 12px 35px #064b3914}
-#ggchstAdminGate strong{display:block;font-size:20px;margin-bottom:8px}
-#ggchstAdminGate span{font-size:13px;color:#667c73}
-</style>
 <script>
 (function(){
-  const gate=document.createElement("div");
-  gate.id="ggchstAdminGate";
-  gate.innerHTML='<div class="box"><strong>🔐 Checking Admin Access</strong><span>Please wait while your Admin account is verified.</span></div>';
-  document.addEventListener("DOMContentLoaded",()=>document.body.prepend(gate));
+  if(sessionStorage.getItem("ggchstAdminVerified") !== "1"){
+    window.location.replace("admin-login.html");
+  }
 })();
 </script>
 
