@@ -11,9 +11,9 @@ header{background:#fff;color:#17231f;border-bottom:4px solid #087443;box-shadow:
 header h1{margin:0;font-size:22px}
 header p{margin:5px 0 0;font-size:13px;opacity:.9}
 .back{background:#fff;color:#087443;text-decoration:none;padding:10px 15px;border-radius:8px;font-weight:700}
-.container{max-width:1400px;margin:25px auto;padding:0 16px}
-.grid{display:grid;grid-template-columns:390px 1fr;gap:20px}
-.card{background:#fff;border:1px solid #dce6e1;border-radius:12px;padding:20px;box-shadow:0 3px 12px rgba(0,0,0,.05)}
+.container{width:min(1180px,calc(100% - 24px));margin:20px auto;padding:0}
+.grid{display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:18px;align-items:start}
+.card{min-width:0;background:#fff;border:1px solid #dce6e1;border-radius:12px;padding:18px;box-shadow:0 3px 12px rgba(0,0,0,.05)}
 .card h2{font-size:18px;margin:0 0 18px;color:#087443}
 label{display:block;font-weight:700;font-size:13px;margin:13px 0 6px}
 input,select,textarea{width:100%;padding:11px 12px;border:1px solid #cbd8d2;border-radius:8px;font-size:14px;background:#fff}
@@ -31,8 +31,8 @@ button{border:0;border-radius:8px;padding:11px 15px;font-weight:700;cursor:point
 .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:15px;flex-wrap:wrap}
 .toolbar input{flex:1;min-width:210px}
 .count{background:#edf5f1;color:#087443;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:700}
-.table-wrap{overflow:auto;border:1px solid #e1e8e4;border-radius:9px}
-table{width:100%;border-collapse:collapse;min-width:980px}
+.table-wrap{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;border:1px solid #e1e8e4;border-radius:9px;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:760px}
 th,td{padding:11px 10px;border-bottom:1px solid #e7ece9;text-align:left;font-size:13px;vertical-align:top}
 th{background:#f0f5f2;color:#24533e;white-space:nowrap}
 tr:last-child td{border-bottom:0}
@@ -50,8 +50,41 @@ tr:last-child td{border-bottom:0}
 .modal-box{background:#fff;border-radius:12px;padding:22px;max-width:430px;width:100%}
 .modal-box h3{margin-top:0}
 .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
-@media(max-width:900px){.grid{grid-template-columns:1fr}}
-@media(max-width:500px){.row{grid-template-columns:1fr}header{padding:15px}.container{margin-top:15px}}
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .container{width:min(720px,calc(100% - 20px))}
+  .card{padding:16px}
+  .school-head{align-items:flex-start}
+  .school-actions .back{white-space:nowrap}
+}
+@media(max-width:600px){
+  header{padding:12px 10px}
+  .school-head{gap:10px}
+  .school-logo{width:46px;height:46px}
+  .school-name strong{font-size:14px}
+  .school-name span{font-size:11px}
+  .school-actions .back{padding:8px 10px;font-size:12px}
+  .page-title{padding:12px 0 2px}
+  .page-title h1{font-size:18px}
+  .page-title p{font-size:12px}
+  .container{width:calc(100% - 16px);margin:12px auto}
+  .row{grid-template-columns:1fr}
+  .card{padding:14px;border-radius:10px}
+  .card h2{font-size:16px;margin-bottom:14px}
+  input,select,textarea{font-size:16px;padding:12px}
+  .btns{flex-direction:column}
+  .btns button{width:100%}
+  .toolbar{align-items:stretch}
+  .toolbar input{min-width:0;width:100%}
+  .count{width:max-content}
+}
+@media(max-width:380px){
+  .school-brand{gap:8px}
+  .school-logo{width:40px;height:40px}
+  .school-name strong{font-size:12px}
+  .school-name span{font-size:10px}
+  .school-actions .back{font-size:11px;padding:7px 8px}
+}
 </style>
 </head>
 <body>
@@ -103,19 +136,9 @@ tr:last-child td{border-bottom:0}
           </div>
         </div>
 
-        <label>Faculty <span class="required">*</span></label>
-        <select id="facultyId" required>
-          <option value="">Loading faculties...</option>
-        </select>
-
-        <label>Department <span class="required">*</span></label>
-        <select id="departmentId" required disabled>
-          <option value="">Select faculty first</option>
-        </select>
-
         <label>Programme <span class="required">*</span></label>
-        <select id="programmeId" required disabled>
-          <option value="">Select department first</option>
+        <select id="programmeId" required>
+          <option value="">Loading programmes...</option>
         </select>
 
         <label>Academic Level <span class="required">*</span></label>
@@ -150,7 +173,7 @@ tr:last-child td{border-bottom:0}
     <section class="card">
       <h2>Courses</h2>
       <div class="toolbar">
-        <input id="search" placeholder="Search by course code, title, faculty, department, programme...">
+        <input id="search" placeholder="Search by course code, title or programme...">
         <span class="count" id="courseCount">0 courses</span>
       </div>
       <div class="table-wrap">
@@ -161,8 +184,6 @@ tr:last-child td{border-bottom:0}
               <th>Course Title</th>
               <th>Unit</th>
               <th>Semester</th>
-              <th>Faculty</th>
-              <th>Department</th>
               <th>Programme</th>
               <th>Level</th>
               <th>Type</th>
@@ -171,7 +192,7 @@ tr:last-child td{border-bottom:0}
             </tr>
           </thead>
           <tbody id="courseTable">
-            <tr><td colspan="11" class="empty">Loading courses...</td></tr>
+            <tr><td colspan="9" class="empty">Loading courses...</td></tr>
           </tbody>
         </table>
       </div>
@@ -209,8 +230,6 @@ const firebaseConfig = {
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const facultySelect = document.getElementById("facultyId");
-const departmentSelect = document.getElementById("departmentId");
 const programmeSelect = document.getElementById("programmeId");
 const levelSelect = document.getElementById("levelId");
 const form = document.getElementById("courseForm");
@@ -222,8 +241,6 @@ const formTitle = document.getElementById("formTitle");
 const saveBtn = document.getElementById("saveBtn");
 const cancelBtn = document.getElementById("cancelBtn");
 
-let faculties = [];
-let departments = [];
 let programmes = [];
 let levels = [];
 let courses = [];
@@ -252,40 +269,18 @@ function sortByName(a,b) {
   return normalize(a.name || a.title || a.code).localeCompare(normalize(b.name || b.title || b.code));
 }
 
-function fillFaculties() {
-  facultySelect.innerHTML = '<option value="">Select faculty</option>';
-  [...faculties].sort(sortByName).forEach(f => {
-    const o = document.createElement("option");
-    o.value = f.id;
-    o.textContent = f.name + (f.code ? ` (${f.code})` : "");
-    facultySelect.appendChild(o);
-  });
-}
-
-function fillDepartments(facultyId, selectedId="") {
-  departmentSelect.innerHTML = '<option value="">Select department</option>';
-  const list = departments.filter(d => d.facultyId === facultyId).sort(sortByName);
-  list.forEach(d => {
-    const o = document.createElement("option");
-    o.value = d.id;
-    o.textContent = d.name + (d.code ? ` (${d.code})` : "");
-    departmentSelect.appendChild(o);
-  });
-  departmentSelect.disabled = !facultyId || !list.length;
-  if (selectedId && list.some(d => d.id === selectedId)) departmentSelect.value = selectedId;
-}
-
-function fillProgrammes(departmentId, selectedId="") {
+function fillProgrammes(selectedId="") {
   programmeSelect.innerHTML = '<option value="">Select programme</option>';
-  const list = programmes.filter(p => p.departmentId === departmentId).sort(sortByName);
-  list.forEach(p => {
+  [...programmes].sort(sortByName).forEach(p => {
     const o = document.createElement("option");
     o.value = p.id;
     o.textContent = p.name + (p.code ? ` (${p.code})` : "");
     programmeSelect.appendChild(o);
   });
-  programmeSelect.disabled = !departmentId || !list.length;
-  if (selectedId && list.some(p => p.id === selectedId)) programmeSelect.value = selectedId;
+  programmeSelect.disabled = !programmes.length;
+  if (selectedId && programmes.some(p => p.id === selectedId)) {
+    programmeSelect.value = selectedId;
+  }
 }
 
 function fillLevels(selectedId="") {
@@ -300,23 +295,12 @@ function fillLevels(selectedId="") {
   if (selectedId) levelSelect.value = selectedId;
 }
 
-facultySelect.addEventListener("change", () => {
-  fillDepartments(facultySelect.value);
-  fillProgrammes("");
-});
 
-departmentSelect.addEventListener("change", () => {
-  fillProgrammes(departmentSelect.value);
-});
 
 function getNames(course) {
-  const faculty = faculties.find(x => x.id === course.facultyId);
-  const department = departments.find(x => x.id === course.departmentId);
   const programme = programmes.find(x => x.id === course.programmeId);
   const level = levels.find(x => x.id === course.levelId);
   return {
-    faculty: faculty?.name || course.facultyName || "—",
-    department: department?.name || course.departmentName || "—",
     programme: programme?.name || course.programmeName || "—",
     level: level?.name || course.levelName || "—"
   };
@@ -328,14 +312,14 @@ function renderCourses() {
     const n = getNames(c);
     return [
       c.courseCode, c.courseTitle, c.semester, c.courseType, c.status,
-      n.faculty, n.department, n.programme, n.level
+      n.programme, n.level
     ].some(v => normalize(v).includes(term));
   });
 
   countEl.textContent = `${filtered.length} course${filtered.length === 1 ? "" : "s"}`;
 
   if (!filtered.length) {
-    table.innerHTML = '<tr><td colspan="11" class="empty">No courses found.</td></tr>';
+    table.innerHTML = '<tr><td colspan="9" class="empty">No courses found.</td></tr>';
     return;
   }
 
@@ -347,8 +331,6 @@ function renderCourses() {
         <td>${esc(c.courseTitle)}</td>
         <td>${esc(c.courseUnit)}</td>
         <td>${esc(c.semester)}</td>
-        <td>${esc(n.faculty)}</td>
-        <td>${esc(n.department)}</td>
         <td>${esc(n.programme)}</td>
         <td>${esc(n.level)}</td>
         <td>${esc(c.courseType || "Core")}</td>
@@ -370,11 +352,7 @@ function resetForm() {
   formTitle.textContent = "Create New Course";
   saveBtn.textContent = "Save Course";
   cancelBtn.style.display = "none";
-  departmentSelect.innerHTML = '<option value="">Select faculty first</option>';
-  departmentSelect.disabled = true;
-  programmeSelect.innerHTML = '<option value="">Select department first</option>';
-  programmeSelect.disabled = true;
-  if (facultySelect.options.length) facultySelect.value = "";
+  if (programmeSelect.options.length) programmeSelect.value = "";
   if (levelSelect.options.length) levelSelect.value = "";
   document.getElementById("courseType").value = "Core";
   document.getElementById("status").value = "Active";
@@ -393,9 +371,7 @@ function startEdit(id) {
   document.getElementById("courseTitle").value = c.courseTitle || "";
   document.getElementById("courseUnit").value = c.courseUnit ?? "";
   document.getElementById("semester").value = c.semester || "";
-  facultySelect.value = c.facultyId || "";
-  fillDepartments(c.facultyId || "", c.departmentId || "");
-  fillProgrammes(c.departmentId || "", c.programmeId || "");
+  fillProgrammes(c.programmeId || "");
   fillLevels(c.levelId || "");
   document.getElementById("courseType").value = c.courseType || "Core";
   document.getElementById("description").value = c.description || "";
@@ -411,39 +387,38 @@ form.addEventListener("submit", async e => {
   const courseTitle = document.getElementById("courseTitle").value.trim();
   const courseUnit = Number(document.getElementById("courseUnit").value);
   const semester = document.getElementById("semester").value;
-  const facultyId = facultySelect.value;
-  const departmentId = departmentSelect.value;
   const programmeId = programmeSelect.value;
   const levelId = levelSelect.value;
   const courseType = document.getElementById("courseType").value;
   const description = document.getElementById("description").value.trim();
   const status = document.getElementById("status").value;
 
-  if (!courseCode || !courseTitle || !courseUnit || !semester || !facultyId || !departmentId || !programmeId || !levelId) {
+  if (!courseCode || !courseTitle || !courseUnit || !semester || !programmeId || !levelId) {
     showMessage("Please complete all required fields.", "error");
     return;
   }
 
-  const department = departments.find(d => d.id === departmentId);
   const programme = programmes.find(p => p.id === programmeId);
+  const level = levels.find(l => l.id === levelId);
 
-  if (!department || department.facultyId !== facultyId) {
-    showMessage("The selected department does not belong to the selected faculty.", "error");
+  if (!programme) {
+    showMessage("Please select a valid programme.", "error");
     return;
   }
-  if (!programme || programme.departmentId !== departmentId || programme.facultyId !== facultyId) {
-    showMessage("The selected programme does not belong to the selected department/faculty.", "error");
+
+  if (!level) {
+    showMessage("Please select a valid academic level.", "error");
     return;
   }
 
   const duplicate = courses.find(c =>
     normalize(c.courseCode) === normalize(courseCode) &&
     c.id !== editingId &&
-    c.departmentId === departmentId &&
     c.programmeId === programmeId &&
     c.levelId === levelId &&
     c.semester === semester
   );
+
   if (duplicate) {
     showMessage("A course with this code already exists for the selected programme, level and semester.", "error");
     return;
@@ -454,17 +429,13 @@ form.addEventListener("submit", async e => {
     courseTitle,
     courseUnit,
     semester,
-    facultyId,
-    departmentId,
     programmeId,
     levelId,
     courseType,
     description,
     status,
-    facultyName: faculties.find(f => f.id === facultyId)?.name || "",
-    departmentName: department.name,
-    programmeName: programme.name,
-    levelName: levels.find(l => l.id === levelId)?.name || "",
+    programmeName: programme.name || "",
+    levelName: level.name || "",
     updatedAt: serverTimestamp()
   };
 
@@ -528,38 +499,10 @@ document.getElementById("confirmDelete").addEventListener("click", async () => {
   }
 });
 
-onSnapshot(collection(db, "faculties"), snap => {
-  faculties = snap.docs.map(d => ({id:d.id, ...d.data()}));
-  fillFaculties();
-  if (editingId) {
-    const c = courses.find(x => x.id === editingId);
-    if (c) facultySelect.value = c.facultyId || "";
-  }
-  renderCourses();
-}, err => {
-  console.error(err);
-  showMessage("Could not load faculties from Firebase.", "error");
-});
-
-onSnapshot(collection(db, "departments"), snap => {
-  departments = snap.docs.map(d => ({id:d.id, ...d.data()}));
-  renderCourses();
-  if (editingId) {
-    const c = courses.find(x => x.id === editingId);
-    if (c) fillDepartments(c.facultyId || "", c.departmentId || "");
-  }
-}, err => {
-  console.error(err);
-  showMessage("Could not load departments from Firebase.", "error");
-});
-
 onSnapshot(collection(db, "programmes"), snap => {
   programmes = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  fillProgrammes(editingId ? (courses.find(x => x.id === editingId)?.programmeId || "") : "");
   renderCourses();
-  if (editingId) {
-    const c = courses.find(x => x.id === editingId);
-    if (c) fillProgrammes(c.departmentId || "", c.programmeId || "");
-  }
 }, err => {
   console.error(err);
   showMessage("Could not load programmes from Firebase.", "error");
@@ -579,7 +522,7 @@ onSnapshot(collection(db, "courses"), snap => {
   renderCourses();
 }, err => {
   console.error(err);
-  table.innerHTML = '<tr><td colspan="11" class="empty">Could not load courses.</td></tr>';
+  table.innerHTML = '<tr><td colspan="9" class="empty">Could not load courses.</td></tr>';
   showMessage("Could not load courses from Firebase. Check Firebase permissions.", "error");
 });
 </script>
