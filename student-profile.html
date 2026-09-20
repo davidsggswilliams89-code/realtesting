@@ -1085,27 +1085,50 @@ function getExamStartDate(record){
   const rawStart=val(record,["startTime","time","examTime"],"00:00");
   if(!rawDate)return null;
 
-  const dateText=String(rawDate).trim();
-  const timeText=String(rawStart).trim();
+  // Support Firestore Timestamp/Date values as well as normal text dates.
+  let baseDate=null;
+  if(rawDate instanceof Date){
+    baseDate=new Date(rawDate.getTime());
+  }else if(rawDate && typeof rawDate.toDate==="function"){
+    baseDate=rawDate.toDate();
+  }
+
+  const timeText=String(rawStart??"00:00").trim();
   let d=null;
 
-  // ISO date/time or a browser-parseable date.
-  if(/^\d{4}-\d{2}-\d{2}$/.test(dateText)){
+  if(baseDate && !Number.isNaN(baseDate.getTime())){
     const m=timeText.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
-    let hh=m?Number(m[1]):0;
-    const mm=m?Number(m[2]):0;
-    const ap=m&&m[3]?m[3].toLowerCase():"";
-    if(ap==="pm"&&hh<12)hh+=12;
-    if(ap==="am"&&hh===12)hh=0;
-    d=new Date(`${dateText}T${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:00`);
+    if(m){
+      let hh=Number(m[1]);
+      const mm=Number(m[2]);
+      const ap=m[3]?m[3].toLowerCase():"";
+      if(ap==="pm"&&hh<12)hh+=12;
+      if(ap==="am"&&hh===12)hh=0;
+      baseDate.setHours(hh,mm,0,0);
+    }
+    d=baseDate;
   }else{
-    const candidate=new Date(`${dateText} ${timeText}`);
-    if(!Number.isNaN(candidate.getTime()))d=candidate;
-    else{
-      const candidate2=new Date(dateText);
-      if(!Number.isNaN(candidate2.getTime()))d=candidate2;
+    const dateText=String(rawDate).trim();
+
+    // ISO date/time or a browser-parseable date.
+    if(/^\d{4}-\d{2}-\d{2}$/.test(dateText)){
+      const m=timeText.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+      let hh=m?Number(m[1]):0;
+      const mm=m?Number(m[2]):0;
+      const ap=m&&m[3]?m[3].toLowerCase():"";
+      if(ap==="pm"&&hh<12)hh+=12;
+      if(ap==="am"&&hh===12)hh=0;
+      d=new Date(`${dateText}T${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:00`);
+    }else{
+      const candidate=new Date(`${dateText} ${timeText}`);
+      if(!Number.isNaN(candidate.getTime()))d=candidate;
+      else{
+        const candidate2=new Date(dateText);
+        if(!Number.isNaN(candidate2.getTime()))d=candidate2;
+      }
     }
   }
+
   return d&&!Number.isNaN(d.getTime())?d:null;
 }
 
