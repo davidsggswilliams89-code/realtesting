@@ -33,6 +33,10 @@
 </section>
 
 <div id="notice" class="notice"></div>
+<div class="help" style="margin:0 0 12px;padding:0 2px">
+ Session, semester, programme, level, course, venue and invigilator dropdowns are loaded from Firebase.
+ Courses are filtered by the selected Programme, Level and Semester.
+</div>
 
 <section class="card">
   <h2 id="formTitle">Create Examination Timetable</h2>
@@ -87,11 +91,6 @@
       </div>
 
       <div class="field">
-        <label>Department</label>
-        <select id="department"><option value="">Select department</option></select>
-      </div>
-
-      <div class="field">
         <label>Programme</label>
         <select id="programme"><option value="">Select programme</option></select>
       </div>
@@ -138,7 +137,7 @@
   <h2>Examination Table</h2>
 
   <div class="toolbar">
-    <input id="search" type="search" placeholder="Search examination, course, venue, department...">
+    <input id="search" type="search" placeholder="Search examination, course, venue, programme, level...">
     <select id="filterSession"><option value="">All sessions</option></select>
     <select id="filterSemester"><option value="">All semesters</option></select>
     <select id="filterDate"><option value="">All dates</option></select>
@@ -154,13 +153,13 @@
       <thead>
         <tr>
           <th>#</th><th>Examination</th><th>Session</th><th>Semester</th>
-          <th>Course</th><th>Department</th><th>Programme</th><th>Level</th>
+          <th>Course</th><th>Programme</th><th>Level</th>
           <th>Date</th><th>Time</th><th>Venue</th><th>Invigilator(s)</th>
           <th>Status</th><th>Actions</th>
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="14" class="empty">Loading examination timetable...</td></tr>
+        <tr><td colspan="13" class="empty">Loading examination timetable...</td></tr>
       </tbody>
     </table>
   </div>
@@ -188,7 +187,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const $ = id => document.getElementById(id);
 
-let sessions=[], semesters=[], courses=[], venues=[], departments=[], programmes=[], levels=[], lecturers=[], schedules=[];
+let sessions=[], semesters=[], courses=[], venues=[], programmes=[], levels=[], lecturers=[], schedules=[];
 let editingId=null;
 
 const times=[
@@ -226,21 +225,19 @@ function fmt(v){
 }
 
 function normalizeCourse(d,id){
- return {
-  id:d.id||id, code:d.courseCode||d.code||"",
-  name:d.courseTitle||d.courseName||d.name||d.title||"",
-  unit:d.courseUnit??d.creditUnit??d.unit??"",
-  departmentId:d.departmentId||"", department:d.departmentName||d.department||"",
-  programmeId:d.programmeId||"", programme:d.programmeName||d.programme||"",
-  levelId:d.levelId||"", level:d.levelName||d.level||"",
-  status:d.status||"Active"
- };
+ return {id:d.id||id,code:d.courseCode||d.code||"",name:d.courseTitle||d.courseName||d.name||d.title||"",
+ unit:d.courseUnit??d.creditUnit??d.unit??"",programmeId:d.programmeId||"",programme:d.programmeName||d.programme||"",
+ levelId:d.levelId||d.academicLevelId||"",level:d.levelName||d.level||"",semesterId:d.semesterId||"",
+ semester:d.semesterName||d.semester||"",sessionId:d.academicSessionId||d.sessionId||"",
+ session:d.academicSession||d.sessionName||d.session||"",status:d.status||"Active"};
 }
-function normalizeVenue(d,id){return {id:d.id||id,name:d.name||d.venueName||"",code:d.code||d.venueCode||"",status:d.status||"Active"}
-function normalizeDepartment(d,id){return {id:d.id||id,name:d.name||d.departmentName||"",code:d.code||d.departmentCode||"",status:d.status||"Active"}
-function normalizeProgramme(d,id){return {id:d.id||id,name:d.name||d.programmeName||"",code:d.code||d.programmeCode||"",departmentId:d.departmentId||"",department:d.departmentName||d.department||"",status:d.status||"Active"}
-function normalizeLevel(d,id){return {id:d.id||id,name:d.name||d.levelName||d.levelCode||"",code:d.code||d.levelCode||"",status:d.status||"Active"}
-function normalizeLecturer(d,id){return {id:d.id||id,name:d.name||d.fullName||d.lecturerName||d.displayName||"",status:d.status||"Active"}
+function normalizeVenue(d,id){return {id:d.id||id,name:d.name||d.venueName||"",code:d.code||d.venueCode||"",status:d.status||"Active"}}
+function normalizeProgramme(d,id){return {id:d.id||id,name:d.name||d.programmeName||d.programName||d.title||"",code:d.code||d.programmeCode||d.programCode||"",status:d.status||"Active"}}
+function normalizeLevel(d,id){return {id:d.id||id,name:d.name||d.levelName||d.level||d.title||"",code:d.code||d.levelCode||"",displayOrder:d.displayOrder,status:d.status||"Active"}}
+function normalizeLecturer(d,id){
+ const firebaseUid=d.firebaseUid||d.authUid||d.uid||d.userUid||d.userId||"";
+ return {id:d.id||id,firebaseUid,name:d.name||d.fullName||d.lecturerName||d.displayName||"",email:d.email||d.lecturerEmail||"",status:d.status||"Active"};
+}
 
 function fillTimes(){
  $("startTime").innerHTML='<option value="">Select start time</option>'+times.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join("");
@@ -249,47 +246,57 @@ function fillTimes(){
 fillTimes();
 
 function fillSelect(id,items,placeholder){
- const old=String($(id).value||"");
- $(id).innerHTML='<option value="">'+placeholder+'</option>'+
-   items.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}${x.code?" — "+esc(x.code):""}</option>`).join("");
- if(old && items.some(x=>String(x.id)===old)) $(id).value=old;
+ const el=$(id),old=String(el.value||"");
+ el.innerHTML='<option value="">'+esc(placeholder)+'</option>'+items.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}${x.code?" — "+esc(x.code):""}</option>`).join("");
+ if(old&&items.some(x=>String(x.id)===old))el.value=old;
 }
-
-function renderSelects(){
- const oldSession=$("session").value, oldSemester=$("semester").value,
-       oldCourse=$("course").value, oldVenue=$("venue").value,
-       oldDepartment=$("department").value, oldProgramme=$("programme").value,
-       oldLevel=$("level").value;
-
- $("session").innerHTML='<option value="">Select academic session</option>'+
-   sessions.map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.sessionName||"")}</option>`).join("");
- if(oldSession) $("session").value=oldSession;
-
- $("semester").innerHTML='<option value="">Select semester</option>'+
-   semesters.map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.semesterName||"")}</option>`).join("");
- if(oldSemester) $("semester").value=oldSemester;
-
- fillSelect("course",courses.filter(active).sort((a,b)=>(a.code+" "+a.name).localeCompare(b.code+" "+b.name)),"Select course");
- if(oldCourse) $("course").value=oldCourse;
- fillSelect("venue",venues.filter(active),"Select venue");
- if(oldVenue) $("venue").value=oldVenue;
- fillSelect("department",departments.filter(active),"Select department");
- if(oldDepartment) $("department").value=oldDepartment;
- fillSelect("programme",programmes.filter(active),"Select programme");
- if(oldProgramme) $("programme").value=oldProgramme;
- fillSelect("level",levels.filter(active),"Select level");
- if(oldLevel) $("level").value=oldLevel;
-
+function sessionData(){return sessions.find(x=>String(x.id)===String($("session").value||""))||null;}
+function semesterData(){return semesters.find(x=>String(x.id)===String($("semester").value||""))||null;}
+function programmeData(){return programmes.find(x=>String(x.id)===String($("programme").value||""))||null;}
+function levelData(){return levels.find(x=>String(x.id)===String($("level").value||""))||null;}
+function courseData(){return courses.find(x=>String(x.id)===String($("course").value||""))||null;}
+function fillInvigilators(){
  const selected=[...$("invigilators").selectedOptions].map(o=>o.value);
- $("invigilators").innerHTML=lecturers.filter(active).sort((a,b)=>a.name.localeCompare(b.name))
-   .map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join("");
- selected.forEach(id=>{
-   const o=[...$("invigilators").options].find(x=>x.value===id);
-   if(o)o.selected=true;
- });
-
- renderFilters();
- renderTable();
+ const list=lecturers.filter(active).sort((a,b)=>a.name.localeCompare(b.name));
+ $("invigilators").innerHTML=list.map(x=>{
+  const uid=x.firebaseUid||x.id;
+  return `<option value="${esc(uid)}" data-record-id="${esc(x.id)}">${esc(x.name)}${x.email?" — "+esc(x.email):""}</option>`;
+ }).join("");
+ selected.forEach(uid=>{const o=[...$("invigilators").options].find(x=>x.value===uid);if(o)o.selected=true;});
+}
+function updateSemesterOptions(preferredId=""){
+ const sid=String($("session").value||""),ss=sessionData(),sn=norm(ss?.name||ss?.sessionName||"");
+ const list=semesters.filter(active).filter(x=>{
+  const iid=String(x.sessionId||x.academicSessionId||""),nm=norm(x.sessionName||x.academicSessionName||x.academicSession||"");
+  return !sid||iid===sid||(!!sn&&nm===sn);
+ }).sort((a,b)=>(a.name||a.semesterName||"").localeCompare(b.name||b.semesterName||""));
+ $("semester").innerHTML='<option value="">'+(sid?(list.length?"Select semester":"No semester for this session"):"Select semester")+'</option>'+list.map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.semesterName||"")}</option>`).join("");
+ if(preferredId&&list.some(x=>String(x.id)===String(preferredId)))$("semester").value=preferredId;
+}
+function courseMatchesSelection(c){
+ const p=programmeData(),l=levelData(),sm=semesterData(),ss=sessionData();
+ if(p&&! (String(c.programmeId||"")===String(p.id)||norm(c.programme)===norm(p.name)|| (!!p.code&&norm(c.programme)===norm(p.code))))return false;
+ if(l&&! (String(c.levelId||"")===String(l.id)||norm(c.level)===norm(l.name)|| (!!l.code&&norm(c.level)===norm(l.code))))return false;
+ if(sm&&! (String(c.semesterId||"")===String(sm.id)||norm(c.semester)===norm(sm.name||sm.semesterName||"")))return false;
+ if(ss&&c.sessionId&&! (String(c.sessionId)===String(ss.id)||norm(c.session)===norm(ss.name||ss.sessionName||"")))return false;
+ return active(c);
+}
+function updateCourseOptions(preferredId=""){
+ const list=courses.filter(courseMatchesSelection).sort((a,b)=>(a.code+" "+a.name).localeCompare(b.code+" "+b.name));
+ $("course").innerHTML='<option value="">'+(list.length?"Select course":"No course matches the selected Programme / Level / Semester")+'</option>'+list.map(x=>`<option value="${esc(x.id)}">${esc(x.code)}${x.name?" — "+esc(x.name):""}</option>`).join("");
+ if(preferredId&&list.some(x=>String(x.id)===String(preferredId)))$("course").value=preferredId;
+}
+function renderSelects(){
+ const os=String($("session").value||""),om=String($("semester").value||""),oc=String($("course").value||""),ov=String($("venue").value||""),op=String($("programme").value||""),ol=String($("level").value||"");
+ fillSelect("session",sessions.filter(active).sort((a,b)=>(a.name||"").localeCompare(b.name||"")),"Select academic session");
+ if(os&&sessions.some(x=>String(x.id)===os))$("session").value=os;
+ fillSelect("venue",venues.filter(active),"Select venue");
+ if(ov&&venues.some(x=>String(x.id)===ov))$("venue").value=ov;
+ fillSelect("programme",programmes.filter(active).sort((a,b)=>(a.name+" "+a.code).localeCompare(b.name+" "+b.code)),"Select programme");
+ if(op&&programmes.some(x=>String(x.id)===op))$("programme").value=op;
+ fillSelect("level",levels.filter(active).sort((a,b)=>(Number(a.displayOrder??9999)-Number(b.displayOrder??9999))||(a.name+"").localeCompare(b.name+"")),"Select level");
+ if(ol&&levels.some(x=>String(x.id)===ol))$("level").value=ol;
+ fillInvigilators();updateSemesterOptions(om);updateCourseOptions(oc);renderFilters();renderTable();
 }
 
 function renderFilters(){
@@ -317,7 +324,7 @@ function renderTable(){
  const rows=schedules.filter(x=>{
   const hay=[
    x.examinationName,x.sessionName,x.semesterName,x.courseCode,x.courseName,
-   x.department,x.programme,x.level,x.venue,(x.invigilatorNames||[]).join(" "),
+   x.programme,x.level,x.venue,(x.invigilatorNames||[]).join(" "),
    x.status,x.notes
   ].map(norm).join(" ");
 
@@ -338,7 +345,6 @@ function renderTable(){
    <td>${esc(x.sessionName||"—")}</td>
    <td>${esc(x.semesterName||"—")}</td>
    <td><strong>${esc(x.courseCode||"—")}</strong><br>${esc(x.courseName||"")}</td>
-   <td>${esc(x.department||"—")}</td>
    <td>${esc(x.programme||"—")}</td>
    <td>${esc(x.level||"—")}</td>
    <td>${esc(x.examDate||"—")}</td>
@@ -358,20 +364,7 @@ function renderTable(){
  document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>deleteSchedule(b.dataset.delete));
 }
 
-function courseData(){ const id=String($("course").value||""); return courses.find(x=>String(x.id)===id); }
-function sessionData(){ const id=String($("session").value||""); return sessions.find(x=>String(x.id)===id); }
-function semesterData(){ const id=String($("semester").value||""); return semesters.find(x=>String(x.id)===id); }
 
-function venueClash(data,ignoreId){
- if(!data.venueId)return false;
- return schedules.some(x=>
-  x.id!==ignoreId &&
-  x.examDate===data.examDate &&
-  x.venueId===data.venueId &&
-  x.startTime && x.endTime &&
-  data.startTime<x.endTime && x.startTime<data.endTime
- );
-}
 
 function courseClash(data,ignoreId){
  return schedules.some(x=>
@@ -383,12 +376,14 @@ function courseClash(data,ignoreId){
  );
 }
 
+$("session").addEventListener("change",()=>{updateSemesterOptions();updateCourseOptions();});
+$("semester").addEventListener("change",updateCourseOptions);
+$("programme").addEventListener("change",updateCourseOptions);
+$("level").addEventListener("change",updateCourseOptions);
 $("course").addEventListener("change",()=>{
- const c=courseData();
- if(!c)return;
- if(c.departmentId && departments.some(x=>x.id===c.departmentId)) $("department").value=c.departmentId;
- if(c.programmeId && programmes.some(x=>x.id===c.programmeId)) $("programme").value=c.programmeId;
- if(c.levelId && levels.some(x=>x.id===c.levelId)) $("level").value=c.levelId;
+ const c=courseData();if(!c)return;
+ if(c.programmeId&&programmes.some(x=>String(x.id)===String(c.programmeId)))$("programme").value=c.programmeId;
+ if(c.levelId&&levels.some(x=>String(x.id)===String(c.levelId)))$("level").value=c.levelId;
 });
 
 ["search","filterSession","filterSemester","filterDate","filterStatus"].forEach(id=>
@@ -406,12 +401,13 @@ $("scheduleForm").addEventListener("submit",async e=>{
   const s=sessionData();
   const se=semesterData();
   const c=courseData();
-  const v=venues.find(x=>x.id===$("venue").value);
-  const d=departments.find(x=>x.id===$("department").value);
-  const p=programmes.find(x=>x.id===$("programme").value);
-  const l=levels.find(x=>x.id===$("level").value);
-  const inv=[...$("invigilators").selectedOptions]
-    .map(o=>lecturers.find(x=>x.id===o.value)).filter(Boolean);
+  const v=venues.find(x=>String(x.id)===String($("venue").value));
+   const p=programmes.find(x=>String(x.id)===String($("programme").value));
+   const l=levels.find(x=>String(x.id)===String($("level").value));
+   const inv=[...$("invigilators").selectedOptions].map(o=>{
+     const uid=String(o.value||"");
+     return lecturers.find(x=>String(x.firebaseUid||"")===uid||String(x.id)===uid);
+   }).filter(Boolean);
 
   const date=$("examDate").value;
   const start=$("startTime").value;
@@ -430,14 +426,14 @@ $("scheduleForm").addEventListener("submit",async e=>{
    examinationName:name,
    sessionId:s.id, sessionName:s.name||s.sessionName||"",
    semesterId:se.id, semesterName:se.name||se.semesterName||"",
-   courseId:c.id, courseCode:c.code||"", courseName:c.name||"", courseUnit:c.unit??"",
-   departmentId:d?.id||c.departmentId||"", department:d?.name||c.department||"",
-   programmeId:p?.id||c.programmeId||"", programme:p?.name||c.programme||"",
-   levelId:l?.id||c.levelId||"", level:l?.name||c.level||"",
-   examDate:date, startTime:start, endTime:end,
-   venueId:v?.id||"", venue:v?.name||"",
-   invigilatorIds:inv.map(x=>x.id),
-   invigilatorNames:inv.map(x=>x.name),
+    courseId:c.id, courseCode:c.code||"", courseName:c.name||"", courseUnit:c.unit??"",
+    programmeId:p?.id||c.programmeId||"", programme:p?.name||c.programme||"",
+    levelId:l?.id||c.levelId||"", level:l?.name||c.level||"",
+    examDate:date, startTime:start, endTime:end,
+    venueId:v?.id||"", venue:v?.name||"",
+    invigilatorIds:inv.map(x=>x.firebaseUid||x.id),
+    invigilatorRecordIds:inv.map(x=>x.id),
+    invigilatorNames:inv.map(x=>x.name),
    status:$("status").value||"Draft",
    notes:$("notes").value.trim(),
    updatedAt:serverTimestamp()
@@ -485,15 +481,14 @@ function editSchedule(id){
  $("startTime").value=x.startTime||"";
  $("endTime").value=x.endTime||"";
  $("venue").value=x.venueId||"";
- $("department").value=x.departmentId||"";
  $("programme").value=x.programmeId||"";
  $("level").value=x.levelId||"";
  $("status").value=x.status||"Draft";
- $("notes").value=x.notes||"";
-
- [...$("invigilators").options].forEach(o=>
-   o.selected=(x.invigilatorIds||[]).includes(o.value)
- );
+ $("notes").value=x.notes||"";  const savedInv=[...(x.invigilatorIds||[])];
+  const savedRecords=[...(x.invigilatorRecordIds||[])];
+  [...$("invigilators").options].forEach(o=>{
+    o.selected=savedInv.includes(o.value)||savedRecords.includes(o.dataset.recordId);
+  });
 
  $("cancelEdit").style.display="inline-block";
  window.scrollTo({top:0,behavior:"smooth"});
@@ -563,11 +558,6 @@ listen("courses",a=>{
 
 listen("venues",a=>{
  venues=a.map(d=>normalizeVenue(d,d.id));
- renderSelects();
-});
-
-listen("departments",a=>{
- departments=a.map(d=>normalizeDepartment(d,d.id));
  renderSelects();
 });
 
