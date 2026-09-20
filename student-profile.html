@@ -236,17 +236,99 @@ main{position:relative;z-index:1}
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getAuth,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import {getFirestore,collection,getDocs,query,where,limit} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {getFirestore,collection,getDocs,query,where,limit,doc,getDoc} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
 const app=getApps().length?getApp():initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
 const val=(o,ks,d="—")=>{for(const k of ks)if(o&&o[k]!=null&&String(o[k]).trim()!=="")return o[k];return d};
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","'"':'&quot;',"'":"&#039;"}[m]));
 const initials=s=>String(s||"Student").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"S";
 function load(t="Loading student profile…"){if($("loading")){ $("loading").classList.remove("hide");$("loading").textContent=t }}function done(){if($("loading"))$("loading").classList.add("hide")}
-async function findStudent(u){for(const f of ["studentUid","authUid","firebaseUid","uid"]){try{const q=await getDocs(query(collection(db,"students"),where(f,"==",u.uid),limit(1)));if(!q.empty)return{id:q.docs[0].id,...q.docs[0].data()}}catch(e){console.warn(f,e)}}try{const q=await getDocs(collection(db,"students"));for(const d of q.docs){const x=d.data()||{};if(String(x.email||x.authEmail||"").trim().toLowerCase()===String(u.email||"").trim().toLowerCase())return{id:d.id,...x}}}catch(e){console.error(e)}return null}
+async function findStudent(u){
+  // First use the Firebase-authenticated user's Admin-created users record.
+  // login.html stores this as shtmsUser after a successful login.
+  let sessionUser=null;
+  try{
+    sessionUser=JSON.parse(sessionStorage.getItem("shtmsUser")||"null");
+  }catch(e){
+    console.warn("Could not read shtmsUser session:",e);
+  }
+
+  // Try the students collection using the exact UID fields created by Admin.
+  const uidFields=["studentUid","authUid","firebaseUid","uid"];
+  for(const f of uidFields){
+    try{
+      const q=await getDocs(query(collection(db,"students"),where(f,"==",u.uid),limit(1)));
+      if(!q.empty)return{id:q.docs[0].id,...q.docs[0].data()};
+    }catch(e){
+      console.warn("Student UID lookup failed for",f,e);
+    }
+  }
+
+  // If Admin stored the student profile document ID in users.profileId, read it directly.
+  const profileId=sessionUser?.profileId||sessionUser?.studentProfileId||"";
+  if(profileId){
+    try{
+      const d=await getDoc(doc(db,"students",profileId));
+      if(d.exists())return{id:d.id,...d.data()};
+    }catch(e){
+      console.warn("Profile ID lookup failed:",e);
+    }
+  }
+
+  // Match by Admin-created student ID.
+  const sid=sessionUser?.studentId||sessionUser?.schoolId||"";
+  if(sid){
+    try{
+      const q=await getDocs(query(collection(db,"students"),where("studentId","==",sid),limit(1)));
+      if(!q.empty)return{id:q.docs[0].id,...q.docs[0].data()};
+    }catch(e){
+      console.warn("Student ID lookup failed:",e);
+    }
+  }
+
+  // Last Firestore fallback: email.
+  try{
+    const email=String(u.email||sessionUser?.email||"").trim().toLowerCase();
+    if(email){
+      const q=await getDocs(collection(db,"students"));
+      for(const d of q.docs){
+        const x=d.data()||{};
+        if(String(x.email||x.authEmail||"").trim().toLowerCase()===email)return{id:d.id,...x};
+      }
+    }
+  }catch(e){
+    console.warn("Student email lookup failed:",e);
+  }
+
+  // The users record is also Admin-managed. It is enough for Container 1.
+  if(sessionUser && (sessionUser.studentId||sessionUser.accountType||sessionUser.role)){
+    return{id:sessionUser.profileId||sessionUser.studentId||u.uid,...sessionUser,authUid:sessionUser.authUid||sessionUser.uid||u.uid};
+  }
+
+  return null;
+}
 function render(s,u){const n=val(s,["fullName","studentName","name"],u.displayName||"Student"),sid=val(s,["studentId","matricNo","schoolId"]),ad=val(s,["admissionNumber","admissionNo"]),p=val(s,["programmeName","programme","courseOfStudy"]),l=val(s,["levelName","level"]),ses=val(s,["academicSession","session"]),sem=val(s,["semester"]),st=val(s,["status","accountStatus"],"Active"),photo=val(s,["photo","photoURL","photoUrl","profilePhoto","profilePicture"],"");
 $("name").textContent=n;$("sid").textContent=sid;$("prog").textContent=p;$("fp").textContent=val(s,["faculty","facultyName"]);$("dp").textContent=val(s,["department","departmentName"]);$("lp").textContent=l;$("sp").textContent=ses;if($("status"))$("status").textContent=st;if($("cgpa"))$("cgpa").textContent=val(s,["cgpa"]);if($("gpa"))$("gpa").textContent=val(s,["gpa"]);if($("count"))$("count").textContent="0";if($("regBadge"))$("regBadge").textContent="0 COURSES";
 const fields={"Full Name":n,"Student ID / Matric No.":sid,"Admission Number":ad,"Email":val(s,["email","authEmail"],u.email||"—"),"Phone":val(s,["phone","phoneNumber"]),"Faculty":val(s,["faculty","facultyName"]),"Department":val(s,["department","departmentName"]),"Programme":p,"Level":l,"Semester":sem,"Academic Session":ses,"Account Status":st};if($("info"))$("info").innerHTML=Object.entries(fields).map(([k,v])=>`<div class="field"><small>${esc(k)}</small><b>${esc(v)}</b></div>`).join("");if($("photo")){if(photo){$("photo").src=photo;$("photo").style.display="block"}else $("photo").style.display="none"}if($("fallback"))$("fallback").textContent=initials(n);
 const msg="This section will be connected to the Admin-managed academic data in the next container.";["courses","carry","grades","tt","exam","ann","notes","assign","attendance","fees"].forEach(id=>{if($(id))$(id).innerHTML=`<div class="empty">${esc(msg)}</div>`})}
-$("logout")?.addEventListener("click",async()=>{try{await signOut(auth)}finally{location.href="login.html"}});load();onAuthStateChanged(auth,async u=>{if(!u){location.replace("login.html");return}try{const s=await findStudent(u);if(!s){load("Student record was not found in the Admin-managed students collection.");return}render(s,u);done()}catch(e){console.error(e);load(e?.message||"Could not load the student profile.")}});
+$("logout")?.addEventListener("click",async()=>{try{await signOut(auth)}finally{sessionStorage.removeItem("shtmsUser");location.href="login.html"}});
+load();
+let authHandled=false;
+onAuthStateChanged(auth,async u=>{
+  if(authHandled)return;
+  authHandled=true;
+  if(!u){location.replace("login.html");return}
+  try{
+    const s=await findStudent(u);
+    if(!s){
+      load("Student account data could not be found. Please return to Login and sign in again.");
+      return;
+    }
+    render(s,u);
+    done();
+  }catch(e){
+    console.error("Student profile error:",e);
+    load("Could not load the student profile: "+(e?.message||"Unknown error"));
+  }
+});
 </script></body></html>
