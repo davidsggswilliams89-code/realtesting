@@ -78,8 +78,8 @@ select,input{font:inherit;width:100%;height:50px;border:1px solid #cbd8d1;border
 /* Unified Assignment Management */
 .tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px;padding:6px;background:#edf8f2;border:1px solid #d8e4de;border-radius:14px}
 .tab{border:0;background:transparent;color:#175c3f;font-weight:800;padding:12px 18px;border-radius:10px;cursor:pointer;font-size:14px}
-.tab.active{background:#176b43;color:#fff;box-shadow:0 4px 12px rgba(23,107,67,.16)}
-.module{display:none!important}.module.active{display:block!important}
+.tab.selected{background:#176b43;color:#fff;box-shadow:0 4px 12px rgba(23,107,67,.16)}
+.module{display:block}.module.assignment-module-hidden{display:none!important}
 .assignment-intro{background:#fff;border:1px solid #d8e4de;border-radius:16px;padding:16px 18px;margin-bottom:18px;color:#53645b;line-height:1.55}
 .hod-grid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;align-items:start}
 @media(max-width:850px){.hod-grid{grid-template-columns:1fr}}
@@ -101,8 +101,8 @@ select,input{font:inherit;width:100%;height:50px;border:1px solid #cbd8d1;border
 <main>
 
 <div class="tabs" role="tablist" aria-label="Assignment sections">
-  <button class="tab active" id="tabHod" type="button">👨‍💼 Assign HOD</button>
-  <button class="tab" id="tabLecturer" type="button">👨‍🏫 Assign Lecturer Courses</button>
+  <button class="tab selected" id="tabHod" type="button" onclick="switchAssignmentModule('hod')">👨‍💼 Assign HOD</button>
+  <button class="tab" id="tabLecturer" type="button" onclick="switchAssignmentModule('lecturer')">👨‍🏫 Assign Lecturer Courses</button>
 </div>
 
 <section id="hodModule" class="module active">
@@ -217,6 +217,31 @@ select,input{font:inherit;width:100%;height:50px;border:1px solid #cbd8d1;border
 </section>
 </main>
 
+<script>
+function switchAssignmentModule(which){
+  const showHod = which === 'hod';
+  const tabHod = document.getElementById('tabHod');
+  const tabLecturer = document.getElementById('tabLecturer');
+  const hodModule = document.getElementById('hodModule');
+  const lecturerModule = document.getElementById('lecturerModule');
+
+  if(!tabHod || !tabLecturer || !hodModule || !lecturerModule) return;
+
+  // Active visual state
+  tabHod.classList.toggle('selected', showHod);
+  tabLecturer.classList.toggle('selected', !showHod);
+
+  // Content state — only one module can be visible.
+  hodModule.classList.toggle('assignment-module-hidden', !showHod);
+  lecturerModule.classList.toggle('assignment-module-hidden', showHod);
+
+  hodModule.hidden = !showHod;
+  lecturerModule.hidden = showHod;
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.addEventListener('DOMContentLoaded',()=>switchAssignmentModule('hod'));
+</script>
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,addDoc,updateDoc,doc,onSnapshot,query,orderBy,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -228,22 +253,7 @@ const db=getFirestore(app);
 // Tab switching
 const tabHod=document.getElementById('tabHod'),tabLecturer=document.getElementById('tabLecturer');
 const hodModule=document.getElementById('hodModule'),lecturerModule=document.getElementById('lecturerModule');
-function showModule(which){
-  const hod = which === 'hod';
-  tabHod.classList.toggle('active', hod);
-  tabLecturer.classList.toggle('active', !hod);
-  hodModule.classList.toggle('active', hod);
-  lecturerModule.classList.toggle('active', !hod);
-
-  // Explicit display prevents other CSS rules from interfering.
-  hodModule.style.display = hod ? 'block' : 'none';
-  lecturerModule.style.display = hod ? 'none' : 'block';
-
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-tabHod.addEventListener('click',()=>showModule('hod'));
-tabLecturer.addEventListener('click',()=>showModule('lecturer'));
-showModule('hod');
+function showModule(which){ switchAssignmentModule(which); }
 
 // ===== Assign HOD module =====
 const $h=id=>document.getElementById(id);
@@ -255,8 +265,8 @@ const nameH=l=>l.name||l.fullName||l.lecturerName||l.staffName||l.displayName||l
 const staffH=l=>l.staffId||l.staffID||l.employeeId||l.employeeID||'';
 const emailH=l=>l.email||l.emailAddress||l.lecturerEmail||'';
 function showH(m,type='success'){const e=$h('message');e.textContent=m;e.className='message '+type;e.style.display='block';setTimeout(()=>e.style.display='none',4500)}
-function fillPH(sel=''){const e=$h('programme');e.innerHTML='<option value="">Select programme</option>';activeH(programmesH).sort((a,b)=>normH(a.name).localeCompare(normH(b.name))).forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=(p.name||'')+(p.code?` (${p.code})`:''),e.appendChild(o)});e.disabled=!e.options.length;if(sel)e.value=sel}
-function fillLH(sel=''){const e=$h('hod');e.innerHTML='<option value="">Select HOD / Lecturer</option>';activeH(lecturersH).sort((a,b)=>normH(nameH(a)).localeCompare(normH(nameH(b)))).forEach(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=nameH(l)+(staffH(l)?` — ${staffH(l)}`:''),e.appendChild(o)});e.disabled=!e.options.length;if(sel)e.value=sel;updateHodInfo()}
+function fillPH(sel=''){const e=$h('programme');e.innerHTML='<option value="">Select programme</option>';activeH(programmesH).sort((a,b)=>normH(a.name||a.programmeName||a.programName||a.title||a.label).localeCompare(normH(b.name))).forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=(p.name||'')+(p.code?` (${p.code})`:''),e.appendChild(o)});e.disabled=false;if(sel)e.value=sel}
+function fillLH(sel=''){const e=$h('hod');e.innerHTML='<option value="">Select HOD / Lecturer</option>';activeH(lecturersH).sort((a,b)=>normH(nameH(a)).localeCompare(normH(nameH(b)))).forEach(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=nameH(l)+(staffH(l)?` — ${staffH(l)}`:''),e.appendChild(o)});e.disabled=false;if(sel)e.value=sel;updateHodInfo()}
 function updateHodInfo(){const l=lecturersH.find(x=>x.id===$h('hod').value);$h('staffId').value=l?staffH(l):'';$h('email').value=l?emailH(l):''}
 function resetH(){editingH=null;$h('assignmentForm').reset();$h('formTitle').textContent='Assign HOD to Programme';$h('saveBtn').textContent='Assign HOD';$h('cancelBtn').style.display='none';fillPH();fillLH();$h('staffId').value='';$h('email').value='';$h('status').value='Active'}
 function renderH(){const term=normH($h('search').value);const list=assignmentsH.filter(a=>[a.programmeName,a.hodName,a.staffId,a.hodEmail,a.status].some(v=>normH(v).includes(term)));$h('count').textContent=`${list.length} ${list.length===1?'Assignment':'Assignments'}`;if(!list.length){$h('table').innerHTML='<tr><td colspan="6" class="empty">No Programme HOD assignments found.</td></tr>';return}$h('table').innerHTML=list.map(a=>`<tr><td><strong>${escH(a.programmeName||'—')}</strong></td><td>${escH(a.hodName||'—')}</td><td>${escH(a.staffId||'—')}</td><td>${escH(a.hodEmail||'—')}</td><td><span class="badge ${normH(a.status)==='inactive'?'inactive':'active'}">${escH(a.status||'Active')}</span></td><td><div class="actions"><button class="secondary" data-h-edit="${escH(a.id)}">Edit</button><button class="danger" data-h-deactivate="${escH(a.id)}">${normH(a.status)==='inactive'?'Delete':'Deactivate'}</button></div></td></tr>`).join('')}
