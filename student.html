@@ -1,77 +1,457 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GGCHST | Student Management</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GGCHST | All Students</title>
 <style>
-:root{--g:#087443;--g2:#075c45;--bg:#f3f8f5;--card:#fff;--line:#dce9e3;--muted:#668078;--text:#15352b;--soft:#e8f5ee;--danger:#b42318}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
-header{background:#fff;border-bottom:1px solid var(--line);padding:10px 15px}.head{max-width:1200px;margin:auto;display:flex;align-items:center;gap:12px}.logo{width:50px;height:50px;object-fit:contain}.school{flex:1;text-align:center;font-weight:900;color:var(--g2);font-size:16px}.back{background:var(--g);color:#fff;text-decoration:none;padding:8px 12px;border-radius:8px;font-weight:800;font-size:12px}
-main{max-width:1200px;margin:18px auto;padding:0 15px}.tabs{display:flex;gap:6px;background:#fff;border:1px solid var(--line);padding:6px;border-radius:12px;margin-bottom:15px}.tab{flex:1;border:0;background:transparent;padding:11px;border-radius:8px;font-weight:800;color:var(--muted);cursor:pointer}.tab.active{background:var(--g);color:#fff}.panel{display:none}.panel.active{display:block}
-.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:17px;margin-bottom:15px}.title{display:flex;justify-content:space-between;gap:10px;align-items:center}.title h2{margin:0;color:var(--g2);font-size:19px}.badge{background:var(--soft);color:var(--g);border:1px solid #bfe3cf;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:800}
-.form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}.field label{display:block;font-size:11px;font-weight:800;margin-bottom:5px}.field input,.field select,.field textarea{width:100%;padding:10px;border:1px solid #cfded7;border-radius:9px;font:inherit}.full{grid-column:1/-1}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.btn{border:0;border-radius:9px;padding:10px 13px;font-weight:800;cursor:pointer;text-decoration:none}.primary{background:var(--g);color:#fff}.secondary{background:#e8f0ed;color:var(--text)}.danger{background:#fee4e2;color:var(--danger)}
-.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.tools input,.tools select{padding:10px;border:1px solid var(--line);border-radius:9px;min-width:150px}.tools input{flex:1;min-width:220px}
-.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;min-width:950px}th,td{padding:10px;text-align:left;border-bottom:1px solid var(--line);font-size:11px}th{background:#f6faf8;color:var(--muted);font-size:10px}.actions-cell{white-space:nowrap}.smallbtn{border:0;border-radius:7px;padding:7px 9px;font-size:10px;font-weight:800;cursor:pointer;margin-right:4px}.view{background:#edf5ff;color:#1d5d93}.edit{background:var(--soft);color:var(--g)}.status{padding:5px 8px;border-radius:999px;background:var(--soft);color:var(--g);font-weight:800;font-size:9px}
-.profile{display:grid;grid-template-columns:125px 1fr;gap:20px}.avatar{width:115px;height:115px;border-radius:18px;object-fit:cover;background:#e7f4ee;border:3px solid var(--line)}.profile h1{margin:0 0 5px;font-size:24px}.meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:13px}.meta{background:#f8fcfa;border:1px solid var(--line);padding:10px;border-radius:9px}.meta small{display:block;color:var(--muted);font-size:10px}.meta b{display:block;margin-top:4px;font-size:12px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.course{border:1px solid var(--line);border-radius:10px;padding:12px}.course b{color:var(--g)}.muted{color:var(--muted);font-size:12px;line-height:1.5}.empty{text-align:center;padding:22px;color:var(--muted);font-size:12px}.photo-edit{display:flex;align-items:center;gap:10px}.photo-edit img{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid var(--line)}
-@media(max-width:800px){.form{grid-template-columns:1fr 1fr}.meta-grid{grid-template-columns:1fr 1fr}.profile{grid-template-columns:1fr;text-align:center}.avatar{margin:auto}}
-@media(max-width:500px){.head{gap:7px}.logo{width:42px;height:42px}.school{font-size:11px}.back{font-size:10px;padding:7px}.tabs{overflow:auto}.tab{min-width:115px;font-size:10px}.form,.grid,.meta-grid{grid-template-columns:1fr}.card{padding:13px}.profile{text-align:center}}
-</style></head><body>
-<header><div class="head"><img class="logo" src="logo.png" alt="Green Garden College of Health Sciences & Technology logo"><div class="school">Green Garden College of Health Sciences &amp; Technology, Gusau</div><a class="back" href="admin.html">← Admin</a></div></header>
-<main>
-<div class="tabs"><button class="tab active" data-tab="students">Students</button><button class="tab" data-tab="profile">Student Profile</button><button class="tab" data-tab="academic">Academic Records</button></div>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f7f6;color:#17231f}
+header{background:#fff;border-bottom:4px solid #087443;box-shadow:0 2px 10px rgba(0,0,0,.08);padding:12px 18px}
+.school-head{max-width:1280px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.school-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.school-logo{width:56px;height:56px;object-fit:contain;border-radius:8px}
+.school-name{display:flex;flex-direction:column;min-width:0}
+.school-name strong{color:#087443;font-size:18px;line-height:1.2}
+.school-name span{font-size:12px;color:#65736c;margin-top:3px}
+.back{background:#087443;color:#fff;text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:700;white-space:nowrap}
+.page-title{max-width:1280px;margin:auto;padding:14px 0 2px}
+.page-title h1{margin:0;font-size:21px}
+.page-title p{margin:4px 0 0;color:#68756f;font-size:13px}
 
-<section id="students" class="panel active">
-<div class="card"><div class="title"><h2>Student Management</h2><span class="badge" id="count">0 Students</span></div><p class="muted">Admin manages the central student master records. No student course registration is used; courses are assigned automatically through Programme + Level curriculum mapping.</p></div>
-<div class="card"><div class="title"><h2 id="formTitle">Create Student</h2><span class="badge">Master Record</span></div>
-<form id="studentForm"><input type="hidden" id="docId"><div class="form">
-<div class="field"><label>Student ID / Matric *</label><input id="studentId" required></div><div class="field"><label>Admission Number *</label><input id="admissionNo" required></div><div class="field"><label>Registration Number</label><input id="registrationNumber"></div>
-<div class="field"><label>Full Name *</label><input id="fullName" required></div><div class="field"><label>Gender</label><select id="gender"><option value="">Select</option><option>Male</option><option>Female</option></select></div><div class="field"><label>Date of Birth</label><input id="dateOfBirth" type="date"></div>
-<div class="field"><label>Email</label><input id="email" type="email"></div><div class="field"><label>Phone</label><input id="phone"></div><div class="field"><label>Entry Year</label><input id="entryYear"></div>
-<div class="field"><label>Programme</label><select id="programme"><option value="">Select Programme</option></select></div><div class="field"><label>Level</label><select id="level"><option value="">Select Level</option><option>100</option><option>200</option><option>300</option></select></div><div class="field"><label>Semester</label><select id="semester"><option>First</option><option>Second</option></select></div>
-<div class="field"><label>Academic Session</label><select id="academicSession"><option value="">Select Session</option></select></div><div class="field"><label>Status</label><select id="status"><option>Active</option><option>Inactive</option><option>Graduated</option><option>Suspended</option><option>Deferred</option></select></div><div class="field"><label>Study Mode</label><select id="studyMode"><option value="">Select</option><option>Full-Time</option><option>Part-Time</option></select></div>
-<div class="field"><label>Nationality</label><input id="nationality" value="Nigerian"></div><div class="field"><label>State of Origin</label><input id="stateOfOrigin"></div><div class="field"><label>LGA</label><input id="lga"></div>
-<div class="field"><label>Guardian / Sponsor</label><input id="guardianName"></div><div class="field"><label>Guardian Phone</label><input id="guardianPhone"></div><div class="field"><label>Guardian Relationship</label><input id="guardianRelationship"></div>
-<div class="field full"><label>Address</label><textarea id="address"></textarea></div><div class="field full"><label>Profile Photo</label><div class="photo-edit"><img id="preview" alt="Student profile photo"><input id="photoFile" type="file" accept="image/*"></div></div>
-<div class="field full"><label>Firebase UID</label><input id="studentUid" placeholder="Linked after Student account creation"></div>
-</div><div class="actions"><button class="btn primary" type="submit" id="save">Save Student</button><button class="btn secondary" type="button" id="clear">Clear</button></div><div id="msg" class="muted"></div></form></div>
-<div class="card"><div class="tools"><input id="search" placeholder="Search student name, ID, admission number or programme"><select id="filterLevel"><option value="">All Levels</option><option>100</option><option>200</option><option>300</option></select><select id="filterStatus"><option value="">All Status</option><option>Active</option><option>Inactive</option><option>Graduated</option><option>Suspended</option><option>Deferred</option></select></div><div class="table-wrap"><table><thead><tr><th>#</th><th>Student</th><th>Student ID</th><th>Admission No.</th><th>Programme</th><th>Level</th><th>Session</th><th>UID</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rows"><tr><td colspan="10" class="empty">Loading...</td></tr></tbody></table></div></div>
-</section>
+.container{width:min(1280px,calc(100% - 24px));margin:18px auto}
+.card{background:#fff;border:1px solid #dce6e1;border-radius:12px;padding:18px;box-shadow:0 3px 12px rgba(0,0,0,.05);margin-bottom:16px}
+.filter-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.filter-head h2{margin:0;color:#087443;font-size:18px}
+.clear{border:0;background:#e9efec;color:#17362a;border-radius:8px;padding:9px 12px;font-weight:700;cursor:pointer}
+.filters{display:grid;grid-template-columns:2fr repeat(4,1fr) auto;gap:10px;align-items:end}
+.field label{display:block;font-weight:700;font-size:12px;margin-bottom:5px}
+input,select{width:100%;padding:11px 12px;border:1px solid #cbd8d2;border-radius:8px;font-size:14px;background:#fff}
+input:focus,select:focus{outline:none;border-color:#087443;box-shadow:0 0 0 2px rgba(8,116,67,.1)}
+.stats{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.stat{background:#edf5f1;color:#087443;border-radius:8px;padding:8px 11px;font-size:12px;font-weight:700}
+.stat span{font-size:15px;margin-right:4px}
+.table-wrap{width:100%;overflow-x:auto;border:1px solid #e1e8e4;border-radius:9px;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:950px}
+th,td{padding:11px 10px;border-bottom:1px solid #e7ece9;text-align:left;font-size:13px;vertical-align:middle}
+th{background:#f0f5f2;color:#24533e;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.student-cell{display:flex;align-items:center;gap:9px;min-width:190px}
+.avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#e5f0eb;color:#087443;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}
+.name{font-weight:700}
+.muted{font-size:11px;color:#718078;margin-top:2px}
+.badge{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.active{background:#e3f6ea;color:#11733f}
+.inactive{background:#eee;color:#666}
+.actions{display:flex;gap:6px}
+.view{border:0;background:#e8f0ff;color:#225aa0;border-radius:7px;padding:7px 9px;font-weight:700;cursor:pointer}
+.empty{text-align:center;padding:35px;color:#718078}
+.loading{padding:35px;text-align:center;color:#68756f}
+.mobile-list{display:none}
+.mobile-card{border:1px solid #e1e8e4;border-radius:10px;padding:13px;margin-bottom:10px}
+.mobile-top{display:flex;gap:10px;align-items:center}
+.mobile-meta{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.mobile-meta div{background:#f5f8f6;border-radius:7px;padding:8px}
+.mobile-meta small{display:block;color:#718078;font-size:10px}
+.mobile-meta b{font-size:12px}
+.message{display:none;margin-bottom:14px;padding:10px;border-radius:8px;font-size:13px}
+.error{display:block;background:#fde8e8;color:#a51d1d}
 
-<section id="profile" class="panel">
-<div class="card"><div class="title"><h2>Student Profile</h2><span class="badge" id="profileMode">Select a student</span></div><p class="muted">Admin can view and edit the master record. This profile is the Admin view; HOD/student permissions remain controlled by their own portals.</p></div>
-<div class="card" id="profileCard"><div class="empty">Select <b>Profile</b> from the Students tab to open a student here.</div></div>
-</section>
+@media(max-width:1100px){
+  .filters{grid-template-columns:2fr 1fr 1fr 1fr; }
+  .filters .search{grid-column:span 2}
+  .filters .session{grid-column:auto}
+}
+@media(max-width:700px){
+  header{padding:11px 10px}
+  .school-head{align-items:flex-start;gap:9px}
+  .school-logo{width:45px;height:45px}
+  .school-name strong{font-size:13px}
+  .school-name span{font-size:10px}
+  .back{font-size:11px;padding:8px 9px}
+  .page-title{padding:11px 0 2px}
+  .page-title h1{font-size:18px}
+  .page-title p{font-size:12px}
+  .container{width:calc(100% - 16px);margin:12px auto}
+  .card{padding:13px;border-radius:10px}
+  .filter-head h2{font-size:16px}
+  .filters{grid-template-columns:1fr 1fr;gap:9px}
+  .filters .search{grid-column:1/-1}
+  .filters .session{grid-column:auto}
+  .filters .field:last-child{grid-column:1/-1}
+  input,select{font-size:16px;padding:11px}
+  .table-wrap{display:none}
+  .mobile-list{display:block}
+  .stats{gap:6px}
+  .stat{flex:1;min-width:95px;text-align:center}
+}
+@media(max-width:390px){
+  .school-name strong{font-size:12px}
+  .back{font-size:10px;padding:7px 8px}
+  .filters{grid-template-columns:1fr}
+  .filters .search,.filters .session,.filters .field:last-child{grid-column:auto}
+}
+</style>
+</head>
+<body>
 
-<section id="academic" class="panel">
-<div class="card"><div class="title"><h2>Student Academic Records</h2><span class="badge" id="academicName">No student selected</span></div><p class="muted">This view shows the selected student's automatically assigned courses and connected records.</p></div>
-<div class="card"><h3>My Courses</h3><div id="academicCourses" class="grid"><div class="empty">Select a student.</div></div></div>
-<div class="card"><h3>Results</h3><div class="table-wrap"><table><thead><tr><th>Course</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th><th>Status</th></tr></thead><tbody id="resultRows"></tbody></table></div></div>
-<div class="card"><h3>My Payment</h3><div class="table-wrap"><table><thead><tr><th>Category</th><th>Amount</th><th>Session</th><th>Semester</th><th>Status</th></tr></thead><tbody id="paymentRows"></tbody></table></div></div>
-<div class="card"><h3>Attendance</h3><div class="table-wrap"><table><thead><tr><th>Date</th><th>Course</th><th>Status</th></tr></thead><tbody id="attendanceRows"></tbody></table></div></div>
-</section>
+<header>
+  <div class="school-head">
+    <div class="school-brand">
+      <img class="school-logo" src="https://ggchstgusau.edu.ng/_next/image?q=75&url=%2Flogo.png&w=384" alt="Green Garden College logo">
+      <div class="school-name">
+        <strong>Green Garden College of Health Sciences &amp; Technology</strong>
+        <span>Gusau, Zamfara State</span>
+      </div>
+    </div>
+    <a class="back" href="admin.html">← Back to Admin</a>
+  </div>
+  <div class="page-title">
+    <h1>All Students</h1>
+    <p>View and filter all student records in the school</p>
+  </div>
+</header>
+
+<main class="container">
+  <div id="message" class="message"></div>
+
+  <section class="card">
+    <div class="filter-head">
+      <h2>Student Filters</h2>
+      <button class="clear" id="clearFilters" type="button">Clear Filters</button>
+    </div>
+
+    <div class="filters">
+      <div class="field search">
+        <label>Search Student</label>
+        <input id="search" type="search" placeholder="Name, Student ID, Admission No. or email">
+      </div>
+
+      <div class="field">
+        <label>Programme</label>
+        <select id="programmeFilter"><option value="">All Programmes</option></select>
+      </div>
+
+      <div class="field">
+        <label>Level</label>
+        <select id="levelFilter"><option value="">All Levels</option></select>
+      </div>
+
+      <div class="field">
+        <label>Semester</label>
+        <select id="semesterFilter">
+          <option value="">All Semesters</option>
+          <option value="First">First</option>
+          <option value="Second">Second</option>
+        </select>
+      </div>
+
+      <div class="field session">
+        <label>Academic Session</label>
+        <select id="sessionFilter"><option value="">All Sessions</option></select>
+      </div>
+
+      <div class="field">
+        <label>Status</label>
+        <select id="statusFilter">
+          <option value="">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+          <option value="Graduated">Graduated</option>
+          <option value="Suspended">Suspended</option>
+          <option value="Withdrawn">Withdrawn</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span id="totalCount">0</span>Total Students</div>
+      <div class="stat"><span id="visibleCount">0</span>Showing</div>
+      <div class="stat"><span id="activeCount">0</span>Active</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="filter-head">
+      <h2>Student List</h2>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Student ID</th>
+            <th>Admission No.</th>
+            <th>Programme</th>
+            <th>Level</th>
+            <th>Semester</th>
+            <th>Academic Session</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="studentTable">
+          <tr><td colspan="9" class="loading">Loading students...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mobile-list" id="mobileList">
+      <div class="loading">Loading students...</div>
+    </div>
+  </section>
 </main>
+
 <script type="module">
-import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import{getFirestore,collection,addDoc,updateDoc,doc,deleteDoc,onSnapshot,getDocs,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import{getAuth}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-const firebaseConfig={apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
-const app=getApps().length?getApp():initializeApp(firebaseConfig),db=getFirestore(app),auth=getAuth(app),$=id=>document.getElementById(id),clean=v=>String(v??"").trim(),norm=v=>clean(v).toLowerCase(),esc=v=>clean(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-let students=[],selected=null,programmes=[],sessions=[];
-function val(o,keys,d=""){for(const k of keys)if(o?.[k]!=null&&clean(o[k]))return o[k];return d}
-async function rows(c){try{return(await getDocs(collection(db,c))).docs.map(d=>({id:d.id,...d.data()}))}catch(e){console.warn(c,e);return[]}
-async function loadStructure(){programmes=await rows("programmes");sessions=await rows("academicSessions");$("programme").innerHTML='<option value="">Select Programme</option>'+programmes.filter(x=>x.status!=="inactive").map(x=>`<option value="${esc(val(x,["name","programmeName","title"]))}">${esc(val(x,["name","programmeName","title"]))}</option>`).join("");$("academicSession").innerHTML='<option value="">Select Session</option>'+sessions.map(x=>`<option value="${esc(val(x,["name","sessionName","title"]))}">${esc(val(x,["name","sessionName","title"]))}</option>`).join("")}
-function setPhoto(src){$("preview").src=src||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='100%25' height='100%25' fill='%23e8f5ee'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' font-size='28' fill='%23075c45'%3EG%3C/text%3E%3C/svg%3E"}
-async function photoData(file){if(!file)return"";return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const sc=Math.min(1,700/Math.max(i.naturalWidth,i.naturalHeight)),c=document.createElement("canvas");c.width=Math.round(i.naturalWidth*sc);c.height=Math.round(i.naturalHeight*sc);c.getContext("2d").drawImage(i,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",.78))};i.onerror=()=>rej(Error("Invalid image"));i.src=r.result};r.onerror=()=>rej(Error("Could not read image"));r.readAsDataURL(file)})}
-function fill(x){selected=x;const s=(id,v)=>$(id).value=clean(v);s("docId",x.id);s("studentId",x.studentId||x.matricNo);s("admissionNo",x.admissionNo);s("registrationNumber",x.registrationNumber);s("fullName",x.fullName);s("gender",x.gender);s("dateOfBirth",x.dateOfBirth);s("email",x.email);s("phone",x.phone||x.phoneNumber);s("entryYear",x.entryYear);s("programme",x.programme||x.courseOfStudy);s("level",x.level);s("semester",x.semester||"First");s("academicSession",x.academicSession||x.session);s("status",x.status||"Active");s("studyMode",x.studyMode);s("nationality",x.nationality||"Nigerian");s("stateOfOrigin",x.stateOfOrigin);s("lga",x.lga);s("guardianName",x.guardianName);s("guardianPhone",x.guardianPhone);s("guardianRelationship",x.guardianRelationship);s("address",x.address);s("studentUid",x.studentUid||x.authUid||x.firebaseUid||x.uid);setPhoto(x.photo||x.photoURL||x.photoUrl);$("formTitle").textContent="Edit Student";$("save").textContent="Update Student";openProfile();openAcademic()}
-function clearForm(){document.getElementById("studentForm").reset();$("docId").value="";$("save").textContent="Save Student";$("formTitle").textContent="Create Student";setPhoto("");selected=null}
-$("photoFile").onchange=async e=>{try{const d=await photoData(e.target.files[0]);$("preview").src=d||$("preview").src;$("photoFile").dataset.photo=d}catch(x){$("msg").textContent=x.message};
-$("studentForm").onsubmit=async e=>{e.preventDefault();const id=clean($("docId").value),sid=clean($("studentId").value),adm=clean($("admissionNo").value),name=clean($("fullName").value);if(!sid||!adm||!name){$("msg").textContent="Student ID, Admission Number and Full Name are required.";return}if(students.some(x=>x.id!==id&&(norm(x.studentId)===norm(sid)||norm(x.admissionNo)===norm(adm)))){$("msg").textContent="Student ID or Admission Number already exists.";return}const p={studentId:sid,studentID:sid,matricNo:sid,admissionNo:adm,registrationNumber:clean($("registrationNumber").value),fullName:name,studentName:name,name:name,gender:clean($("gender").value),dateOfBirth:clean($("dateOfBirth").value),email:clean($("email").value),phone:clean($("phone").value),phoneNumber:clean($("phone").value),entryYear:clean($("entryYear").value),programme:clean($("programme").value),courseOfStudy:clean($("programme").value),level:clean($("level").value),semester:clean($("semester").value),academicSession:clean($("academicSession").value),session:clean($("academicSession").value),status:clean($("status").value)||"Active",studyMode:clean($("studyMode").value),nationality:clean($("nationality").value),stateOfOrigin:clean($("stateOfOrigin").value),lga:clean($("lga").value),guardianName:clean($("guardianName").value),guardianPhone:clean($("guardianPhone").value),guardianRelationship:clean($("guardianRelationship").value),address:clean($("address").value),studentUid:clean($("studentUid").value),authUid:clean($("studentUid").value),firebaseUid:clean($("studentUid").value),photo:$("photoFile").dataset.photo||selected?.photo||selected?.photoURL||"",photoURL:$("photoFile").dataset.photo||selected?.photo||selected?.photoURL||"",updatedAt:serverTimestamp()};try{id?await updateDoc(doc(db,"students",id),p):(p.createdAt=serverTimestamp(),await addDoc(collection(db,"students"),p));$("msg").textContent="Student saved successfully.";clearForm()}catch(x){$("msg").textContent=x.message||"Could not save student."};
-$("clear").onclick=clearForm;
-function render(){const q=norm($("search").value),lv=$("filterLevel").value,st=$("filterStatus").value;const a=students.filter(x=>(!q||`${x.fullName} ${x.studentId} ${x.admissionNo} ${x.programme}`.toLowerCase().includes(q))&&(!lv||String(x.level)===lv)&&(!st||x.status===st));$("count").textContent=`${a.length} Student${a.length===1?"":"s"}`;$("rows").innerHTML=a.length?a.map((x,i)=>`<tr><td>${i+1}</td><td><b>${esc(x.fullName)}</b></td><td>${esc(x.studentId)}</td><td>${esc(x.admissionNo)}</td><td>${esc(x.programme||"—")}</td><td>${esc(x.level||"—")}</td><td>${esc(x.academicSession||x.session||"—")}</td><td>${x.studentUid||x.authUid?"Linked":"—"}</td><td><span class="status">${esc(x.status||"Active")}</span></td><td class="actions-cell"><button class="smallbtn view" data-view="${x.id}">Profile</button><button class="smallbtn edit" data-edit="${x.id}">Edit</button></td></tr>`).join(""):'<tr><td colspan="10" class="empty">No students found.</td></tr>'}
-["search","filterLevel","filterStatus"].forEach(id=>$(id).oninput=render);
-$("rows").onclick=e=>{const id=e.target.dataset.view||e.target.dataset.edit;if(!id)return;const x=students.find(s=>s.id===id);if(!x)return;fill(x);if(e.target.dataset.view)openProfile()};
-function tab(name){document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id===name))}
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{tab(b.dataset.tab);if(b.dataset.tab==="profile"&&!selected)$("profileCard").innerHTML='<div class="empty">Select a student first.</div>'});
-function openProfile(){if(!selected)return;tab("profile");const p=selected,src=val(p,["photo","photoURL","photoUrl"]);$("profileMode").textContent="Admin editable";$("profileCard").innerHTML=`<div class="profile"><img class="avatar" src="${esc(src)}" onerror="this.style.display='none'" alt="Student profile photo"><div><h1>${esc(val(p,["fullName","name"],"Student"))}</h1><div class="muted">Student ID: ${esc(val(p,["studentId","matricNo"],"—"))} • Admission No: ${esc(p.admissionNo||"—")}</div><div class="meta-grid"><div class="meta"><small>Programme</small><b>${esc(p.programme||p.courseOfStudy||"—")}</b></div><div class="meta"><small>Level</small><b>${esc(p.level||"—")}</b></div><div class="meta"><small>Session</small><b>${esc(p.academicSession||p.session||"—")}</b></div><div class="meta"><small>Semester</small><b>${esc(p.semester||"—")}</b></div><div class="meta"><small>Email</small><b>${esc(p.email||"—")}</b></div><div class="meta"><small>Phone</small><b>${esc(p.phone||p.phoneNumber||"—")}</b></div><div class="meta"><small>Gender</small><b>${esc(p.gender||"—")}</b></div><div class="meta"><small>Status</small><b>${esc(p.status||"—")}</b></div></div><div class="actions"><button class="btn primary" id="profileEdit">Edit Student</button><button class="btn secondary" id="profileAcademic">Academic Records</button></div></div></div>`;$("profileEdit").onclick=()=>{tab("students");fill(p)};$("profileAcademic").onclick=openAcademic}
-async function coursesFor(p){const [maps,courses,progs,levels]=await Promise.all([rows("curriculumMappings"),rows("courses"),rows("programmes"),rows("academicLevels")]);const pn=p.programme||p.courseOfStudy,ln=p.level,pid=progs.find(x=>norm(val(x,["name","programmeName","title"]))===norm(pn)||norm(x.code)===norm(pn))?.id||"",lid=levels.find(x=>norm(val(x,["name","levelName","title"]))===norm(ln)||norm(x.code)===norm(ln))?.id||"";return maps.filter(m=>(!pid||norm(m.programmeId)===norm(pid)||norm(m.programmeName)===norm(pn))&&(!lid||norm(m.levelId)===norm(lid)||norm(m.levelName)===norm(ln))&&(!p.semester||!m.semesterName||norm(m.semesterName)===norm(p.semester))).map(m=>courses.find(c=>c.id===m.courseId)||m).filter(Boolean)}
-async function openAcademic(){if(!selected)return;tab("academic");$("academicName").textContent=selected.fullName||selected.studentId;const cs=await coursesFor(selected);$("academicCourses").innerHTML=cs.length?cs.map(c=>`<div class="course"><b>${esc(val(c,["courseCode","code"],"—"))}</b><div>${esc(val(c,["courseTitle","courseName","name"],"Course"))}</div><div class="muted">${esc(val(c,["courseUnit","unit"],"—"))} Units</div></div>`).join(""):'<div class="empty">No courses assigned to this Programme and Level.</div>';const codes=new Set(cs.map(c=>norm(val(c,["courseCode","code"]))));const sid=[selected.studentId,selected.id,selected.studentUid,selected.authUid].map(norm);const matchStudent=r=>[r.studentId,r.studentID,r.matricNo,r.admissionNo,r.studentUid,r.authUid,r.studentDocId].map(norm).some(x=>x&&sid.includes(x));const matchCourse=r=>codes.has(norm(val(r,["courseCode","code"])))||cs.some(c=>norm(c.id)===norm(val(r,["courseId","courseID"])));const [res,pay,att]=await Promise.all([rows("results"),rows("payments"),rows("attendance")]);const rr=res.filter(matchStudent).filter(r=>!val(r,["courseCode","code","courseId"])||matchCourse(r));$("resultRows").innerHTML=rr.length?rr.map(r=>`<tr><td>${esc(val(r,["courseCode","code"],"—"))}</td><td>${esc(val(r,["ca","caGrade","caScore"],"—"))}</td><td>${esc(val(r,["exam","examGrade","examScore"],"—"))}</td><td>${esc(val(r,["total","totalGrade","score"],"—"))}</td><td>${esc(val(r,["grade","letterGrade"],"—"))}</td><td>${esc(val(r,["status"],"—"))}</td></tr>`).join(""):'<tr><td colspan="6" class="empty">No results.</td></tr>';$("paymentRows").innerHTML=pay.filter(matchStudent).map(r=>`<tr><td>${esc(val(r,["feeCategory","category","title"],"—"))}</td><td>${esc(val(r,["amount"],"—"))}</td><td>${esc(val(r,["academicSession","session"],"—"))}</td><td>${esc(val(r,["semester"],"—"))}</td><td>${esc(val(r,["paymentStatus","status"],"—"))}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">No payment records.</td></tr>';$("attendanceRows").innerHTML=att.filter(matchStudent).filter(r=>!val(r,["courseCode","code","courseId"])||matchCourse(r)).map(r=>`<tr><td>${esc(val(r,["date","attendanceDate"],"—"))}</td><td>${esc(val(r,["courseCode","code"],"—"))}</td><td>${esc(val(r,["status","attendanceStatus"],r.present===true?"Present":"Absent"))}</td></tr>`).join("")||'<tr><td colspan="3" class="empty">No attendance records.</td></tr>'}
-loadStructure();setPhoto("");onSnapshot(collection(db,"students"),snap=>{students=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>norm(a.fullName).localeCompare(norm(b.fullName)));render();if(selected){const n=students.find(x=>x.id===selected.id);if(n){selected=n;openProfile()}});
-</script></body></html>
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {
+  getFirestore, collection, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+  authDomain: "ggchst-sms-new.firebaseapp.com",
+  projectId: "ggchst-sms-new",
+  storageBucket: "ggchst-sms-new.firebasestorage.app",
+  messagingSenderId: "942770190211",
+  appId: "1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const $ = id => document.getElementById(id);
+const search = $("search");
+const programmeFilter = $("programmeFilter");
+const levelFilter = $("levelFilter");
+const semesterFilter = $("semesterFilter");
+const sessionFilter = $("sessionFilter");
+const statusFilter = $("statusFilter");
+const table = $("studentTable");
+const mobileList = $("mobileList");
+
+let students = [];
+
+function val(x, keys, fallback="") {
+  for (const key of keys) {
+    if (x && x[key] !== undefined && x[key] !== null && String(x[key]).trim() !== "") {
+      return String(x[key]).trim();
+    }
+  }
+  return fallback;
+}
+
+function norm(v) {
+  return String(v ?? "").trim().toLowerCase();
+}
+
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
+}
+
+function initials(name) {
+  return String(name || "Student")
+    .split(/\s+/).filter(Boolean).slice(0,2)
+    .map(x => x[0].toUpperCase()).join("") || "ST";
+}
+
+function studentName(s) {
+  return val(s,["fullName","studentName","name"],"Student");
+}
+
+function studentId(s) {
+  return val(s,["studentId","studentID","matricNo","schoolId"],"—");
+}
+
+function admissionNo(s) {
+  return val(s,["admissionNumber","admissionNo","registrationNumber"],"—");
+}
+
+function programme(s) {
+  return val(s,["programmeName","programme","courseOfStudy"],"—");
+}
+
+function level(s) {
+  return val(s,["levelName","level"],"—");
+}
+
+function semester(s) {
+  return val(s,["semester"],"—");
+}
+
+function session(s) {
+  return val(s,["academicSession","session"],"—");
+}
+
+function status(s) {
+  return val(s,["status","accountStatus"],"Active");
+}
+
+function email(s) {
+  return val(s,["email","authEmail"],"");
+}
+
+function photo(s) {
+  return val(s,["photo","photoURL","photoUrl","profilePhoto","profilePicture"],"");
+}
+
+function uniqueValues(keyFn) {
+  return [...new Set(students.map(keyFn).filter(v => v && v !== "—"))]
+    .sort((a,b) => a.localeCompare(b,undefined,{numeric:true,sensitivity:"base"}));
+}
+
+function fillFilter(select, values, label) {
+  const current = select.value;
+  select.innerHTML = `<option value="">${label}</option>`;
+  values.forEach(v => {
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = v;
+    select.appendChild(o);
+  });
+  if (values.includes(current)) select.value = current;
+}
+
+function refreshFilters() {
+  fillFilter(programmeFilter, uniqueValues(programme), "All Programmes");
+  fillFilter(levelFilter, uniqueValues(level), "All Levels");
+  fillFilter(sessionFilter, uniqueValues(session), "All Sessions");
+}
+
+function filteredStudents() {
+  const q = norm(search.value);
+  const p = norm(programmeFilter.value);
+  const l = norm(levelFilter.value);
+  const sem = norm(semesterFilter.value);
+  const ses = norm(sessionFilter.value);
+  const st = norm(statusFilter.value);
+
+  return students.filter(s => {
+    const haystack = [
+      studentName(s), studentId(s), admissionNo(s),
+      programme(s), level(s), semester(s), session(s), email(s), status(s)
+    ].map(norm);
+
+    return (!q || haystack.some(v => v.includes(q))) &&
+           (!p || norm(programme(s)) === p) &&
+           (!l || norm(level(s)) === l) &&
+           (!sem || norm(semester(s)) === sem) &&
+           (!ses || norm(session(s)) === ses) &&
+           (!st || norm(status(s)) === st);
+  });
+}
+
+function avatarMarkup(s) {
+  const p = photo(s);
+  return p
+    ? `<img class="avatar" src="${esc(p)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="avatar" style="display:none">${esc(initials(studentName(s)))}</span>`
+    : `<span class="avatar">${esc(initials(studentName(s)))}</span>`;
+}
+
+function render() {
+  const list = filteredStudents();
+
+  $("totalCount").textContent = students.length;
+  $("visibleCount").textContent = list.length;
+  $("activeCount").textContent = students.filter(s => norm(status(s)) === "active").length;
+
+  if (!list.length) {
+    table.innerHTML = '<tr><td colspan="9" class="empty">No students match the selected filters.</td></tr>';
+    mobileList.innerHTML = '<div class="empty">No students match the selected filters.</div>';
+    return;
+  }
+
+  table.innerHTML = list.map(s => `
+    <tr>
+      <td>
+        <div class="student-cell">
+          ${avatarMarkup(s)}
+          <div>
+            <div class="name">${esc(studentName(s))}</div>
+            <div class="muted">${esc(email(s) || "No email")}</div>
+          </div>
+        </div>
+      </td>
+      <td><strong>${esc(studentId(s))}</strong></td>
+      <td>${esc(admissionNo(s))}</td>
+      <td>${esc(programme(s))}</td>
+      <td>${esc(level(s))}</td>
+      <td>${esc(semester(s))}</td>
+      <td>${esc(session(s))}</td>
+      <td><span class="badge ${norm(status(s)) === "active" ? "active" : "inactive"}">${esc(status(s))}</span></td>
+      <td><div class="actions"><button class="view" data-view="${esc(s.id)}">View</button></div></td>
+    </tr>
+  `).join("");
+
+  mobileList.innerHTML = list.map(s => `
+    <div class="mobile-card">
+      <div class="mobile-top">
+        ${avatarMarkup(s)}
+        <div>
+          <div class="name">${esc(studentName(s))}</div>
+          <div class="muted">${esc(studentId(s))} • ${esc(admissionNo(s))}</div>
+        </div>
+      </div>
+      <div class="mobile-meta">
+        <div><small>Programme</small><b>${esc(programme(s))}</b></div>
+        <div><small>Level</small><b>${esc(level(s))}</b></div>
+        <div><small>Semester</small><b>${esc(semester(s))}</b></div>
+        <div><small>Session</small><b>${esc(session(s))}</b></div>
+        <div><small>Status</small><b>${esc(status(s))}</b></div>
+        <div><small>Admission No.</small><b>${esc(admissionNo(s))}</b></div>
+      </div>
+      <div style="margin-top:10px">
+        <button class="view" data-view="${esc(s.id)}">View Student</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function clearFilters() {
+  search.value = "";
+  programmeFilter.value = "";
+  levelFilter.value = "";
+  semesterFilter.value = "";
+  sessionFilter.value = "";
+  statusFilter.value = "";
+  render();
+}
+
+[search,programmeFilter,levelFilter,semesterFilter,sessionFilter,statusFilter]
+  .forEach(el => el.addEventListener(el === search ? "input" : "change", render));
+
+$("clearFilters").addEventListener("click", clearFilters);
+
+function viewStudent(id) {
+  const s = students.find(x => x.id === id);
+  if (!s) return;
+
+  // Opens the existing admin student page when available.
+  // Student ID is passed so the master record can be resolved there.
+  const sid = studentId(s);
+  const url = `student.html?studentId=${encodeURIComponent(sid)}`;
+  window.location.href = url;
+}
+
+document.addEventListener("click", e => {
+  const btn = e.target.closest("[data-view]");
+  if (btn) viewStudent(btn.dataset.view);
+});
+
+onSnapshot(collection(db,"students"), snap => {
+  students = snap.docs.map(d => ({id:d.id,...d.data()}));
+  refreshFilters();
+  render();
+}, err => {
+  console.error(err);
+  table.innerHTML = '<tr><td colspan="9" class="empty">Could not load students.</td></tr>';
+  mobileList.innerHTML = '<div class="empty">Could not load students from Firebase. Check Firestore permissions.</div>';
+  $("message").textContent = "Could not load student records from Firebase. Check your Firestore Security Rules.";
+  $("message").style.display = "block";
+});
+</script>
+</body>
+</html>
