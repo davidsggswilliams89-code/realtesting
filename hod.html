@@ -164,7 +164,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
  <div id="views">
 <section id="dashboard" class="view">
 <div class="grid">
-<div class="card"><div class="small">Department Students</div><div class="stat" id="studentCount">8</div><div class="mini">Active students</div></div>
+<div class="card"><div class="small">Programme Students</div><div class="stat" id="studentCount">8</div><div class="mini">Active students</div></div>
 <div class="card"><div class="small">Lecturers</div><div class="stat" id="lecturerCount">5</div><div class="mini">Teaching staff</div></div>
 <div class="card"><div class="small">Pending Verification</div><div class="stat" id="pendingCount">4</div><div class="mini">Submitted results</div></div>
 <div class="card"><div class="small">Active Courses</div><div class="stat" id="courseCount">8</div><div class="mini">Department courses</div></div>
@@ -179,14 +179,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
 </div></div>
 </section>
 
-<section id="students" class="view hidden"><div class="panel"><h2>Department Students</h2>
+<section id="students" class="view hidden"><div class="panel"><h2>Programme Students</h2>
 <div class="toolbar"><input id="studentSearch" placeholder="Search name, matric no. or programme..."><select id="studentLevel"><option value="">All levels</option><option>100</option><option>200</option><option>300</option><option>400</option></select></div>
 <div class="table-wrap"><table><thead><tr><th>Matric No.</th><th>Student</th><th>Level</th><th>Programme</th><th>Phone</th><th>Email</th><th>Status</th><th>UID</th><th>Profile</th></tr></thead><tbody id="studentRows"></tbody></table></div></div></section>
 
 <section id="lecturers" class="view hidden"><div class="panel">
 <div class="toolbar">
-  <div><h2 style="margin:0">Department Lecturers</h2><div class="small">View lecturers created by Admin or Registrar who belong to your department. This same list is used when assigning lecturers to courses.</div></div>
-  <span style="flex:1"></span><span class="lecturer-dept-badge" id="lecturerDepartmentBadge">Department</span>
+  <div><h2 style="margin:0">Programme Lecturers</h2><div class="small">View lecturers created by Admin or Registrar who belong to your department. This same list is used when assigning lecturers to courses.</div></div>
+  <span style="flex:1"></span><span class="lecturer-dept-badge" id="lecturerDepartmentBadge">Programme</span>
 </div>
 <div class="toolbar" style="grid-template-columns:1fr 240px">
   <input id="lecturerSearch" placeholder="Search lecturer name, Staff ID or email...">
@@ -195,10 +195,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
 <div class="table-wrap"><table><thead><tr><th>#</th><th>Lecturer</th><th>Staff ID</th><th>Department</th><th>Rank</th><th>Qualification</th><th>Email</th><th>Phone</th><th>Status</th><th>Assigned Courses</th><th>Action</th></tr></thead><tbody id="lecturerRows"><tr><td colspan="11" class="empty">Loading lecturers...</td></tr></tbody></table></div>
 </div></section>
 
-<section id="courses" class="view hidden"><div class="panel"><h2>Department Courses & Lecturer Assignments</h2>
-<div class="toolbar" style="grid-template-columns:1fr 1fr 1fr"><select id="hodDepartment"><option value="">Loading departments...</option></select><input id="courseSearch" placeholder="Search course code or title..."><select id="courseLevel"><option value="">All levels</option><option>100</option><option>200</option><option>300</option><option>400</option><option>500</option><option>100 Level</option><option>200 Level</option><option>300 Level</option><option>400 Level</option><option>500 Level</option></select></div>
-<div class="notice" style="margin-bottom:14px">Courses created in Registrar/Admin are loaded live from the shared Firebase database. Only courses belonging to the selected department are displayed. Click <b>Assign Lecturer</b> at the end of a course row to choose an active lecturer from the same department.</div>
-<div class="table-wrap"><table><thead><tr><th>Code</th><th>Course Title</th><th>Unit</th><th>Faculty</th><th>Department</th><th>Level</th><th>Session</th><th>Lecturer</th><th>Students</th><th>Action</th></tr></thead><tbody id="courseRows"></tbody></table></div></div></section>
+<section id="courses" class="view hidden"><div class="panel"><h2>Programme Courses & Lecturer Assignments</h2>
+<div class="toolbar" style="grid-template-columns:1fr 1fr 1fr"><select id="hodProgramme"><option value="">Loading programmes...</option></select><input id="courseSearch" placeholder="Search course code or title..."><select id="courseLevel"><option value="">All levels</option><option>100</option><option>200</option><option>300</option><option>400</option><option>500</option><option>100 Level</option><option>200 Level</option><option>300 Level</option><option>400 Level</option><option>500 Level</option></select></div>
+<div class="notice" style="margin-bottom:14px">Courses created in Registrar/Admin are loaded live from the shared Firebase database. Only courses belonging to the selected Programme are displayed. Click <b>Assign Lecturer</b> at the end of a course row to choose an active lecturer associated with that Programme.</div>
+<div class="table-wrap"><table><thead><tr><th>Code</th><th>Course Title</th><th>Unit</th><th>Programme</th><th>Level</th><th>Semester</th><th>Lecturer</th><th>Students</th><th>Action</th></tr></thead><tbody id="courseRows"></tbody></table></div></div></section>
 
 <section id="results" class="view hidden"><div class="panel"><h2>Submitted Results • Approval Queue</h2>
 <div class="notice" style="margin-bottom:14px">Filter submitted results by course and lecturer, then approve or reject each submission.</div>
@@ -212,7 +212,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
 <div class="card"><div class="small">Approval Rate</div><div class="stat" id="reportApproval">38%</div></div>
 <div class="card"><div class="small">Courses Assigned</div><div class="stat" id="reportAssigned">8</div></div>
 <div class="card"><div class="small">Students Registered</div><div class="stat" id="reportStudents">8</div></div>
-</div><div class="section panel"><h2>Department Summary</h2><div class="table-wrap"><table><thead><tr><th>Level</th><th>Students</th><th>Courses</th><th>Pending Results</th><th>Approved Results</th></tr></thead><tbody id="reportRows"></tbody></table></div></div></section>
+</div><div class="section panel"><h2>Programme Summary</h2><div class="table-wrap"><table><thead><tr><th>Level</th><th>Students</th><th>Courses</th><th>Pending Results</th><th>Approved Results</th></tr></thead><tbody id="reportRows"></tbody></table></div></div></section>
 </div></main></div>
 <div id="lecturerViewModal" class="modal" aria-hidden="true"><div class="modalbox" style="max-width:620px"><div style="display:flex;justify-content:space-between;align-items:center"><div><h2 style="margin:0">Lecturer Details</h2><div class="small">Read-only lecturer profile from the shared Firebase database.</div></div><button class="close" id="closeLecturerView">×</button></div><div id="lecturerViewContent" style="margin-top:16px"></div></div></div>
 <div id="assignModal" class="modal" aria-hidden="true"><div class="modalbox" style="max-width:650px"><div style="display:flex;justify-content:space-between;align-items:center"><div><h2 id="assignTitle" style="margin:0">Assign Lecturer</h2><div class="small" id="assignSubtitle">Select a lecturer from this department.</div></div><button class="close" id="closeAssign">×</button></div><div id="lecturerChoices" style="margin-top:16px"></div></div></div>
@@ -286,6 +286,8 @@ function normalizeLecturer(snap) {
     ...d,
     staffId: d.staffId || d.staffID || d.id || snap.id,
     name: d.name || d.fullName || d.lecturerName || "",
+    programme: d.programme || d.programmeName || d.courseOfStudy || "",
+    programmeId: d.programmeId || "",
     department: d.department || d.dept || "",
     rank: d.rank || d.academicRank || "",
     qualification: d.qualification || "",
@@ -313,46 +315,65 @@ function notice(text, error=false) {
   n.style.color = error ? "#9b1c1c" : "";
 }
 
-function currentDepartment() {
-  return $("hodDepartment")?.value || localStorage.getItem("hodDepartment") || "";
+function currentProgramme() {
+  return $("hodProgramme")?.value || localStorage.getItem("hodProgramme") || "";
 }
 
-function allDepartments() {
+function allProgrammes() {
   const set = new Map();
-  [...baseDepartments, ...courses.map(c => c.department), ...lecturers.map(l => l.department), ...studentDepartments]
-    .filter(Boolean).forEach(d => set.set(key(d), d));
-  return [...set.values()].sort((a,b) => a.localeCompare(b));
+  [...window.__ggchstHodProgrammes || [], ...courses.map(c => ({
+    id: c.programmeId || "",
+    name: c.programme || ""
+  })), ...lecturers.map(l => ({
+    id: l.programmeId || "",
+    name: l.programme || ""
+  }))]
+    .filter(p => p && (p.name || p.id))
+    .forEach(p => {
+      const name = p.name || p.id;
+      set.set(key(p.id || name), {id:p.id || "", name});
+    });
+  return [...set.values()].sort((a,b) => String(a.name).localeCompare(String(b.name)));
 }
 
-function fillDepartments() {
-  const select = $("hodDepartment");
+function fillProgrammes() {
+  const select = $("hodProgramme");
   if (!select) return;
 
-  const list = allDepartments();
-  const saved = localStorage.getItem("hodDepartment") || "";
-  const preferred = list.find(d => key(d) === key(saved))
-                || list.find(d => key(d) === key("Health Information Management"))
-                || list[0] || "";
+  const list = allProgrammes();
+  const saved = localStorage.getItem("hodProgramme") || "";
+  const preferred =
+    list.find(p => key(p.id) === key(saved)) ||
+    list.find(p => key(p.name) === key(saved)) ||
+    list[0] || null;
 
   select.innerHTML =
-    '<option value="">Select department</option>' +
-    list.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join("");
+    '<option value="">Select programme</option>' +
+    list.map(p => `<option value="${esc(p.id || p.name)}">${esc(p.name)}${p.id ? "" : ""}</option>`).join("");
 
   if (preferred) {
-    select.value = preferred;
-    localStorage.setItem("hodDepartment", preferred);
+    select.value = preferred.id || preferred.name;
+    localStorage.setItem("hodProgramme", preferred.id || preferred.name);
   }
 }
 
-function syncLecturerDepartment() {
-  const dep = currentDepartment();
+function programmeMatches(record, programmeValue) {
+  if (!programmeValue) return true;
+  const rid = key(record.programmeId || "");
+  const rname = key(record.programme || record.programmeName || record.courseOfStudy || "");
+  const selected = key(programmeValue);
+  return rid === selected || rname === selected;
+}
+
+function syncLecturerProgramme() {
+  const programme = currentProgramme();
   const el = $("lecturerDepartmentFilter");
   if (el) {
-    el.innerHTML = `<option value="${esc(dep)}">Current: ${esc(dep || "Select department")}</option>`;
-    el.value = dep;
+    el.innerHTML = `<option value="${esc(programme)}">Current: ${esc(programme || "Select programme")}</option>`;
+    el.value = programme;
   }
   if ($("lecturerDepartmentBadge")) {
-    $("lecturerDepartmentBadge").textContent = dep || "Department";
+    $("lecturerDepartmentBadge").textContent = programme || "Programme";
   }
 }
 
@@ -360,13 +381,13 @@ function renderCourses() {
   const rows = $("courseRows");
   if (!rows) return;
 
-  const dep = currentDepartment();
+  const programme = currentProgramme();
   const q = ($("courseSearch")?.value || "").trim().toLowerCase();
   const level = $("courseLevel")?.value || "";
 
   const list = courses.filter(c => {
     const hay = `${c.courseCode} ${c.courseName} ${c.programme} ${c.semester} ${c.courseType}`.toLowerCase();
-    return key(c.department) === key(dep) &&
+    return programmeMatches(c, programme) &&
       (!q || hay.includes(q)) &&
       (!level || key(c.level) === key(level));
   });
@@ -375,8 +396,8 @@ function renderCourses() {
 
   if (!list.length) {
     rows.innerHTML =
-      `<tr><td colspan="10" class="empty">${
-        dep ? `No courses found for ${esc(dep)}.` : "Select a department to view courses."
+      `<tr><td colspan="9" class="empty">${
+        programme ? `No courses found for ${esc(programmeNameForValue(programme))}.` : "Select a programme to view courses."
       }</td></tr>`;
     return;
   }
@@ -386,8 +407,7 @@ function renderCourses() {
       <td><b>${esc(c.courseCode)}</b></td>
       <td>${esc(c.courseName)}</td>
       <td>${esc(c.creditUnit)}</td>
-      <td>${esc(c.faculty || "-")}</td>
-      <td>${esc(c.department || "-")}</td>
+      <td>${esc(c.programme || "-")}</td>
       <td>${esc(c.level || "-")}</td>
       <td>${esc(c.semester || c.session || "-")}</td>
       <td>${esc(c.assignedLecturer || "Not assigned")}</td>
@@ -401,27 +421,34 @@ function renderCourses() {
   `).join("");
 }
 
+function programmeNameForValue(value) {
+  const p = (window.__ggchstHodProgrammes || []).find(x =>
+    key(x.id) === key(value) || key(x.name || x.programmeName) === key(value)
+  );
+  return p ? (p.name || p.programmeName || value) : value;
+}
+
 function renderLecturerList() {
   const rows = $("lecturerRows");
   if (!rows) return;
 
-  const dep = currentDepartment();
+  const programme = currentProgramme();
   const q = ($("lecturerSearch")?.value || "").trim().toLowerCase();
 
   const list = lecturers.filter(l =>
-    key(l.department) === key(dep) &&
+    (programmeMatches(l, programme) || (!l.programme && !programme)) &&
     (!q || `${l.name} ${l.staffId} ${l.email} ${l.phone} ${l.rank} ${l.qualification}`
       .toLowerCase().includes(q))
   );
 
   if ($("lecturerDepartmentBadge")) {
-    $("lecturerDepartmentBadge").textContent = dep || "Department";
+    $("lecturerDepartmentBadge").textContent = programme || "Programme";
   }
 
   if (!list.length) {
     rows.innerHTML =
       `<tr><td colspan="11" class="empty">${
-        dep ? `No lecturer profiles found for ${esc(dep)}.` : "Select a department to view lecturers."
+        programme ? `No lecturer profiles found for ${esc(programme)}.` : "Select a programme to view lecturers."
       }</td></tr>`;
     return;
   }
@@ -449,7 +476,7 @@ function renderLecturerList() {
         </div>
       </td>
       <td>${esc(l.staffId)}</td>
-      <td>${esc(l.department || "-")}</td>
+      <td>${esc(l.programme || "-")}</td>
       <td>${esc(l.rank || "-")}</td>
       <td>${esc(l.qualification || "-")}</td>
       <td>${esc(l.email || "-")}</td>
@@ -466,10 +493,10 @@ function openAssign(course) {
 
   $("assignTitle").textContent = `Assign Lecturer • ${course.courseCode}`;
   $("assignSubtitle").textContent =
-    `${course.courseName} • ${course.department || "Department"}`;
+    `${course.courseName} • ${course.programme || "Programme"}`;
 
   const list = lecturers.filter(l =>
-    key(l.department) === key(course.department) &&
+    programmeMatches(l, course.programmeId || course.programme) &&
     String(l.status || "Active").toLowerCase() === "active"
   );
 
@@ -482,7 +509,7 @@ function openAssign(course) {
         <span style="float:right;color:var(--brand);font-weight:800">Select →</span>
       </button>
     `).join("")
-    : `<div class="empty">No active lecturers were found in <b>${esc(course.department)}</b>.</div>`;
+    : `<div class="empty">No active lecturers were found for <b>${esc(course.programme || "this Programme")}</b>.</div>`;
 
   $("assignModal").classList.add("show");
   $("assignModal").setAttribute("aria-hidden","false");
@@ -506,7 +533,8 @@ async function assignLecturer(id) {
       assignedLecturerId: lecturer.id,
       lecturer: lecturer.name,
       lecturerId: lecturer.id,
-      assignmentDepartment: selected.department || "",
+      assignmentProgramme: selected.programme || "",
+      assignmentProgrammeId: selected.programmeId || "",
       assignmentUpdatedAt: serverTimestamp()
     });
 
@@ -535,11 +563,13 @@ $("assignModal").onclick = e => {
   if (e.target.id === "assignModal") closeAssign();
 };
 
-$("hodDepartment").onchange = () => {
-  localStorage.setItem("hodDepartment", $("hodDepartment").value);
-  syncLecturerDepartment();
+$("hodProgramme").onchange = () => {
+  localStorage.setItem("hodProgramme", $("hodProgramme").value);
+  syncLecturerProgramme();
   renderCourses();
   renderLecturerList();
+  renderSharedStudents?.();
+  renderSharedResults?.();
 };
 
 $("courseSearch").oninput = renderCourses;
@@ -563,7 +593,7 @@ $("lecturerRows").addEventListener("click", e => {
     <div class="detail-grid">
       <div><b>Name</b><span>${esc(l.name)}</span></div>
       <div><b>Staff ID</b><span>${esc(l.staffId)}</span></div>
-      <div><b>Department</b><span>${esc(l.department || "-")}</span></div>
+      <div><b>Programme</b><span>${esc(l.programme || "-")}</span></div>
       <div><b>Academic Rank</b><span>${esc(l.rank || "-")}</span></div>
       <div><b>Qualification</b><span>${esc(l.qualification || "-")}</span></div>
       <div><b>Gender</b><span>${esc(l.gender || "-")}</span></div>
@@ -600,22 +630,22 @@ function showView(viewId) {
 
   const titles = {
     dashboard:"HOD Dashboard",
-    students:"Department Students",
-    lecturers:"Department Lecturers",
-    courses:"Department Courses & Lecturer Assignments",
+    students:"Programme Students",
+    lecturers:"Programme Lecturers",
+    courses:"Programme Courses & Lecturer Assignments",
     results:"Result Verification",
-    timetable:"Department Timetable",
-    reports:"Department Reports"
+    timetable:"Programme Timetable",
+    reports:"Programme Reports"
   };
   if ($("pageTitle")) $("pageTitle").textContent = titles[viewId] || "HOD Dashboard";
 
   if (viewId === "courses") {
-    fillDepartments();
-    syncLecturerDepartment();
+    fillProgrammes();
+    syncLecturerProgramme();
     renderCourses();
   }
   if (viewId === "lecturers") {
-    syncLecturerDepartment();
+    syncLecturerProgramme();
     renderLecturerList();
   }
 }
@@ -634,14 +664,24 @@ document.querySelectorAll("[data-go]").forEach(button => {
   });
 });
 
-onSnapshot(collection(db, "students"), snap => {
-  studentDepartments = snap.docs.map(d => { const x = d.data() || {}; return x.department || x.departmentName || x.dept || ""; }).filter(Boolean);
-  fillDepartments(); syncLecturerDepartment(); renderCourses(); renderLecturerList();
-}, err => console.error("HOD department sync:", err));
+onSnapshot(collection(db, "programmes"), snap => {
+  window.__ggchstHodProgrammes = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  fillProgrammes();
+  syncLecturerProgramme();
+  renderCourses();
+  renderLecturerList();
+}, err => {
+  console.error("HOD programme sync:", err);
+  const el = $("hodProgramme");
+  if (el) {
+    el.innerHTML = '<option value="">Unable to load programmes</option>';
+  }
+  notice("Could not read the /programmes collection. Check Firestore Rules for read access to /programmes.", true);
+});
 
 function startSharedFirebaseSync() {
-  fillDepartments();
-  syncLecturerDepartment();
+  fillProgrammes();
+  syncLecturerProgramme();
   renderCourses();
   renderLecturerList();
 
@@ -653,8 +693,8 @@ function startSharedFirebaseSync() {
         .filter(l => l.name || l.staffId)
         .sort((a,b) => String(a.name).localeCompare(String(b.name)));
 
-      fillDepartments();
-      syncLecturerDepartment();
+      fillProgrammes();
+      syncLecturerProgramme();
       renderLecturerList();
       renderCourses();
 
@@ -676,15 +716,15 @@ function startSharedFirebaseSync() {
       window.__ggchstHodCourses = courses;
       window.refreshHodCourseLevels?.();
 
-      fillDepartments();
-      syncLecturerDepartment();
+      fillProgrammes();
+      syncLecturerProgramme();
       renderCourses();
       renderLecturerList();
 
       if ($("courseCount")) {
-        const dep = currentDepartment();
+        const programme = currentProgramme();
         $("courseCount").textContent =
-          String(courses.filter(c => key(c.department) === key(dep)).length);
+          String(courses.filter(c => programmeMatches(c, programme)).length);
       }
 
       notice(`Connected: ${courses.length} course${courses.length === 1 ? "" : "s"} received from the shared Firebase database.`);
@@ -726,17 +766,17 @@ let sharedResults=[];
 
 function studentMatric(x){return x.studentId||x.matricNo||x.admissionNo||x.registrationNumber||x.regNo||x.id||"";}
 function studentName(x){return x.fullName||x.studentName||x.name||"Unnamed Student";}
-function currentDept(){return $("hodDepartment")?.value||localStorage.getItem("hodDepartment")||"";}
-function studentDepartment(x){return x.department||x.departmentName||x.dept||"";}
+function currentProgrammeValue(){return $("hodProgramme")?.value||localStorage.getItem("hodProgramme")||"";}
+function studentProgramme(x){return x.programme||x.programmeName||x.courseOfStudy||"";}
 
 function renderSharedStudents(){
   const rows=$("studentRows"); if(!rows)return;
   const q=clean($("studentSearch")?.value).toLowerCase();
   const level=clean($("studentLevel")?.value);
-  const dep=key(currentDept());
+  const programme=key(currentProgrammeValue());
   const list=sharedStudents.filter(x=>{
-    const text=`${studentName(x)} ${studentMatric(x)} ${x.programme||x.courseOfStudy||""} ${studentDepartment(x)}`.toLowerCase();
-    return (!q||text.includes(q))&&(!level||key(x.level)===key(level))&&(!dep||key(studentDepartment(x))===dep);
+    const text=`${studentName(x)} ${studentMatric(x)} ${studentProgramme(x)}`.toLowerCase();
+    return (!q||text.includes(q))&&(!level||key(x.level)===key(level))&&(!programme||key(studentProgramme(x))===programme);
   });
   rows.innerHTML=list.length?list.map(x=>`
     <tr>
@@ -749,7 +789,7 @@ function renderSharedStudents(){
       <td>${esc(x.status||"Active")}</td>
       <td>${x.studentUid||x.authUid||x.firebaseUid||x.uid?esc(String(x.studentUid||x.authUid||x.firebaseUid||x.uid).slice(0,12))+"…":"—"}</td>
       <td><a class="action" href="student-profile.html?studentId=${encodeURIComponent(studentMatric(x))}">Profile</a></td>
-    </tr>`).join(""):'<tr><td colspan="9" class="empty">No live student records found for this department.</td></tr>';
+    </tr>`).join(""):'<tr><td colspan="9" class="empty">No live student records found for this programme.</td></tr>';
   if($("studentCount"))$("studentCount").textContent=String(list.length);
 }
 
@@ -770,7 +810,7 @@ function renderSharedResults(){
   const course=clean($("resultCourse")?.value);
   const lecturer=clean($("resultLecturer")?.value);
   const status=clean($("resultStatus")?.value);
-  const dep=key(currentDept());
+  const programme=key(currentProgrammeValue());
 
   const list=sharedResults.filter(x=>{
     const s=`${x.studentName||x.fullName||x.name||""} ${x.matricNo||x.studentId||""} ${x.courseCode||x.course||""} ${x.courseName||x.title||""}`.toLowerCase();
@@ -778,7 +818,7 @@ function renderSharedResults(){
       &&(!course||key(x.courseCode||x.course)===key(course))
       &&(!lecturer||key(x.lecturer||x.lecturerName)===key(lecturer))
       &&(!status||key(x.status)===key(status))
-      &&(!dep||!x.department||key(x.department)===dep);
+      &&(!programme||!x.programme||key(x.programme)===programme);
   });
 
   rows.innerHTML=list.length?list.map(x=>`
@@ -822,7 +862,7 @@ $("resultSearch")?.addEventListener("input",renderSharedResults);
 $("resultCourse")?.addEventListener("change",renderSharedResults);
 $("resultLecturer")?.addEventListener("change",renderSharedResults);
 $("resultStatus")?.addEventListener("change",renderSharedResults);
-$("hodDepartment")?.addEventListener("change",()=>{renderSharedStudents();renderSharedResults();});
+$("hodProgramme")?.addEventListener("change",()=>{renderSharedStudents();renderSharedResults();});
 
 $("resultRows")?.addEventListener("click",async e=>{
   const approve=e.target.closest("[data-result-approve]")?.dataset.resultApprove;
