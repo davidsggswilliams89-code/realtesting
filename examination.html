@@ -7,19 +7,37 @@
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#172033}header{background:#fff;color:#172033;padding:10px 18px;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:5}.header-inner{max-width:1500px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:15px}.school-brand{display:flex;align-items:center;gap:12px}.school-brand img{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid #0b5d3b;background:#fff}h1{font-size:16px;margin:0 0 3px;color:#0b5d3b}.subtitle{font-size:11px;color:#667085}.container{max-width:1500px;margin:22px auto;padding:0 16px}.card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 5px 20px rgba(0,0,0,.07);margin-bottom:20px}.card h2{margin:0 0 16px;font-size:19px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.field{display:flex;flex-direction:column;gap:7px}.field label{font-size:13px;font-weight:700}.field input,.field select,.field textarea{width:100%;padding:11px 12px;border:1px solid #ccd5df;border-radius:9px;background:#fff;font-size:14px;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:#0b5d3b;box-shadow:0 0 0 2px rgba(11,93,59,.1)}.field textarea{min-height:80px;resize:vertical}.full{grid-column:1/-1}.span2{grid-column:span 2}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}button,.btn{border:0;border-radius:9px;padding:11px 16px;cursor:pointer;font-weight:700;text-decoration:none;display:inline-block}.primary{background:#0b5d3b;color:#fff}.secondary{background:#e9eef3;color:#172033}.danger{background:#b42318;color:#fff}.small{padding:7px 10px;font-size:12px}.status{padding:5px 9px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}.status-scheduled{background:#e6f0ff;color:#1756a3}.status-active{background:#d9f5e5;color:#087443}.status-published{background:#d9f5e5;color:#087443}.status-canceled{background:#fde4e4;color:#9b1c1c}.status-postponed{background:#fff0c2;color:#795b00}.status-finished{background:#e9e1ff;color:#5d3a9b}.status-draft{background:#eceff2;color:#59636e}.notice{padding:11px 13px;border-radius:9px;margin-bottom:14px;display:none;font-size:13px}.notice.success{background:#e0f7e9;color:#096b3b}.notice.error{background:#fde4e4;color:#9b1c1c}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:1500px}th,td{padding:11px 9px;border-bottom:1px solid #e7ebef;text-align:left;font-size:12px;vertical-align:middle}th{background:#f7f9fb;position:sticky;top:0;z-index:1}.toolbar{display:grid;grid-template-columns:2fr repeat(4,1fr);gap:10px;margin-bottom:15px}.toolbar input,.toolbar select{padding:10px;border:1px solid #ccd5df;border-radius:8px}.empty{text-align:center;padding:30px;color:#697586}.help{font-size:11px;color:#6b7280}.nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}@media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}.toolbar{grid-template-columns:1fr 1fr}}@media(max-width:650px){.grid{grid-template-columns:1fr}.span2{grid-column:auto}.toolbar{grid-template-columns:1fr}header{position:static}}
 </style>
+<style id="ggchst-school-header">
+.school-header{background:#fff;border-bottom:1px solid #e5e7eb;width:100%}
+.school-header-inner{max-width:1500px;margin:0 auto;min-height:76px;padding:10px 18px;display:flex;align-items:center;gap:12px}
+.school-logo{width:52px;height:52px;flex:0 0 52px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#f0fdf4;border:1px solid #d1fae5;font-weight:800;color:#166534}
+.school-logo img{width:100%;height:100%;object-fit:cover;display:block}
+.school-name{flex:1;color:#172033;font-size:17px;font-weight:800;line-height:1.25}
+.school-name span{display:block;margin-top:3px;color:#667085;font-size:12px;font-weight:500}
+.school-back{text-decoration:none;background:#087443;color:#fff;padding:9px 13px;border-radius:9px;font-size:13px;font-weight:700;white-space:nowrap}
+@media(max-width:650px){
+ .school-header-inner{min-height:64px;padding:8px 10px;gap:9px}
+ .school-logo{width:42px;height:42px;flex-basis:42px}
+ .school-name{font-size:12px}
+ .school-name span{font-size:10px}
+ .school-back{padding:7px 9px;font-size:10px}
+}
+</style>
 </head>
 <body>
 
-<header>
-  <div class="header-inner">
-    <div class="school-brand">
-      <img src="logo.png" alt="Green Garden College of Health Sciences & Technology logo">
-      <div>
-        <h1>Green Garden College of Health Sciences & Technology, Gusau</h1>
-        <div class="subtitle">School Management System • Examination Timetable</div>
-      </div>
+<header class="school-header">
+  <div class="school-header-inner">
+    <div class="school-logo">
+      <img src="https://ggchstgusau.edu.ng/_next/image?q=75&url=%2Flogo.png&w=384"
+           alt="Green Garden College of Health Sciences & Technology logo"
+           onerror="this.style.display='none';this.parentElement.textContent='G';">
     </div>
-    <a class="btn secondary" href="admin.html">← Back</a>
+    <div class="school-name">
+      Green Garden College of Health Sciences &amp; Technology
+      <span>Gusau, Zamfara State</span>
+    </div>
+    <a class="school-back" href="admin.html">← Back to Admin</a>
   </div>
 </header>
 
@@ -34,6 +52,10 @@
 
 <div id="notice" class="notice"></div>
 <div class="help" style="margin:0 0 12px;padding:0 2px">
+ Academic sessions and semesters are loaded from Firebase. All sessions are available here;
+ selecting a session shows all semesters linked to that session.
+</div>
+<div class="help" style="margin:0 0 12px;padding:0 2px">
  Session, semester, programme, level, course, venue and invigilator dropdowns are loaded from Firebase.
  Courses are filtered by the selected Programme, Level and Semester.
 </div>
@@ -43,11 +65,6 @@
 
   <form id="scheduleForm" novalidate>
     <div class="grid">
-
-      <div class="field span2">
-        <label>Examination Name *</label>
-        <input id="examinationName" required placeholder="e.g. First Semester Examination">
-      </div>
 
       <div class="field">
         <label>Academic Session *</label>
@@ -64,6 +81,16 @@
       </div>
 
       <div class="field">
+        <label>Programme</label>
+        <select id="programme"><option value="">Select programme</option></select>
+      </div>
+
+      <div class="field">
+        <label>Level</label>
+        <select id="level"><option value="">Select level</option></select>
+      </div>
+
+      <div class="field">
         <label>Course *</label>
         <select id="course" required>
           <option value="">Select course</option>
@@ -76,6 +103,11 @@
       </div>
 
       <div class="field">
+        <label>Venue</label>
+        <select id="venue"><option value="">Select venue</option></select>
+      </div>
+
+      <div class="field">
         <label>Start Time *</label>
         <select id="startTime" required></select>
       </div>
@@ -83,27 +115,6 @@
       <div class="field">
         <label>Stop Time *</label>
         <select id="endTime" required></select>
-      </div>
-
-      <div class="field">
-        <label>Venue</label>
-        <select id="venue"><option value="">Select venue</option></select>
-      </div>
-
-      <div class="field">
-        <label>Programme</label>
-        <select id="programme"><option value="">Select programme</option></select>
-      </div>
-
-      <div class="field">
-        <label>Level</label>
-        <select id="level"><option value="">Select level</option></select>
-      </div>
-
-      <div class="field span2">
-        <label>Invigilator(s)</label>
-        <select id="invigilators" multiple size="5"></select>
-        <div class="help">Hold Ctrl/Command to select more than one invigilator.</div>
       </div>
 
       <div class="field">
@@ -119,9 +130,20 @@
         </select>
       </div>
 
+      <div class="field span2">
+        <label>Invigilator(s)</label>
+        <select id="invigilators" multiple size="5"></select>
+        <div class="help">Hold Ctrl/Command to select more than one invigilator.</div>
+      </div>
+
       <div class="field full">
-        <label>Notes</label>
-        <textarea id="notes" placeholder="Optional examination timetable notes"></textarea>
+        <label>Note</label>
+        <textarea id="notes" placeholder="Optional examination timetable note"></textarea>
+      </div>
+
+      <div class="field span2">
+        <label>Examination Name *</label>
+        <input id="examinationName" required placeholder="e.g. First Semester Examination">
       </div>
 
     </div>
@@ -266,7 +288,7 @@ function fillInvigilators(){
 }
 function updateSemesterOptions(preferredId=""){
  const sid=String($("session").value||""),ss=sessionData(),sn=norm(ss?.name||ss?.sessionName||"");
- const list=semesters.filter(active).filter(x=>{
+ const list=semesters.filter(x=>{
   const iid=String(x.sessionId||x.academicSessionId||""),nm=norm(x.sessionName||x.academicSessionName||x.academicSession||"");
   return !sid||iid===sid||(!!sn&&nm===sn);
  }).sort((a,b)=>(a.name||a.semesterName||"").localeCompare(b.name||b.semesterName||""));
@@ -288,7 +310,7 @@ function updateCourseOptions(preferredId=""){
 }
 function renderSelects(){
  const os=String($("session").value||""),om=String($("semester").value||""),oc=String($("course").value||""),ov=String($("venue").value||""),op=String($("programme").value||""),ol=String($("level").value||"");
- fillSelect("session",sessions.filter(active).sort((a,b)=>(a.name||"").localeCompare(b.name||"")),"Select academic session");
+ fillSelect("session",sessions.sort((a,b)=>(a.name||a.sessionName||"").localeCompare(b.name||b.sessionName||"")),"Select academic session");
  if(os&&sessions.some(x=>String(x.id)===os))$("session").value=os;
  fillSelect("venue",venues.filter(active),"Select venue");
  if(ov&&venues.some(x=>String(x.id)===ov))$("venue").value=ov;
@@ -303,11 +325,11 @@ function renderFilters(){
  const fs=$("filterSession").value, fm=$("filterSemester").value, fd=$("filterDate").value;
 
  $("filterSession").innerHTML='<option value="">All sessions</option>'+
-   sessions.map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.sessionName||"")}</option>`).join("");
+   sessions.sort((a,b)=>(a.name||a.sessionName||"").localeCompare(b.name||b.sessionName||"")).map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.sessionName||"")}</option>`).join("");
  if(fs) $("filterSession").value=fs;
 
  $("filterSemester").innerHTML='<option value="">All semesters</option>'+
-   semesters.map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.semesterName||"")}</option>`).join("");
+   semesters.sort((a,b)=>(a.name||a.semesterName||"").localeCompare(b.name||b.semesterName||"")).map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.semesterName||"")}</option>`).join("");
  if(fm) $("filterSemester").value=fm;
 
  const dates=[...new Set(schedules.map(x=>x.examDate).filter(Boolean))].sort();
