@@ -143,7 +143,7 @@ tr:last-child td{border-bottom:0}
       <div class="notice"><b>Workflow:</b> HOD/Timetable Officer prepares → conflict check → Registrar reviews → Approve → Publish. Published timetables are visible to students and staff.</div>
       <br>
       <div class="tm-toolbar">
-        <div class="field"><label>Session</label><select id="tmSession"><option>2026/2027</option><option>2025/2026</option></select></div>
+        <div class="field"><label>Session</label><select id="tmSession"></select></div>
         <div class="field"><label>Semester</label><select id="tmSemester"><option>First</option><option>Second</option></select></div>
         <div class="field"><label>Programme</label><select id="tmProgramme"><option value="">All programmes</option></select></div>
         <div class="field"><label>Level</label><select id="tmLevel"><option value="">All levels</option><option>100</option><option>200</option><option>300</option></select></div>
@@ -161,10 +161,10 @@ tr:last-child td{border-bottom:0}
 </section>
 <section id="dashboard" class="view active">
   <div class="grid">
-    <div class="card"><div class="small">Total Students</div><div class="stat">428</div><div class="kpi-note">Active institutional records</div></div>
-    <div class="card"><div class="small">New Applications</div><div class="stat">76</div><div class="kpi-note">Awaiting processing</div></div>
-    <div class="card"><div class="small">Registered Students</div><div class="stat">391</div><div class="kpi-note">2026/2027 session</div></div>
-    <div class="card"><div class="small">Graduation Candidates</div><div class="stat">63</div><div class="kpi-note">Clearance in progress</div></div>
+    <div class="card"><div class="small">Total Students</div><div class="stat">0</div><div class="kpi-note">Active institutional records</div></div>
+    <div class="card"><div class="small">New Applications</div><div class="stat">0</div><div class="kpi-note">Awaiting processing</div></div>
+    <div class="card"><div class="small">Registered Students</div><div class="stat">0</div><div class="kpi-note">Current academic session</div></div>
+    <div class="card"><div class="small">Graduation Candidates</div><div class="stat">0</div><div class="kpi-note">Clearance in progress</div></div>
   </div>
   <div class="section"><h2 class="section-title">Quick Access</h2><div class="quick">
     <div class="card"><h3>Admissions</h3><p class="small">Review applications, verify applicants and issue admission letters.</p><button data-go="admissions">Open Admissions</button></div>
@@ -186,23 +186,22 @@ tr:last-child td{border-bottom:0}
           <div class="course-field"><label for="rcCourseName">Course Name *</label><input id="rcCourseName" required placeholder="e.g. Health Information Systems"></div>
           <div class="course-field"><label for="rcCourseCode">Course Code *</label><input id="rcCourseCode" required placeholder="e.g. HIM 201"></div>
           <div class="course-field"><label for="rcCreditUnit">Credit Unit *</label><input id="rcCreditUnit" type="number" min="1" max="12" step="1" required placeholder="e.g. 3"></div>
-          <div class="course-field"><label for="rcFaculty">Faculty *</label><select id="rcFaculty" required><option value="">Select faculty</option><option>Faculty of Health Sciences</option><option>Faculty of Health Technology</option><option>Faculty of Science</option><option>Faculty of Basic Medical Sciences</option></select></div>
-          <div class="course-field"><label for="rcDepartment">Department *</label><select id="rcDepartment" required disabled><option value="">Select faculty first</option></select></div>
+          <div class="course-field"><label for="rcProgramme">Programme *</label><select id="rcProgramme" required><option value="">Select programme</option></select></div>
+          <div class="course-field"><label for="rcSemester">Semester *</label><select id="rcSemester" required><option value="">Select semester</option><option>First</option><option>Second</option></select></div>
           <div class="course-field"><label for="rcLevel">Level *</label><select id="rcLevel" required><option value="">Select level</option><option>100 Level</option><option>200 Level</option><option>300 Level</option><option>400 Level</option><option>500 Level</option></select></div>
-          <div class="course-field"><label for="rcSession">Academic Session *</label><select id="rcSession" required><option value="">Select session</option><option>2026/2027</option><option>2025/2026</option><option>2024/2025</option></select></div>
+          <div class="course-field"><label for="rcSession">Academic Session *</label><select id="rcSession" required><option value="">Select session</option></select></div>
         </div>
         <div class="course-actions"><button class="course-btn secondary" type="reset">Clear</button><button class="course-btn primary" id="rcSaveBtn" type="submit">Save Course</button></div>
       </form>
       <div class="course-status" id="rcStatus">Connecting to the shared Firebase course database…</div>
       <div class="course-list">
         <div class="course-list-head"><div><h3>Course List</h3><p class="small">Courses created here are shared with the standalone Course Registration page.</p></div><input class="course-search" id="rcSearch" type="search" placeholder="Search course name or code"></div>
-        <div class="course-table-wrap"><table class="course-table"><thead><tr><th>#</th><th>Course Name</th><th>Code</th><th>Unit</th><th>Faculty</th><th>Department</th><th>Level</th><th>Session</th><th>Actions</th></tr></thead><tbody id="rcRows"><tr><td colspan="9">Loading courses…</td></tr></tbody></table></div>
+        <div class="course-table-wrap"><table class="course-table"><thead><tr><th>#</th><th>Course Name</th><th>Code</th><th>Unit</th><th>Programme</th><th>Level</th><th>Semester</th><th>Session</th><th>Actions</th></tr></thead><tbody id="rcRows"><tr><td colspan="9">Loading courses…</td></tr></tbody></table></div>
       </div>
     </div>
   </div>
 
-  <div class="section panel"><h2>Attention Required</h2>
-    <div class="info">12 admission applications have completed document uploads and are ready for Registrar review.</div>
+  <div class="section panel"><h2>Attention Required</h2><div class="info" id="attentionRequired">Live alerts will appear here from Firebase.</div>
     <div class="notice">8 student registry requests are awaiting action. 5 graduation candidates still have outstanding clearance items.</div>
   </div>
 </section>
@@ -213,7 +212,7 @@ tr:last-child td{border-bottom:0}
   <div id="admApplications" class="subview"><br><div class="toolbar"><input id="admSearch" placeholder="Search application no., name or programme"><select id="admStatus"><option value="">All statuses</option><option>Pending</option><option>Under Review</option><option>Verified</option><option>Admitted</option><option>Rejected</option></select></div>
   <div class="table-wrap"><table><thead><tr><th>Application No.</th><th>Applicant</th><th>Programme</th><th>Phone</th><th>O'Level</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead><tbody id="admRows"></tbody></table></div></div>
   <div id="admVerification" class="subview" style="display:none"><br><div class="info">Verify applicant documents before admission approval. Verification actions are recorded in the audit log.</div><div class="table-wrap"><table><thead><tr><th>Applicant</th><th>Programme</th><th>Passport</th><th>O'Level</th><th>Birth Document</th><th>Overall</th><th>Action</th></tr></thead><tbody id="verifyRows"></tbody></table></div></div>
-  <div id="admAdmitted" class="subview" style="display:none"><br><div class="toolbar"><select><option>2026/2027</option><option>2025/2026</option></select><button class="btn" onclick="alert('Admission list prepared for printing.')">Print Admission List</button></div><div class="table-wrap"><table><thead><tr><th>Admission No.</th><th>Student</th><th>Programme</th><th>Session</th><th>Letter</th><th>Status</th></tr></thead><tbody id="admittedRows"></tbody></table></div></div>
+  <div id="admAdmitted" class="subview" style="display:none"><br><div class="toolbar"><select></select><button class="btn" onclick="alert('Admission list prepared for printing.')">Print Admission List</button></div><div class="table-wrap"><table><thead><tr><th>Admission No.</th><th>Student</th><th>Programme</th><th>Session</th><th>Letter</th><th>Status</th></tr></thead><tbody id="admittedRows"></tbody></table></div></div>
   </div>
 </section>
 
@@ -228,7 +227,7 @@ tr:last-child td{border-bottom:0}
   <br>
   <div class="form-grid">
     <div class="field"><label>Student</label><select id="syncStudentSelect"><option value="">Loading students…</option></select></div>
-    <div class="field"><label>Academic Session</label><select id="syncSession"><option>2026/2027</option><option>2025/2026</option></select></div>
+    <div class="field"><label>Academic Session</label><select id="syncSession"></select></div>
   </div>
   <div style="margin-top:12px">
     <label style="display:block;font-weight:700;font-size:12px;margin-bottom:7px">Courses</label>
@@ -248,15 +247,14 @@ tr:last-child td{border-bottom:0}
 <div class="tabs"><button class="tab active" data-ac="programmes">Programmes</button><button class="tab" data-ac="departments">Departments</button><button class="tab" data-ac="sessions">Sessions</button><button class="tab" data-ac="courses">Courses</button><button class="tab" data-ac="results">Results</button></div>
 <div id="acProgrammes" class="subview"><br><div class="table-wrap"><table><thead><tr><th>Programme</th><th>Code</th><th>Duration</th><th>Department</th><th>Regulatory Body</th><th>Status</th></tr></thead><tbody id="programmeRows"></tbody></table></div></div>
 <div id="acDepartments" class="subview" style="display:none"><br><div class="table-wrap"><table><thead><tr><th>Department</th><th>HOD</th><th>Programmes</th><th>Students</th><th>Staff</th><th>Status</th></tr></thead><tbody id="departmentRows"></tbody></table></div></div>
-<div id="acSessions" class="subview" style="display:none"><br><div class="grid"><div class="card"><b>2026/2027</b><p class="small">Current academic session</p><span class="status active-status">ACTIVE</span></div><div class="card"><b>First Semester</b><p class="small">Registration window</p><span class="status approved">OPEN</span></div><div class="card"><b>Second Semester</b><p class="small">Planned semester</p><span class="status pending">UPCOMING</span></div><div class="card"><b>2025/2026</b><p class="small">Previous session</p><span class="status verified">ARCHIVED</span></div></div></div>
-<div id="acCourses" class="subview" style="display:none"><br><div class="table-wrap"><table><thead><tr><th>Code</th><th>Course Title</th><th>Unit</th><th>Level</th><th>Programme</th><th>Semester</th></tr></thead><tbody id="courseRows"></tbody></table></div></div>
+<div id="acSessions" class="subview" style="display:none"><br><div id="dynamicSessionCards" class="grid"></div></div> <div id="acCourses" class="subview" style="display:none"><br><div class="table-wrap"><table><thead><tr><th>Code</th><th>Course Title</th><th>Unit</th><th>Level</th><th>Programme</th><th>Semester</th></tr></thead><tbody id="courseRows"></tbody></table></div></div>
 <div id="acResults" class="subview" style="display:none"><br><div class="info">Results flow from departmental/HOD verification. Registrar finalization should be auditable.</div><div class="table-wrap"><table><thead><tr><th>Student</th><th>Matric</th><th>Course</th><th>Score</th><th>Grade</th><th>HOD Status</th><th>Registrar Status</th></tr></thead><tbody id="academicResultRows"></tbody></table></div></div>
 </div>
 </section>
 
 <section id="graduation" class="view">
 <div class="panel"><h2>Graduation</h2><div class="small">Final-year review, clearance, graduation list, certificates and transcripts.</div><br>
-<div class="grid"><div class="card"><div class="small">Candidates</div><div class="stat">63</div></div><div class="card"><div class="small">Eligible</div><div class="stat">48</div></div><div class="card"><div class="small">Pending Clearance</div><div class="stat">12</div></div><div class="card"><div class="small">Not Eligible</div><div class="stat">3</div></div></div>
+<div class="grid"><div class="card"><div class="small">Candidates</div><div class="stat">0</div></div><div class="card"><div class="small">Eligible</div><div class="stat">0</div></div><div class="card"><div class="small">Pending Clearance</div><div class="stat">0</div></div><div class="card"><div class="small">Not Eligible</div><div class="stat">0</div></div></div>
 <br><div class="toolbar"><input id="gradSearch" placeholder="Search graduating student..."><select id="gradStatus"><option value="">All</option><option>Eligible</option><option>Pending Clearance</option><option>Not Eligible</option></select><button class="btn" onclick="alert('Graduation list prepared.')">Generate Graduation List</button></div>
 <div class="table-wrap"><table><thead><tr><th>Matric No.</th><th>Student</th><th>Programme</th><th>CGPA</th><th>Academic</th><th>Bursary</th><th>Library</th><th>Overall</th><th>Action</th></tr></thead><tbody id="gradRows"></tbody></table></div>
 </div>
@@ -298,7 +296,7 @@ tr:last-child td{border-bottom:0}
 <div class="lecturer-modal" id="lecturerViewModal" aria-hidden="true"><div class="lecturer-modal-box"><div class="lecturer-modal-head"><h3>Lecturer Details</h3><button class="lecturer-close" id="lecturerViewClose" type="button">×</button></div><div id="lecturerViewContent"></div></div></div>
 <br><div class="toolbar"><input id="staffSearch" placeholder="Search staff name, ID or department"><button class="btn" id="addStaff">+ Add Staff</button></div><div class="table-wrap"><table><thead><tr><th>Staff ID</th><th>Staff</th><th>Department</th><th>Rank</th><th>Qualification</th><th>Phone</th><th>Status</th></tr></thead><tbody id="staffRows"></tbody></table></div></div>
 <div id="staffNonacademic" class="subview" style="display:none"><br><div class="table-wrap"><table><thead><tr><th>Staff ID</th><th>Name</th><th>Unit</th><th>Role</th><th>Phone</th><th>Status</th></tr></thead><tbody id="nonStaffRows"></tbody></table></div></div>
-<div id="staffEstablishment" class="subview" style="display:none"><br><div class="grid"><div class="card"><div class="small">Academic Staff</div><div class="stat">31</div></div><div class="card"><div class="small">Non-Academic</div><div class="stat">19</div></div><div class="card"><div class="small">Vacancies</div><div class="stat">6</div></div><div class="card"><div class="small">On Leave</div><div class="stat">4</div></div></div></div>
+<div id="staffEstablishment" class="subview" style="display:none"><br><div class="grid"><div class="card"><div class="small">Academic Staff</div><div class="stat">0</div></div><div class="card"><div class="small">Non-Academic</div><div class="stat">0</div></div><div class="card"><div class="small">Vacancies</div><div class="stat">0</div></div><div class="card"><div class="small">On Leave</div><div class="stat">0</div></div></div></div>
 </div></section>
 
 <section id="registry" class="view">
@@ -308,19 +306,19 @@ tr:last-child td{border-bottom:0}
 <div id="rgLetters" class="subview" style="display:none"><br><div class="grid"><div class="card"><h3>Admission Letter</h3><p class="small">Generate from approved admission.</p><button class="btn" onclick="alert('Template ready.')">Generate</button></div><div class="card"><h3>Student Confirmation</h3><p class="small">Official confirmation of student status.</p><button class="btn" onclick="alert('Template ready.')">Generate</button></div><div class="card"><h3>Good Standing</h3><p class="small">Registry confirmation letter.</p><button class="btn" onclick="alert('Template ready.')">Generate</button></div><div class="card"><h3>Statement of Result</h3><p class="small">Generate verified academic statement.</p><button class="btn" onclick="alert('Template ready.')">Generate</button></div></div></div>
 <div id="rgDocuments" class="subview" style="display:none"><br><div class="table-wrap"><table><thead><tr><th>Document</th><th>Student</th><th>Type</th><th>Uploaded</th><th>Verification</th><th>Action</th></tr></thead><tbody id="documentRows"></tbody></table></div></div>
 <div id="rgClearance" class="subview" style="display:none"><br><div class="info">Clearance can be tracked across Registrar, HOD, Bursary, Library and other required units.</div><div class="table-wrap"><table><thead><tr><th>Student</th><th>HOD</th><th>Bursary</th><th>Library</th><th>Registrar</th><th>Overall</th></tr></thead><tbody id="clearanceRows"></tbody></table></div></div>
-<div id="rgAnnouncements" class="subview" style="display:none"><br><div class="grid"><div class="card"><b>2026/2027 Registration Deadline</b><p class="small">Students should complete registration before the published deadline.</p><span class="status approved">PUBLISHED</span></div><div class="card"><b>Final-Year Clearance</b><p class="small">Eligible final-year students should complete clearance.</p><span class="status approved">PUBLISHED</span></div></div></div>
+<div id="rgAnnouncements" class="subview" style="display:none"><br><div id="liveRegistryAnnouncements" class="empty">No announcement records loaded from Firebase.</div></div>
 </div></section>
 
 <section id="accreditation" class="view">
 <div class="panel"><h2>Accreditation & Compliance</h2><div class="small">Programme accreditation records, regulatory bodies, documents and review dates.</div><br>
-<div class="info">The sample records below are pre-filled for the SMS prototype. Confirm official accreditation dates/statuses before using them as institutional records.</div>
+<div class="info">Accreditation records are loaded from Firebase; no prototype accreditation records are displayed.</div>
 <div class="table-wrap"><table><thead><tr><th>Programme</th><th>Regulatory Body</th><th>Status</th><th>Last Review</th><th>Next Review</th><th>Documents</th><th>Compliance</th></tr></thead><tbody id="accreditationRows"></tbody></table></div>
 </div></section>
 
 <section id="reports" class="view">
 <div class="panel"><h2>Registrar Reports</h2><div class="small">Institution-wide reports and statistical summaries.</div><br>
-<div class="toolbar"><select id="reportSession"><option>2026/2027</option><option>2025/2026</option></select><select id="reportType"><option>Student Summary</option><option>Admissions</option><option>Programme Enrollment</option><option>Graduation</option><option>Academic Results</option><option>Registry Requests</option></select><button class="btn" onclick="alert('Report generated for preview.')">Generate Report</button><button class="action" onclick="window.print()">Print</button></div>
-<div class="grid"><div class="card"><div class="small">Students</div><div class="stat">428</div></div><div class="card"><div class="small">Applications</div><div class="stat">76</div></div><div class="card"><div class="small">Programmes</div><div class="stat">6</div></div><div class="card"><div class="small">Staff</div><div class="stat">50</div></div></div>
+<div class="toolbar"><select id="reportSession"></select><select id="reportType"><option>Student Summary</option><option>Admissions</option><option>Programme Enrollment</option><option>Graduation</option><option>Academic Results</option><option>Registry Requests</option></select><button class="btn" onclick="alert('Report generated for preview.')">Generate Report</button><button class="action" onclick="window.print()">Print</button></div>
+<div class="grid"><div class="card"><div class="small">Students</div><div class="stat">0</div></div><div class="card"><div class="small">Applications</div><div class="stat">0</div></div><div class="card"><div class="small">Programmes</div><div class="stat">0</div></div><div class="card"><div class="small">Staff</div><div class="stat">0</div></div></div>
 <br><div class="table-wrap"><table><thead><tr><th>Programme</th><th>Students</th><th>New Admissions</th><th>Registered</th><th>Graduating</th></tr></thead><tbody id="reportProgrammeRows"></tbody></table></div>
 </div></section>
 
@@ -333,7 +331,7 @@ tr:last-child td{border-bottom:0}
 <section id="settings" class="view">
 <div class="panel"><h2>Registrar Settings</h2><div class="small">Configure registry rules, sessions, numbering, templates and notifications.</div><br>
 <div class="settings-grid">
-<div class="card"><h3>Academic Session</h3><div class="field"><label>Current Session</label><select><option>2026/2027</option><option>2025/2026</option></select></div><br><div class="field"><label>Current Semester</label><select><option>First Semester</option><option>Second Semester</option></select></div></div>
+<div class="card"><h3>Academic Session</h3><div class="field"><label>Current Session</label><select></select></div><br><div class="field"><label>Current Semester</label><select></select></div></div>
 <div class="card"><h3>Registration Control</h3><label class="check"><input type="checkbox" checked> Student registration enabled</label><label class="check"><input type="checkbox" checked> Course registration enabled</label><label class="check"><input type="checkbox"> Require Registrar approval</label></div>
 <div class="card"><h3>Numbering</h3><div class="field"><label>Matric Prefix</label><input value="GGCHST"></div><br><div class="field"><label>Admission Prefix</label><input value="GGCHST/ADM"></div></div>
 <div class="card"><h3>Notifications</h3><label class="check"><input type="checkbox" checked> Admission notifications</label><label class="check"><input type="checkbox" checked> Registration reminders</label><label class="check"><input type="checkbox" checked> Graduation alerts</label></div>
@@ -346,36 +344,20 @@ tr:last-child td{border-bottom:0}
 <script id="complete-registrar-data">
 (function(){
 const D={
- dashboard:`<div class="section detail-grid">
- <div class="detail-card"><h3>Registrar Overview</h3><div class="metric-strip"><div class="metric"><b>428</b><span>Total Students</span></div><div class="metric"><b>76</b><span>New Applicants</span></div><div class="metric"><b>71</b><span>Admitted Students</span></div><div class="metric"><b>391</b><span>Registered Students</span></div><div class="metric"><b>37</b><span>Pending Registrations</span></div></div><div class="metric-strip"><div class="metric"><b>6</b><span>Total Programmes</span></div><div class="metric"><b>50</b><span>Lecturers/Staff</span></div><div class="metric"><b>63</b><span>Graduating Students</span></div><div class="metric"><b>18</b><span>Pending Documents</span></div><div class="metric"><b>12</b><span>Pending Requests</span></div></div></div>
- <div class="detail-card"><h3>Registrar Quick Actions</h3><div class="workflow"><button class="btn" data-go2="students">Register New Student</button><button class="btn" data-go2="admissions">Process Admission</button><button class="btn" data-go2="students">Verify Student</button><button class="btn" data-go2="students">Generate Student ID</button><button class="btn" data-go2="students">Approve Registration</button><button class="btn" data-go2="academics">View Results</button><button class="btn" data-go2="registry">Generate Transcript</button><button class="btn" data-go2="reports">Generate Reports</button></div></div></div>`,
- students:`<div class="section detail-grid"><div class="detail-card full"><h3>Complete Student Registry Fields</h3><div class="table-wrap"><table class="mini-table"><thead><tr><th>Field</th><th>Example</th><th>Registrar Action</th></tr></thead><tbody>
- ${[['Student ID','GGCHST/2026/001','View Profile'],['Matric No.','GGCHST/HIM/001','Edit'],['Full Name','Aisha Bello','Verify'],['Gender','Female','Edit'],['Programme','Health Information Management','View Academic Record'],['Level','100','Edit'],['Session','2026/2027','Approve Registration'],['Admission Status','Admitted','View Documents'],['Registration Status','Registered','Print ID'],['Phone','08031234567','Edit'],['Status','Active','Suspend / Deactivate / Graduate']].map(x=>`<tr><td><b>${x[0]}</b></td><td>${x[1]}</td><td><button class="action">${x[2]}</button></td></tr>`).join('')}
- </tbody></table></div></div><div class="detail-card"><h3>Student Profile</h3><div class="detail-list"><div class="detail-row"><b>Bio-data</b><span>Full name, gender, DOB, phone, email</span></div><div class="detail-row"><b>Address</b><span>State, LGA, residential address</span></div><div class="detail-row"><b>Guardian</b><span>Name, relationship, phone, address</span></div><div class="detail-row"><b>Academic</b><span>Programme, department, level, session</span></div></div></div><div class="detail-card"><h3>Student Actions</h3><div class="workflow"><button class="muted-btn">View Profile</button><button class="muted-btn">Edit</button><button class="muted-btn">Verify</button><button class="muted-btn">Print ID</button><button class="muted-btn">Documents</button><button class="muted-btn">Academic Record</button><button class="danger-btn">Suspend</button><button class="danger-btn">Deactivate</button><button class="btn">Graduate</button></div></div></div>`,
- admissions:`<div class="section detail-grid"><div class="detail-card"><h3>Application Management</h3><div class="metric-strip"><div class="metric"><b>76</b><span>New Applications</span></div><div class="metric"><b>18</b><span>Under Review</span></div><div class="metric"><b>21</b><span>Verified</span></div><div class="metric"><b>14</b><span>Approved</span></div><div class="metric"><b>9</b><span>Rejected</span></div></div><div class="metric-strip"><div class="metric"><b>71</b><span>Admitted</span></div><div class="metric"><b>43</b><span>Admission Accepted</span></div><div class="metric"><b>6</b><span>Not Accepted</span></div></div></div><div class="detail-card"><h3>Applicant Information</h3><div class="detail-list"><div class="detail-row"><b>Application Number</b><span>GGCHST/ADM/2026/001</span></div><div class="detail-row"><b>Applicant</b><span>Hauwa Sani</span></div><div class="detail-row"><b>Programme</b><span>Health Information Management</span></div><div class="detail-row"><b>Phone / Email</b><span>08040000001 / applicant@email.com</span></div><div class="detail-row"><b>DOB / State / LGA</b><span>12 Jan 2007 / Zamfara / Gusau</span></div><div class="detail-row"><b>Application Date</b><span>08 Sep 2026</span></div></div></div><div class="detail-card"><h3>Applicant Documents & Academic Data</h3><div class="detail-list"><div class="detail-row"><b>O'Level</b><span>WAEC / NECO / NABTEB</span></div><div class="detail-row"><b>JAMB/UTME</b><span>Where applicable</span></div><div class="detail-row"><b>Documents</b><span>Passport, birth declaration, qualification</span></div><div class="detail-row"><b>Status</b><span>${status('Under Review')}</span></div></div><div class="workflow"><span class="step done">Review</span><span class="step">Verify</span><span class="step">Approve</span><span class="step">Generate Admission Letter</span></div></div></div>`,
- verification:`<div class="section detail-grid"><div class="detail-card full"><h3>Admission Verification — Configurable Requirements</h3><div class="info">Requirements are stored by programme rather than hard-coded. The Registrar can add, remove or mark a requirement mandatory for each programme.</div><div class="form-grid"><div class="field"><label>Programme</label><select><option>Health Information Management</option><option>Community Health Extension Worker</option><option>Medical Laboratory Technician</option><option>Dental Therapy</option><option>Dental Surgery Technology</option><option>Pharmacy Technician</option></select></div><div class="field"><label>Requirement Set</label><select><option>Current Programme Requirements</option><option>Custom Review</option></select></div><div class="field"><label>Verification Decision</label><select><option>Pending</option><option>Verified</option><option>Rejected</option></select></div></div><h4>Configurable Verification Checklist</h4><div class="checklist">${['WAEC','NECO','NABTEB','JAMB/UTME where applicable','Birth certificate/declaration','Passport photograph','State/LGA information','Previous qualification','Other programme-specific documents'].map(x=>`<label class="checkitem"><input type="checkbox"> ${x}</label>`).join('')}</div><br><button class="btn" onclick="alert('Verification checklist saved. Programme requirements remain configurable.')">Save Verification</button></div></div>`,
- registration:`<div class="section detail-grid"><div class="detail-card"><h3>Bio-data</h3><div class="detail-list"><div class="detail-row"><b>Full Name</b><span>Aisha Bello</span></div><div class="detail-row"><b>Gender</b><span>Female</span></div><div class="detail-row"><b>DOB</b><span>12 Jan 2007</span></div><div class="detail-row"><b>Contact</b><span>08031234567 • email</span></div><div class="detail-row"><b>Address</b><span>Zamfara State, Gusau LGA</span></div></div></div><div class="detail-card"><h3>Academic Information</h3><div class="detail-list"><div class="detail-row"><b>Student ID</b><span>GGCHST/2026/001</span></div><div class="detail-row"><b>Matric</b><span>GGCHST/HIM/001</span></div><div class="detail-row"><b>Programme</b><span>Health Information Management</span></div><div class="detail-row"><b>Department</b><span>Health Information Management</span></div><div class="detail-row"><b>Level/Semester</b><span>100 / First</span></div><div class="detail-row"><b>Session</b><span>2026/2027</span></div></div></div><div class="detail-card"><h3>Guardian & Registration</h3><div class="detail-list"><div class="detail-row"><b>Guardian</b><span>Parent/Guardian name</span></div><div class="detail-row"><b>Relationship</b><span>Parent</span></div><div class="detail-row"><b>Phone</b><span>080...</span></div><div class="detail-row"><b>Courses</b><span>Registered units and course list</span></div><div class="detail-row"><b>Registration Date</b><span>11 Sep 2026</span></div><div class="detail-row"><b>Status</b><span>${status('Registered')}</span></div></div><button class="btn" onclick="alert('Registration locked.')">Lock Registration</button> <button class="muted-btn" onclick="alert('Registration unlocked for authorized Registrar.')">Unlock</button></div></div>`,
- programmes:`<div class="section detail-grid"><div class="detail-card full"><h3>Programme Management</h3><div class="table-wrap"><table class="mini-table"><thead><tr><th>Programme</th><th>Code</th><th>Department</th><th>Duration</th><th>Qualification</th><th>Accreditation</th><th>Status</th></tr></thead><tbody>${[['Community Health Extension Worker','CHEW','Community Health','3 Years','Diploma','CHPRBN','Active'],['Medical Laboratory Technician','MLT','Medical Laboratory Science','3 Years','Diploma','MLCN','Active'],['Dental Therapy','DT','Dental Health Sciences','3 Years','Diploma','DTRBN','Active'],['Dental Surgery Technology','DST','Dental Health Sciences','3 Years','Diploma','DTRBN','Active'],['Pharmacy Technician','PT','Pharmacy','3 Years','Diploma','PCN','Active'],['Health Information Management','HIM','Health Information Management','3 Years','Diploma','HRORBN','Active']].map(x=>`<tr>${x.map((v,i)=>`<td>${i===6?status(v):v}</td>`).join('')}</tr>`).join('')}</tbody></table></div><button class="btn">+ Add Programme</button> <button class="muted-btn">Manage Entry Requirements</button></div><div class="detail-card"><h3>Department Management</h3><div class="detail-list"><div class="detail-row"><b>Department</b><span>Health Information Management</span></div><div class="detail-row"><b>HOD</b><span>Dr. Halima Yusuf</span></div><div class="detail-row"><b>Programmes</b><span>1</span></div><div class="detail-row"><b>Students</b><span>74</span></div><div class="detail-row"><b>Lecturers</b><span>4</span></div><div class="detail-row"><b>Status</b><span>${status('Active')}</span></div></div></div><div class="detail-card"><h3>HOD Integration</h3><p class="small">Programme, department, course and result structures are shared with the HOD workflow. Registrar retains institution-wide administrative oversight.</p><button class="btn" data-go2="academics">Open HOD Academic View</button></div></div>`,
- sessions:`<div class="section detail-grid"><div class="detail-card full"><h3>Academic Session Control</h3><div class="grid"><div class="card"><b>2025/2026</b><p class="small">First Semester • Second Semester</p>${status('Approved')}</div><div class="card"><b>2026/2027</b><p class="small">First Semester • Second Semester</p>${status('Active')}</div></div><br><div class="form-grid"><div class="field"><label>Current Session</label><select><option>2026/2027</option><option>2025/2026</option></select></div><div class="field"><label>Current Semester</label><select><option>First Semester</option><option>Second Semester</option></select></div><div class="field"><label>Registration Opening</label><input type="date" value="2026-09-01"></div><div class="field"><label>Registration Closing</label><input type="date" value="2026-10-15"></div><div class="field"><label>Examination Period</label><input value="Dec 2026"></div><div class="field"><label>Result Submission Deadline</label><input type="date" value="2027-02-15"></div><div class="field"><label>Graduation Period</label><input value="July 2027"></div></div><br><button class="btn">Save Session Controls</button></div></div>`,
- courseReg:`<div class="section detail-grid"><div class="detail-card full"><h3>Institution-wide Course Registration</h3><div class="toolbar"><select><option>2026/2027</option></select><select><option>First Semester</option><option>Second Semester</option></select><select><option>All Programmes</option></select><select><option>All Levels</option></select><input placeholder="Course / Student search"><button class="btn">Filter</button></div><div class="table-wrap"><table class="mini-table"><thead><tr><th>Student</th><th>Matric</th><th>Programme</th><th>Level</th><th>Units</th><th>Status</th><th>Actions</th></tr></thead><tbody><tr><td>Aisha Bello</td><td>GGCHST/HIM/001</td><td>HIM</td><td>100</td><td>18</td><td>${status('Pending')}</td><td><button class="action approve">Approve</button><button class="action reject">Reject</button><button class="action">View</button></td></tr><tr><td>Fatima Ibrahim</td><td>GGCHST/CHEW/014</td><td>CHEW</td><td>200</td><td>20</td><td>${status('Approved')}</td><td><button class="action">Add Course</button><button class="action">Remove Course</button><button class="action">Print Slip</button></td></tr></tbody></table></div></div></div>`,
- results:`<div class="section detail-grid"><div class="detail-card full"><h3>Results & Academic Records</h3><div class="workflow"><span class="step">Submitted</span><span class="step done">HOD Approved</span><span class="step">Pending</span><span class="step">Rejected</span><span class="step">Finalized</span></div><div class="table-wrap"><table class="mini-table"><thead><tr><th>Student</th><th>Course</th><th>Score</th><th>Grade</th><th>Status</th><th>Registrar Actions</th></tr></thead><tbody><tr><td>Aisha Bello</td><td>HIM101</td><td>78</td><td>A</td><td>${status('Finalized')}</td><td><button class="action">View</button><button class="action">Lock</button><button class="action">Generate Sheet</button></td></tr><tr><td>Musa Abdullahi</td><td>HIM101</td><td>64</td><td>B</td><td>${status('HOD Approved')}</td><td><button class="action">Verify</button><button class="action">Lock</button></td></tr></tbody></table></div><br><div class="notice"><b>Result correction workflow:</b> Request Result Correction → HOD Review → Registrar Approval → Audit Trail. Lecturer scores should not be casually edited by the Registrar.</div><div class="workflow"><button class="muted-btn">Request Result Correction</button><button class="btn">Generate Result Sheet</button><button class="btn">Statement of Result</button><button class="btn">Transcript</button><button class="danger-btn">Unlock Results</button></div></div></div>`,
- transcripts:`<div class="section detail-grid"><div class="detail-card"><h3>Transcript Generator</h3><div class="form-grid"><div class="field"><label>Student</label><input value="Aisha Bello"></div><div class="field"><label>Matric</label><input value="GGCHST/HIM/001"></div><div class="field"><label>Programme</label><input value="Health Information Management"></div></div><br><div class="detail-list"><div class="detail-row"><b>Courses / Units</b><span>Included</span></div><div class="detail-row"><b>Scores / Grades</b><span>Included</span></div><div class="detail-row"><b>GPA / CGPA</b><span>3.42 / 3.42</span></div><div class="detail-row"><b>Academic Standing</b><span>Good Standing</span></div><div class="detail-row"><b>Registrar Authorization</b><span>Required</span></div></div><button class="btn">Generate Transcript</button></div><div class="detail-card"><h3>Certificate Tracking</h3><div class="detail-list"><div class="detail-row"><b>Eligibility</b><span>${status('Eligible')}</span></div><div class="detail-row"><b>Certificate</b><span>Generated / Issued</span></div><div class="detail-row"><b>Certificate No.</b><span>GGCHST/CERT/2027/001</span></div><div class="detail-row"><b>Date Issued</b><span>20 Jul 2027</span></div><div class="detail-row"><b>Recipient Signature</b><span>Pending</span></div><div class="detail-row"><b>Registrar Approval</b><span>Required</span></div></div></div></div>`,
- graduation:`<div class="section detail-grid"><div class="detail-card full"><h3>Graduation Eligibility Control</h3><div class="table-wrap"><table class="mini-table"><thead><tr><th>Student</th><th>Matric</th><th>Programme</th><th>Session</th><th>Credits</th><th>Outstanding</th><th>CGPA</th><th>Financial</th><th>Library</th><th>Department</th><th>Eligibility</th><th>Action</th></tr></thead><tbody>${[['Zainab Sani','GGCHST/DT/033','Dental Therapy','2026/2027','96','None','3.42','Cleared','Cleared','Cleared','Eligible'],['Maryam Hassan','GGCHST/PT/055','Pharmacy Technician','2026/2027','90','1 course','3.61','Pending','Cleared','Cleared','Pending Clearance'],['Aliyu Ibrahim','GGCHST/DST/071','Dental Surgery Technology','2026/2027','88','2 courses','2.91','Cleared','Pending','Pending','Pending Clearance'],['Rukayya Bello','GGCHST/MLT/082','Medical Laboratory Technician','2026/2027','74','4 courses','2.44','Cleared','Cleared','Outstanding','Not Eligible']].map(x=>`<tr>${x.map((v,i)=>`<td>${i===10?status(v):v}</td>`).join('')}<td><button class="action">Review</button><button class="action approve">Approve for Graduation</button></td></tr>`).join('')}</tbody></table></div></div></div>`,
- requests:`<div class="section detail-grid"><div class="detail-card full"><h3>Student Requests Workflow</h3><div class="workflow"><span class="step">Pending</span><span class="step">Under Review</span><span class="step">Approved / Rejected</span><span class="step">Completed</span></div><div class="checklist">${['Change of name','Change of programme','Change of department','Deferment','Withdrawal','Transfer','Reinstatement','Correction of biodata','Transcript request','Certificate request','Letter request','Academic record request'].map(x=>`<div class="checkitem">▣ ${x}</div>`).join('')}</div><br><div class="table-wrap"><table class="mini-table"><thead><tr><th>Request ID</th><th>Student</th><th>Type</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody><tr><td>REG-2026-001</td><td>Aisha Bello</td><td>Statement of Result</td><td>09 Sep 2026</td><td>${status('Pending')}</td><td><button class="action">Open</button><button class="action approve">Approve</button><button class="action reject">Reject</button></td></tr><tr><td>REG-2026-002</td><td>Musa Abdullahi</td><td>Change of Biodata</td><td>09 Sep 2026</td><td>${status('Under Review')}</td><td><button class="action">Open</button></td></tr></tbody></table></div></div></div>`,
- staff:`<div class="section detail-grid"><div class="detail-card"><h3>Academic Staff</h3><div class="detail-list"><div class="detail-row"><b>Name</b><span>Dr. Halima Yusuf</span></div><div class="detail-row"><b>Staff ID</b><span>GGCHST/STAFF/001</span></div><div class="detail-row"><b>Department</b><span>Health Information Management</span></div><div class="detail-row"><b>Rank</b><span>Senior Lecturer</span></div><div class="detail-row"><b>Qualification</b><span>MSc Health Informatics</span></div><div class="detail-row"><b>Programme</b><span>HIM</span></div><div class="detail-row"><b>Email / Phone</b><span>staff@ggchst.edu.ng / 080...</span></div><div class="detail-row"><b>Employment</b><span>${status('Active')}</span></div></div></div><div class="detail-card"><h3>Non-Academic Staff</h3><div class="detail-list"><div class="detail-row"><b>Name</b><span>Usman Ahmed</span></div><div class="detail-row"><b>Staff ID</b><span>GGCHST/STAFF/021</span></div><div class="detail-row"><b>Unit</b><span>Registry</span></div><div class="detail-row"><b>Role</b><span>Registry Officer</span></div><div class="detail-row"><b>Email / Phone</b><span>staff@ggchst.edu.ng / 080...</span></div><div class="detail-row"><b>Employment</b><span>${status('Active')}</span></div></div></div><div class="detail-card"><h3>Staff Actions</h3><div class="workflow"><button class="muted-btn">View Profile</button><button class="muted-btn">Edit</button><button class="muted-btn">Activate</button><button class="danger-btn">Deactivate</button><button class="muted-btn">Print Staff Record</button></div></div></div>`,
- establishment:`<div class="section detail-grid"><div class="detail-card full"><h3>Staff Establishment & Career Events</h3><div class="checklist">${['Recruitment','Appointment','Promotion','Confirmation','Leave','Training','Resignation','Retirement','Termination'].map(x=>`<div class="checkitem">▣ ${x}<br><span class="mini">Track dates, approval, documents and responsible officer.</span></div>`).join('')}</div><br><div class="notice">Version 1 can keep these controls optional; the structure is ready for future HR/Registrar expansion.</div></div></div>`,
- letters:`<div class="section detail-grid"><div class="detail-card full"><h3>Official Letter Templates</h3><div class="grid">${['Admission Letter','Introduction Letter','Student Confirmation Letter','Good Standing Letter','Recommendation Letter','Transcript','Statement of Result','Internship/Clinical Placement Letter','Withdrawal Letter','Deferment Letter','Graduation Letter'].map(x=>`<div class="card"><h3>${x}</h3><p class="small">Template-based document with student data and Registrar authorization.</p><button class="btn" onclick="alert('${x} template opened.')">Generate</button> <button class="muted-btn">Manage Template</button></div>`).join('')}</div></div></div>`,
- documents:`<div class="section detail-grid"><div class="detail-card full"><h3>Digital Student Document Folder</h3><div class="checklist">${['Passport','O\'Level result','Birth certificate','Admission letter','Acceptance letter','ID card','Course registration','Payment evidence','Clinical documents','Clearance','Transcript','Certificate'].map(x=>`<div class="checkitem"><b>${x}</b><br><span class="mini">Uploaded → Verified → Rejected • verifier • date/time</span></div>`).join('')}</div><br><div class="table-wrap"><table class="mini-table"><thead><tr><th>Document</th><th>Student</th><th>Verification</th><th>Verified By</th><th>Date</th><th>Action</th></tr></thead><tbody><tr><td>O'Level Result</td><td>Aisha Bello</td><td>${status('Verified')}</td><td>Registrar</td><td>10 Sep 2026</td><td><button class="action">View</button></td></tr><tr><td>Birth Certificate</td><td>Musa Abdullahi</td><td>${status('Pending')}</td><td>—</td><td>—</td><td><button class="action">Verify</button><button class="action reject">Reject</button></td></tr></tbody></table></div></div></div>`,
- clearance:`<div class="section detail-grid"><div class="detail-card full"><h3>Clearance Management</h3><div class="info">A student becomes fully cleared only when all required departments approve.</div><div class="table-wrap"><table class="mini-table"><thead><tr><th>Student</th><th>Registrar</th><th>HOD/Department</th><th>Bursary</th><th>Library</th><th>Student Affairs</th><th>Hostel</th><th>Lab/Equipment</th><th>Overall</th></tr></thead><tbody><tr><td>Zainab Sani</td><td>${status('Cleared')}</td><td>${status('Cleared')}</td><td>${status('Cleared')}</td><td>${status('Cleared')}</td><td>${status('Cleared')}</td><td>${status('Cleared')}</td><td>${status('Cleared')}</td><td>${status('Cleared')}</td></tr><tr><td>Maryam Hassan</td><td>${status('Pending')}</td><td>${status('Cleared')}</td><td>${status('Pending')}</td><td>${status('Cleared')}</td><td>${status('Cleared')}</td><td>${status('Cleared')}</td><td>${status('Cleared')}</td><td>${status('Pending')}</td></tr></tbody></table></div></div></div>`,
- calendar:`<div class="section detail-grid"><div class="detail-card full"><h3>Academic Calendar</h3><div class="table-wrap"><table class="mini-table"><thead><tr><th>Event</th><th>Start</th><th>End</th><th>Target</th><th>Status</th></tr></thead><tbody>${[['Resumption','2026-09-01','2026-09-01','All Students','Published'],['Registration','2026-09-01','2026-10-15','All Students','Published'],['Add/Drop Period','2026-09-15','2026-10-15','All Students','Published'],['Lectures','2026-09-07','2026-12-04','Students/Staff','Published'],['Exams','2026-12-07','2026-12-18','Students/Staff','Planned'],['Results','2027-01-15','2027-02-15','HOD/Registrar','Planned'],['Break','2026-12-21','2027-01-08','All','Planned'],['Graduation','2027-07-15','2027-07-20','Finalists','Planned'],['Public Holidays','As Gazetted','—','All','Reference']].map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td><td>${x[3]}</td><td>${status(x[4]==='Published'?'Approved':'Pending')}</td></tr>`).join('')}</tbody></table></div><br><button class="btn">+ Publish Calendar Event</button></div></div>`,
- announcements:`<div class="section detail-grid"><div class="detail-card full"><h3>Registrar Announcements</h3><div class="form-grid"><div class="field"><label>Title</label><input value="Registration deadline extended"></div><div class="field"><label>Target</label><select><option>All students</option><option>Programme</option><option>Level</option><option>Department</option><option>Staff</option></select></div><div class="field"><label>Publish Date</label><input type="date" value="2026-09-11"></div><div class="field" style="grid-column:1/-1"><label>Message</label><textarea rows="3">Students are required to complete registration before the published deadline.</textarea></div></div><button class="btn">Publish Announcement</button><br><br><div class="grid"><div class="card"><b>Registration deadline extended.</b><p class="small">Target: All students • Published</p></div><div class="card"><b>Final-year clearance.</b><p class="small">Target: Graduating students • Published</p></div></div></div></div>`,
- reports:`<div class="section detail-grid"><div class="detail-card full"><h3>Registrar Reporting Centre</h3><div class="grid"><div class="card"><h3>Student Reports</h3><p class="small">Total students, by programme, level, gender, active/inactive, new and graduating.</p></div><div class="card"><h3>Admission Reports</h3><p class="small">Applications, accepted, rejected, pending and admission conversion.</p></div><div class="card"><h3>Academic Reports</h3><p class="small">Registered students, result status, outstanding results and graduation.</p></div><div class="card"><h3>Administrative Reports</h3><p class="small">Withdrawals, deferments, transfers, requests and pending documents.</p></div></div><br><div class="workflow"><button class="btn">Print</button><button class="btn">Export PDF</button><button class="btn">Export Excel</button></div></div></div>`,
- compliance:`<div class="section detail-grid"><div class="detail-card full"><h3>Accreditation & Compliance Register</h3><div class="info">Sample statuses are for the prototype. Confirm official accreditation dates and evidence before treating them as institutional records.</div><div class="table-wrap"><table class="mini-table"><thead><tr><th>Programme</th><th>Body</th><th>Status</th><th>Accreditation Date</th><th>Expiry/Review</th><th>Documents</th><th>Requirements</th><th>Compliance</th></tr></thead><tbody>${[['HIM','HRORBN','Active','2025','2028','4 files','Current','Compliant'],['Pharmacy Technician','PCN','Active','2025','2028','5 files','Current','Compliant'],['CHEW','CHPRBN','Active','2025','2028','5 files','Current','Compliant'],['Dental Therapy','DTRBN','Active','2025','2028','4 files','Current','Compliant'],['Dental Surgery Technology','DTRBN','Active','2025','2028','4 files','Current','Compliant'],['MLT','MLCN','Active','2025','2028','4 files','Current','Review Due']].map(x=>`<tr>${x.map((v,i)=>`<td>${i===2||i===7?status(v):v}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div></div>`,
- audit:`<div class="section detail-grid"><div class="detail-card full"><h3>Secure Registry Audit Trail</h3><div class="notice">Every important administrative action should record user, action, date/time, student/record, previous value, new value and device/IP where appropriate.</div><div class="table-wrap"><table class="mini-table"><thead><tr><th>User</th><th>Action</th><th>Date/Time</th><th>Student/Record</th><th>Previous</th><th>New</th><th>Device/IP</th></tr></thead><tbody><tr><td>Registrar</td><td>Approved admission</td><td>11 Sep 2026 14:20</td><td>GGCHST/2026/0042</td><td>Verified</td><td>Admitted</td><td>Recorded</td></tr><tr><td>Registrar</td><td>Changed programme</td><td>11 Sep 2026 13:42</td><td>GGCHST/HIM/002</td><td>CHEW</td><td>HIM</td><td>Recorded</td></tr><tr><td>Registrar</td><td>Verified WAEC document</td><td>10 Sep 2026 16:05</td><td>DOC-001</td><td>Pending</td><td>Verified</td><td>Recorded</td></tr><tr><td>Registrar</td><td>Finalized result</td><td>10 Sep 2026 11:31</td><td>HIM/2026/09</td><td>HOD Approved</td><td>Finalized</td><td>Recorded</td></tr></tbody></table></div></div></div>`,
- settings:`<div class="section detail-grid"><div class="detail-card full"><h3>Registrar Configuration</h3><div class="form-grid"><div class="field"><label>Academic Session</label><select><option>2026/2027</option></select></div><div class="field"><label>Semester</label><select><option>First Semester</option><option>Second Semester</option></select></div><div class="field"><label>Student Numbering Format</label><input value="GGCHST/{YEAR}/{SEQ}"></div><div class="field"><label>Matric Numbering</label><input value="GGCHST/{PROGRAMME}/{SEQ}"></div><div class="field"><label>Grading Settings</label><select><option>Institution Default</option></select></div><div class="field"><label>Programme Settings</label><select><option>Programme-specific</option></select></div></div><h4>Registration / Admission Controls</h4><div class="checklist">${['Enable student registration','Enable course registration','Require Registrar approval','Allow admission processing','Allow admission letter generation','Allow transcript generation','Lock finalized results','Enable request workflow'].map(x=>`<label class="checkitem"><input type="checkbox" checked> ${x}</label>`).join('')}</div><h4>Notification Settings</h4><div class="checklist">${['Admission notifications','Registration reminders','Result finalization alerts','Graduation alerts','Pending document alerts'].map(x=>`<label class="checkitem"><input type="checkbox" checked> ${x}</label>`).join('')}</div><br><button class="btn">Save Registrar Settings</button></div></div>`
+ registration:`<div class="section detail-grid"><div class="detail-card full"><h3>Student Registration</h3><div class="info">Registration records are loaded from Firebase. Only live Firebase student records are used.</div><div id="liveRegistrationPanel" class="empty">Loading live registration records…</div></div></div>`,
+ sessions:`<div class="section detail-grid"><div class="detail-card full"><h3>Academic Sessions</h3><div id="liveSessionPanel" class="empty">Loading live academic sessions…</div></div></div>`,
+ courseReg:`<div class="section detail-grid"><div class="detail-card full"><h3>Course Registration</h3><div id="liveCourseRegPanel" class="empty">Loading live course-registration records…</div></div></div>`,
+ results:`<div class="section detail-grid"><div class="detail-card full"><h3>Results & Academic Records</h3><div id="liveResultsPanel" class="empty">Loading live result records…</div></div></div>`,
+ transcripts:`<div class="section detail-grid"><div class="detail-card full"><h3>Transcripts & Certificates</h3><div id="liveTranscriptPanel" class="empty">Select a real student record from Firebase to generate documents.</div></div></div>`,
+ establishment:`<div class="section detail-grid"><div class="detail-card full"><h3>Staff Establishment</h3><div id="liveEstablishmentPanel" class="empty">Loading live staff records…</div></div></div>`,
+ letters:`<div class="section detail-grid"><div class="detail-card full"><h3>Official Letters</h3><div id="liveLettersPanel" class="empty">Official letter records will appear here when stored in Firebase.</div></div></div>`,
+ documents:`<div class="section detail-grid"><div class="detail-card full"><h3>Document Management</h3><div id="liveDocumentsPanel" class="empty">Loading live document records…</div></div></div>`,
+ clearance:`<div class="section detail-grid"><div class="detail-card full"><h3>Clearance Management</h3><div id="liveClearancePanel" class="empty">Loading live clearance records…</div></div></div>`,
+ calendar:`<div class="section detail-grid"><div class="detail-card full"><h3>Academic Calendar</h3><div id="liveCalendarPanel" class="empty">Calendar records are loaded from Firebase when available.</div></div></div>`,
+ announcements:`<div class="section detail-grid"><div class="detail-card full"><h3>Registrar Announcements</h3><div id="liveAnnouncementsPanel" class="empty">Announcements are loaded from Firebase when available.</div></div></div>`
 };
 function inject(id,key){const el=document.getElementById(id);if(!el||!D[key])return;const wrap=document.createElement('div');wrap.innerHTML=D[key];el.appendChild(wrap)}
-inject('dashboard','dashboard');inject('students','students');inject('admissions','admissions');inject('academics','programmes');inject('graduation','graduation');inject('staff','staff');inject('registry','requests');inject('accreditation','compliance');inject('reports','reports');inject('audit','audit');inject('settings','settings');
+// Core Registrar sections are rendered from live Firebase collections; no prototype records are injected.
 // Add the remaining dedicated sub-pages as extra Registrar navigation buttons.
 const menu=document.getElementById('menu');
 const extras=[['registration','📝','Student Registration'],['sessions','🗓️','Academic Sessions'],['courseReg','📋','Course Registration'],['results','📊','Results & Academic Records'],['transcripts','📜','Transcripts & Certificates'],['establishment','🏢','Staff Establishment'],['letters','✉️','Official Letters'],['documents','🗂️','Document Management'],['clearance','☑️','Clearance Management'],['calendar','📅','Academic Calendar'],['announcements','📢','Announcements']];
@@ -388,107 +370,26 @@ document.querySelectorAll('[data-go2]').forEach(b=>b.onclick=()=>show(b.dataset.
 })();
 </script>
 
-<div class="footer">GGCHST SMS • Registrar Portal • Prototype interface — connect Firebase Authentication, Firestore and Storage for production use.</div>
+<div class="footer">GGCHST SMS • Registrar Portal • Live Firebase Registrar Portal • Data is loaded from the school database.</div>
 <div style="margin:25px 0;text-align:center;"><a href="registrar-attendance.html">📋 Attendance</a></div></main>
 </div>
 
 <div class="modal" id="modal"><div class="modalbox"><div style="display:flex;justify-content:space-between;align-items:center"><h2 id="modalTitle">Register</h2><button class="close" id="closeModal">×</button></div><div id="modalContent"></div></div></div>
 
 <script>
-const programmes=[
- ["Health Information Management","HIM","3 Years","Health Information Management","HRORBN","Active"],
- ["Community Health Extension Worker","CHEW","3 Years","Community Health","CHPRBN","Active"],
- ["Medical Laboratory Technician","MLT","3 Years","Medical Laboratory Science","MLCN","Active"],
- ["Dental Therapy","DT","3 Years","Dental Health Sciences","DTRBN","Active"],
- ["Dental Surgery Technology","DST","3 Years","Dental Health Sciences","DTRBN","Active"],
- ["Pharmacy Technician","PT","3 Years","Pharmacy","PCN","Active"]
-];
-const students=[
- ["GGCHST/HIM/001","Aisha Bello","Health Information Management","100","2026/2027","08031234567","Active"],
- ["GGCHST/HIM/002","Musa Abdullahi","Health Information Management","100","2026/2027","08032345678","Active"],
- ["GGCHST/CHEW/014","Fatima Ibrahim","Community Health Extension Worker","200","2026/2027","08033456789","Active"],
- ["GGCHST/MLT/021","Yusuf Umar","Medical Laboratory Technician","200","2026/2027","08034567890","Active"],
- ["GGCHST/DT/033","Zainab Sani","Dental Therapy","300","2026/2027","08035678901","Graduating"],
- ["GGCHST/DST/040","Abdulrahman Lawal","Dental Surgery Technology","300","2026/2027","08036789012","Active"],
- ["GGCHST/PT/055","Maryam Hassan","Pharmacy Technician","300","2026/2027","08037890123","Graduating"],
- ["GGCHST/HIM/061","Bashir Ahmed","Health Information Management","300","2026/2027","08038901234","Active"]
-];
-const applications=[
- ["GGCHST/ADM/2026/001","Hauwa Sani","Health Information Management","08040000001","5 Credits","2026-09-08","Under Review"],
- ["GGCHST/ADM/2026/002","Ibrahim Musa","Community Health Extension Worker","08040000002","6 Credits","2026-09-08","Verified"],
- ["GGCHST/ADM/2026/003","Amina Bello","Medical Laboratory Technician","08040000003","5 Credits","2026-09-07","Pending"],
- ["GGCHST/ADM/2026/004","Kabiru Umar","Pharmacy Technician","08040000004","5 Credits","2026-09-07","Admitted"],
- ["GGCHST/ADM/2026/005","Maryam Aliyu","Dental Therapy","08040000005","6 Credits","2026-09-06","Verified"],
- ["GGCHST/ADM/2026/006","Sani Abdullahi","Dental Surgery Technology","08040000006","4 Credits","2026-09-05","Rejected"]
-];
-const staff=[
- ["GGCHST/STAFF/001","Dr. Halima Yusuf","Health Information Management","Senior Lecturer","MSc Health Informatics","08030000001","Active"],
- ["GGCHST/STAFF/002","Mr. Ibrahim Musa","Health Information Management","Principal Lecturer","BSc Health Records","08030000002","Active"],
- ["GGCHST/STAFF/003","Dr. Amina Sani","Medical Laboratory Science","Lecturer I","MSc Biostatistics","08030000003","Active"],
- ["GGCHST/STAFF/004","Mr. Kabiru Bello","Community Health","Lecturer II","BSc Public Health","08030000004","Active"],
- ["GGCHST/STAFF/005","Dr. Fatima Umar","Pharmacy","Senior Lecturer","MPharm","08030000005","On Leave"]
-];
-const nonStaff=[
- ["GGCHST/STAFF/021","Usman Ahmed","Registry","Registry Officer","08031111111","Active"],
- ["GGCHST/STAFF/022","Zainab Umar","Bursary","Accounts Officer","08032222222","Active"],
- ["GGCHST/STAFF/023","Sadiq Bello","Library","Librarian","08033333333","Active"],
- ["GGCHST/STAFF/024","Aisha Yusuf","Student Affairs","Student Affairs Officer","08034444444","Active"]
-];
-const requests=[
- ["REG-2026-001","Aisha Bello","Statement of Result","2026-09-09","Pending"],
- ["REG-2026-002","Musa Abdullahi","Change of Biodata","2026-09-09","Under Review"],
- ["REG-2026-003","Fatima Ibrahim","Transcript Request","2026-09-08","Approved"],
- ["REG-2026-004","Yusuf Umar","Introduction Letter","2026-09-08","Completed"],
- ["REG-2026-005","Zainab Sani","Name Correction","2026-09-07","Pending"]
-];
-const docs=[
- ["DOC-001","Aisha Bello","O'Level Result","2026-09-08","Verified"],
- ["DOC-002","Musa Abdullahi","Birth Certificate","2026-09-08","Pending"],
- ["DOC-003","Fatima Ibrahim","Passport Photograph","2026-09-07","Verified"],
- ["DOC-004","Yusuf Umar","Admission Letter","2026-09-07","Verified"],
- ["DOC-005","Zainab Sani","O'Level Result","2026-09-06","Rejected"]
-];
-const audits=[
- ["2026-09-11 14:20","Registrar","Admissions","Verified applicant documents","GGCHST/ADM/2026/002","Success"],
- ["2026-09-11 13:42","Registrar","Students","Updated student biodata","GGCHST/HIM/002","Success"],
- ["2026-09-11 12:18","HOD-HIM","Academics","Approved submitted result batch","HIM/2026/09","Success"],
- ["2026-09-10 16:05","Registrar","Registry","Approved transcript request","REG-2026-003","Success"],
- ["2026-09-10 11:31","Admin","Students","Created student account","GGCHST/PT/055","Success"],
- ["2026-09-09 15:40","Registrar","Graduation","Reviewed clearance record","GGCHST/DT/033","Pending"]
-];
-const grad=[
- ["GGCHST/DT/033","Zainab Sani","Dental Therapy","3.42","Cleared","Cleared","Cleared","Eligible"],
- ["GGCHST/PT/055","Maryam Hassan","Pharmacy Technician","3.61","Cleared","Pending","Cleared","Pending Clearance"],
- ["GGCHST/DST/071","Aliyu Ibrahim","Dental Surgery Technology","2.91","Cleared","Cleared","Pending","Pending Clearance"],
- ["GGCHST/MLT/082","Rukayya Bello","Medical Laboratory Technician","2.44","Outstanding","Cleared","Cleared","Not Eligible"]
-];
-const courses=[
- ["HIM101","Introduction to Health Information Management",3,"100","Health Information Management","First"],
- ["CHEW201","Community Health Practice",3,"200","Community Health Extension Worker","First"],
- ["MLT202","Clinical Chemistry",3,"200","Medical Laboratory Technician","First"],
- ["DT301","Dental Materials",3,"300","Dental Therapy","First"],
- ["DST302","Oral Surgery Technology",3,"300","Dental Surgery Technology","First"],
- ["PT301","Pharmacology",3,"300","Pharmacy Technician","First"]
-];
-const academicResults=[
- ["Aisha Bello","GGCHST/HIM/001","HIM101",78,"A","Approved","Finalized"],
- ["Musa Abdullahi","GGCHST/HIM/002","HIM101",64,"B","Approved","Pending"],
- ["Zainab Sani","GGCHST/DT/033","DT301",82,"A","Approved","Finalized"],
- ["Maryam Hassan","GGCHST/PT/055","PT301",69,"B","Approved","Pending"]
-];
-const clearances=[
- ["Zainab Sani","Cleared","Cleared","Cleared","Cleared","Cleared"],
- ["Maryam Hassan","Cleared","Pending","Cleared","Pending","Pending"],
- ["Aliyu Ibrahim","Cleared","Cleared","Pending","Pending","Pending"]
-];
-const acc=[
- ["Health Information Management","HRORBN","Active","2025","2028","4 files","Compliant"],
- ["Community Health Extension Worker","CHPRBN","Active","2025","2028","5 files","Compliant"],
- ["Medical Laboratory Technician","MLCN","Active","2025","2028","4 files","Review Due"],
- ["Dental Therapy","DTRBN","Active","2025","2028","4 files","Compliant"],
- ["Dental Surgery Technology","DTRBN","Active","2025","2028","4 files","Compliant"],
- ["Pharmacy Technician","PCN","Active","2025","2028","5 files","Compliant"]
-];
+var programmes=[];
+var students=[];
+var applications=[];
+var staff=[];
+var nonStaff=[];
+var requests=[];
+var docs=[];
+var audits=[];
+var grad=[];
+var courses=[];
+var academicResults=[];
+var clearances=[];
+var acc=[];
 
 const $=id=>document.getElementById(id);
 const esc=v=>String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -509,7 +410,7 @@ function renderApplications(){
  let r=applications.filter(x=>(!q||x.join(" ").toLowerCase().includes(q))&&(!s||x[6]===s));
  $("admRows").innerHTML=r.map((x,i)=>`<tr><td><b>${x[0]}</b></td><td>${esc(x[1])}</td><td>${esc(x[2])}</td><td>${x[3]}</td><td>${x[4]}</td><td>${x[5]}</td><td>${status(x[6])}</td><td><button class="action" onclick="reviewApplication(${i})">Review</button></td></tr>`).join("")||`<tr><td colspan="8" class="empty">No applications found.</td></tr>`;
  $("verifyRows").innerHTML=applications.filter(x=>["Under Review","Verified"].includes(x[6])).map((x,i)=>`<tr><td>${esc(x[1])}</td><td>${esc(x[2])}</td><td>${status("Verified")}</td><td>${x[4].includes("5")||x[4].includes("6")?status("Verified"):status("Pending")}</td><td>${status("Verified")}</td><td>${status(x[6])}</td><td><button class="action approve" onclick="alert('Applicant verification saved.')">Verify</button></td></tr>`).join("");
- $("admittedRows").innerHTML=applications.filter(x=>x[6]==="Admitted").map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1])}</td><td>${esc(x[2])}</td><td>2026/2027</td><td><button class="action" onclick="alert('Admission letter preview opened.')">Preview</button></td><td>${status("Admitted")}</td></tr>`).join("");
+ $("admittedRows").innerHTML=applications.filter(x=>x[6]==="Admitted").map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1])}</td><td>${esc(x[2])}</td><td>${esc(x[4]||"")}</td><td><button class="action" onclick="alert('Admission letter preview opened.')">Preview</button></td><td>${status("Admitted")}</td></tr>`).join("");
 }
 function reviewApplication(i){openModal("Application Review",`<div class="info"><b>${esc(applications[i][1])}</b><br>${esc(applications[i][2])}<br>${applications[i][0]}</div><div class="form-grid"><div class="field"><label>Decision</label><select id="appDecision"><option>Under Review</option><option>Verified</option><option>Admitted</option><option>Rejected</option></select></div><div class="field"><label>Note</label><input id="appNote" value="Documents reviewed by Registrar"></div></div><br><button class="btn" onclick="applications[${i}][6]=$('appDecision').value;renderApplications();addAudit('Admissions','Updated application status',applications[${i}][0]);closeModal()">Save Decision</button>`)}
 
@@ -522,11 +423,10 @@ function viewStudent(i){let x=students[i];openModal("Student Profile",`<div clas
 function printStudent(i){alert("Student registry record prepared for printing: "+students[i][0])}
 
 function renderAcademics(){
- $("programmeRows").innerHTML=programmes.map(x=>`<tr>${x.map((v,i)=>`<td>${i===5?status(v):esc(v)}</td>`).join("")}</tr>`).join("");
- const deps=[["Health Information Management","Dr. Halima Yusuf","1","74","4","Active"],["Community Health","Mr. Kabiru Bello","1","82","5","Active"],["Medical Laboratory Science","Dr. Amina Sani","1","91","6","Active"],["Dental Health Sciences","Mr. Ibrahim Musa","2","96","7","Active"],["Pharmacy","Dr. Fatima Umar","1","85","5","Active"]];
- $("departmentRows").innerHTML=deps.map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td><td>${x[3]}</td><td>${x[4]}</td><td>${status(x[5])}</td></tr>`).join("");
- $("courseRows").innerHTML=courses.map(x=>`<tr><td><b>${x[0]}</b></td><td>${x[1]}</td><td>${x[2]}</td><td>${x[3]}</td><td>${x[4]}</td><td>${x[5]}</td></tr>`).join("");
- $("academicResultRows").innerHTML=academicResults.map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td><td>${x[3]}</td><td><b>${x[4]}</b></td><td>${status(x[5])}</td><td>${status(x[6])}</td></tr>`).join("");
+ $("programmeRows").innerHTML=programmes.map(x=>`<tr><td>${esc(x[0])}</td><td>${esc(x[1])}</td><td>${esc(x[2])}</td><td>${esc(x[3])}</td><td>${esc(x[4])}</td><td>${status(x[5]||"")}</td></tr>`).join("")||`<tr><td colspan="6" class="empty">No programme records found in Firebase.</td></tr>`;
+ $("departmentRows").innerHTML=(window.__GGCHST_departments||[]).map(x=>`<tr><td>${esc(x.name||"")}</td><td>${esc(x.hodName||"")}</td><td>${esc(x.programmes||"")}</td><td>${esc(x.students||"")}</td><td>${esc(x.staff||"")}</td><td>${status(x.status||"")}</td></tr>`).join("")||`<tr><td colspan="6" class="empty">No department records found in Firebase.</td></tr>`;
+ $("courseRows").innerHTML=courses.map(x=>`<tr><td><b>${esc(x[0])}</b></td><td>${esc(x[1])}</td><td>${esc(x[2])}</td><td>${esc(x[3])}</td><td>${esc(x[4])}</td><td>${esc(x[5])}</td></tr>`).join("")||`<tr><td colspan="6" class="empty">No course records found in Firebase.</td></tr>`;
+ $("academicResultRows").innerHTML=academicResults.map(x=>`<tr><td>${esc(x[0])}</td><td>${esc(x[1])}</td><td>${esc(x[2])}</td><td>${esc(x[3])}</td><td><b>${esc(x[4])}</b></td><td>${status(x[5]||"")}</td><td>${status(x[6]||"")}</td></tr>`).join("")||`<tr><td colspan="7" class="empty">No result records found in Firebase.</td></tr>`;
 }
 
 function renderGraduation(){
@@ -550,7 +450,12 @@ function renderRegistry(){
  $("clearanceRows").innerHTML=clearances.map(x=>`<tr><td>${x[0]}</td><td>${status(x[1])}</td><td>${status(x[2])}</td><td>${status(x[3])}</td><td>${status(x[4])}</td><td>${status(x[5])}</td></tr>`).join("");
 }
 function renderAcc(){ $("accreditationRows").innerHTML=acc.map(x=>`<tr><td><b>${x[0]}</b></td><td>${x[1]}</td><td>${status(x[2])}</td><td>${x[3]}</td><td>${x[4]}</td><td>${x[5]}</td><td>${status(x[6])}</td></tr>`).join("");}
-function renderReports(){ $("reportProgrammeRows").innerHTML=programmes.map((x,i)=>`<tr><td>${x[0]}</td><td>${[74,82,91,48,48,85][i]}</td><td>${[18,16,14,9,8,11][i]}</td><td>${[69,77,85,45,44,79][i]}</td><td>${[8,10,13,7,9,16][i]}</td></tr>`).join("");}
+function renderReports(){
+ const by={};
+ students.forEach(x=>{const p=x[2]||"Unknown";by[p]??={students:0,admissions:0,registered:0,graduating:0};by[p].students++;if(String(x[6]).toLowerCase().includes("graduat"))by[p].graduating++;});
+ applications.forEach(x=>{const p=x[2]||"Unknown";by[p]??={students:0,admissions:0,registered:0,graduating:0};by[p].admissions++;});
+ $("reportProgrammeRows").innerHTML=Object.entries(by).map(([p,v])=>`<tr><td>${esc(p)}</td><td>${v.students}</td><td>${v.admissions}</td><td>${v.registered}</td><td>${v.graduating}</td></tr>`).join("")||`<tr><td colspan="5" class="empty">No report data found in Firebase.</td></tr>`;
+}
 function renderAudit(){let q=$("auditSearch").value.toLowerCase(),m=$("auditModule").value;let r=audits.filter(x=>(!q||x.join(" ").toLowerCase().includes(q))&&(!m||x[2]===m));$("auditRows").innerHTML=r.map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td><td>${x[3]}</td><td>${x[4]}</td><td>${status(x[5]==="Success"?"Approved":"Pending")}</td></tr>`).join("");}
 function addAudit(module,action,record){audits.unshift([new Date().toLocaleString(),"Registrar",module,action,record,"Success"]);renderAudit();}
 
@@ -578,8 +483,8 @@ $("staffSearch").oninput=renderStaff;$("requestSearch").oninput=renderRegistry;$
 $("auditSearch").oninput=renderAudit;$("auditModule").onchange=renderAudit;
 
 $("addStudent").onclick=()=>{location.href="student.html"};
-function legacyAddStudentModal(){openModal("Register New Student",`<div class="form-grid"><div class="field"><label>Full Name</label><input id="newName" required></div><div class="field"><label>Matric No.</label><input id="newMatric" value="GGCHST/NEW/"></div><div class="field"><label>Programme</label><select id="newProgramme">${programmes.map(x=>`<option>${x[0]}</option>`).join("")}</select></div><div class="field"><label>Level</label><select id="newLevel"><option>100</option><option>200</option><option>300</option></select></div><div class="field"><label>Session</label><input value="2026/2027" readonly></div><div class="field"><label>Phone</label><input id="newPhone"></div></div><br><button class="btn" onclick="saveStudent()">Create Student Record</button>`);}
-function saveStudent(){let name=$("newName").value.trim();if(!name){alert("Enter student name.");return}students.push([$("newMatric").value+String(students.length+1).padStart(3,"0"),name,$("newProgramme").value,$("newLevel").value,"2026/2027",$("newPhone").value||"Not provided","Active"]);closeModal();renderStudents();addAudit("Students","Created student registry record",students[students.length-1][0]);alert("Student record created successfully.");}
+function legacyAddStudentModal(){openModal("Register New Student",`<div class="form-grid"><div class="field"><label>Full Name</label><input id="newName" required></div><div class="field"><label>Matric No.</label><input id="newMatric" required></div><div class="field"><label>Programme</label><select id="newProgramme"></select></div><div class="field"><label>Level</label><select id="newLevel"><option value="">Select level</option><option>100</option><option>200</option><option>300</option><option>400</option><option>500</option></select></div><div class="field"><label>Session</label><input id="newSession" readonly placeholder="Active session from Firebase"></div><div class="field"><label>Phone</label><input id="newPhone"></div></div><br><button class="btn" onclick="saveStudent()">Create Student Record</button>`);}
+function saveStudent(){alert("Use the Admin Student Management page to create the master student record, then it will appear here automatically from Firebase.");}
 
 $("addStaff").onclick=()=>openModal("Add Staff",`<div class="form-grid"><div class="field"><label>Full Name</label><input id="staffName"></div><div class="field"><label>Staff ID</label><input id="staffId" value="GGCHST/STAFF/"></div><div class="field"><label>Department</label><input id="staffDept"></div><div class="field"><label>Rank / Role</label><input id="staffRank"></div><div class="field"><label>Qualification</label><input id="staffQual"></div><div class="field"><label>Phone</label><input id="staffPhone"></div></div><br><button class="btn" onclick="saveStaff()">Save Staff</button>`);
 function saveStaff(){staff.push([$("staffId").value+String(staff.length+1).padStart(3,"0"),$("staffName").value||"New Staff",$("staffDept").value||"Unassigned",$("staffRank").value||"Staff",$("staffQual").value||"Not provided",$("staffPhone").value||"Not provided","Active"]);closeModal();renderStaff();addAudit("Registry","Created staff record",staff[staff.length-1][0]);alert("Staff record saved.");}
@@ -591,15 +496,7 @@ setupTabs();renderApplications();renderStudents();renderAcademics();renderGradua
 <script>
 (function(){
  const dayOrder=['Monday','Tuesday','Wednesday','Thursday','Friday'];
- const tmData=[
-  {id:'TT-001',session:'2026/2027',semester:'First',day:'Monday',start:'08:00',end:'10:00',course:'HIM101 — Introduction to Health Information Management',programme:'Health Information Management',level:'100',lecturer:'Dr. Halima Yusuf',room:'Lecture Hall A',type:'Lecture',status:'Approved'},
-  {id:'TT-002',session:'2026/2027',semester:'First',day:'Monday',start:'10:00',end:'12:00',course:'CHEW201 — Community Health Practice',programme:'Community Health Extension Worker',level:'200',lecturer:'Mr. Ibrahim Musa',room:'Lecture Hall B',type:'Lecture',status:'Published'},
-  {id:'TT-003',session:'2026/2027',semester:'First',day:'Tuesday',start:'08:00',end:'10:00',course:'MLT202 — Clinical Chemistry',programme:'Medical Laboratory Technician',level:'200',lecturer:'Dr. Sadiq Bello',room:'Laboratory 1',type:'Practical',status:'Under Review'},
-  {id:'TT-004',session:'2026/2027',semester:'First',day:'Tuesday',start:'10:00',end:'12:00',course:'DT301 — Dental Materials',programme:'Dental Therapy',level:'300',lecturer:'Dr. Zainab Umar',room:'Dental Lab',type:'Practical',status:'Draft'},
-  {id:'TT-005',session:'2026/2027',semester:'First',day:'Wednesday',start:'08:00',end:'10:00',course:'DST302 — Oral Surgery Technology',programme:'Dental Surgery Technology',level:'300',lecturer:'Dr. Aliyu Hassan',room:'Clinical Room 2',type:'Clinical',status:'Approved'},
-  {id:'TT-006',session:'2026/2027',semester:'First',day:'Thursday',start:'10:00',end:'12:00',course:'PT301 — Pharmacology',programme:'Pharmacy Technician',level:'300',lecturer:'Mr. Usman Ahmed',room:'Lecture Hall A',type:'Lecture',status:'Published'},
-  {id:'TT-007',session:'2026/2027',semester:'First',day:'Friday',start:'08:00',end:'10:00',course:'HIM201 — Health Records Practice',programme:'Health Information Management',level:'200',lecturer:'Dr. Halima Yusuf',room:'Lecture Hall A',type:'Lecture',status:'Draft'}
- ];
+ var tmData=[];
  const $=id=>document.getElementById(id);
  const esc2=v=>String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
  function overlaps(a,b){return a.day===b.day && a.start<b.end && b.start<a.end;}
@@ -619,7 +516,7 @@ setupTabs();renderApplications();renderStudents();renderAcademics();renderGradua
  }
  function modalForm(item={}){
   const vals={day:'Monday',start:'08:00',end:'10:00',type:'Lecture',status:'Draft',...item};
-  return `<div class="form-grid"><div class="field"><label>Session</label><select id="tmFSession"><option>2026/2027</option><option>2025/2026</option></select></div><div class="field"><label>Semester</label><select id="tmFSem"><option>First</option><option>Second</option></select></div><div class="field"><label>Course</label><input id="tmFCourse" value="${esc2(vals.course||'')}"></div><div class="field"><label>Programme</label><select id="tmFProg">${programmes.map(x=>`<option ${x[0]===vals.programme?'selected':''}>${esc2(x[0])}</option>`).join('')}</select></div><div class="field"><label>Level</label><select id="tmFLevel">${['100','200','300'].map(x=>`<option ${x===vals.level?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Day</label><select id="tmFDay">${dayOrder.map(x=>`<option ${x===vals.day?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Start</label><input type="time" id="tmFStart" value="${vals.start}"></div><div class="field"><label>End</label><input type="time" id="tmFEnd" value="${vals.end}"></div><div class="field"><label>Lecturer</label><input id="tmFLect" value="${esc2(vals.lecturer||'')}"></div><div class="field"><label>Venue / Room</label><input id="tmFRoom" value="${esc2(vals.room||'')}"></div><div class="field"><label>Class Type</label><select id="tmFType">${['Lecture','Practical','Clinical','Seminar','Examination'].map(x=>`<option ${x===vals.type?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Status</label><select id="tmFStatus"><option>Draft</option><option>Under Review</option><option>Approved</option><option>Published</option></select></div></div><br><div class="info">Conflict detection checks room, lecturer and same programme/level overlaps before saving.</div><br><button class="btn" onclick="tmSave('${vals.id||''}')">Save Timetable Entry</button>`;
+  return `<div class="form-grid"><div class="field"><label>Session</label><select id="tmFSession"></select></div><div class="field"><label>Semester</label><select id="tmFSem"><option>First</option><option>Second</option></select></div><div class="field"><label>Course</label><input id="tmFCourse" value="${esc2(vals.course||'')}"></div><div class="field"><label>Programme</label><select id="tmFProg">${programmes.map(x=>`<option ${x[0]===vals.programme?'selected':''}>${esc2(x[0])}</option>`).join('')}</select></div><div class="field"><label>Level</label><select id="tmFLevel">${['100','200','300'].map(x=>`<option ${x===vals.level?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Day</label><select id="tmFDay">${dayOrder.map(x=>`<option ${x===vals.day?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Start</label><input type="time" id="tmFStart" value="${vals.start}"></div><div class="field"><label>End</label><input type="time" id="tmFEnd" value="${vals.end}"></div><div class="field"><label>Lecturer</label><input id="tmFLect" value="${esc2(vals.lecturer||'')}"></div><div class="field"><label>Venue / Room</label><input id="tmFRoom" value="${esc2(vals.room||'')}"></div><div class="field"><label>Class Type</label><select id="tmFType">${['Lecture','Practical','Clinical','Seminar','Examination'].map(x=>`<option ${x===vals.type?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Status</label><select id="tmFStatus"><option>Draft</option><option>Under Review</option><option>Approved</option><option>Published</option></select></div></div><br><div class="info">Conflict detection checks room, lecturer and same programme/level overlaps before saving.</div><br><button class="btn" onclick="tmSave('${vals.id||''}')">Save Timetable Entry</button>`;
  }
  window.tmAdd=()=>openModal('Add Timetable Entry',modalForm());
  window.tmEdit=id=>{let x=tmData.find(y=>y.id===id);openModal('Edit Timetable Entry',modalForm(x));setTimeout(()=>{$('tmFSession').value=x.session;$('tmFSem').value=x.semester;$('tmFStatus').value=x.status},0)};
@@ -654,34 +551,45 @@ setupTabs();renderApplications();renderStudents();renderAcademics();renderGradua
 
 
 <script type="module" id="registrar-course-firebase">
-import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
-  authDomain: "ggchst-sms-new.firebaseapp.com",
-  projectId: "ggchst-sms-new",
-  storageBucket: "ggchst-sms-new.firebasestorage.app",
-  messagingSenderId: "942770190211",
-  appId: "1:942770190211:web:aa9a085a38aaa517b368b6"
-};
+import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
 const app=getApps().length?getApp():initializeApp(firebaseConfig),db=getFirestore(app);
-const $=id=>document.getElementById(id); const departments={"Faculty of Health Sciences":["Health Information Management","Community Health","Public Health"],"Faculty of Health Technology":["Environmental Health","Health Education","Dental Therapy"],"Faculty of Science":["Science Laboratory Technology","Computer Science","Statistics"],"Faculty of Basic Medical Sciences":["Medical Laboratory Technology","Pharmacy Technician","Biomedical Technology"]};
-const levels=["100 Level","200 Level","300 Level","400 Level","500 Level"],sessions=["2026/2027","2025/2026","2024/2025"];
-let courses=[];
-function esc(v){return String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));}
-function status(t,error=false){$("rcStatus").textContent=t;$("rcStatus").classList.toggle("error",error)}
-function fill(id,items,selected=""){const e=$(id);e.innerHTML='<option value="">Select</option>'+items.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(selected)e.value=selected;}
-function updateDept(selectId,deptId){const f=$(selectId).value,d=$(deptId);d.innerHTML='<option value="">Select department</option>'+(departments[f]||[]).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");d.disabled=!f;}
-function render(){const q=$("rcSearch").value.trim().toLowerCase();const list=courses.filter(c=>!q||`${c.courseName||""} ${c.courseCode||""}`.toLowerCase().includes(q));$("rcRows").innerHTML=list.length?list.map((c,i)=>`<tr><td>${i+1}</td><td>${esc(c.courseName)}</td><td>${esc(c.courseCode)}</td><td>${esc(c.creditUnit)}</td><td>${esc(c.faculty)}</td><td>${esc(c.department)}</td><td>${esc(c.level)}</td><td>${esc(c.session)}</td><td><button class="course-edit-btn" data-edit="${esc(c.id)}" type="button">Edit</button><button class="course-delete-btn" data-delete="${esc(c.id)}" type="button">Delete</button></td></tr>`).join(""): '<tr><td colspan="9">No courses found.</td></tr>';}
-function closeModal(){$("rcModal").classList.remove("show");$("rcModal").setAttribute("aria-hidden","true");}
-function openEdit(c){$("rcEditId").value=c.id;$("rcEditName").value=c.courseName||"";$("rcEditCode").value=c.courseCode||"";$("rcEditUnit").value=c.creditUnit||"";fill("rcEditFaculty",Object.keys(departments),c.faculty);fill("rcEditDepartment",departments[c.faculty]||[],c.department);fill("rcEditLevel",levels,c.level);fill("rcEditSession",sessions,c.session);$("rcModal").classList.add("show");$("rcModal").setAttribute("aria-hidden","false");}
-$("rcFaculty").addEventListener("change",()=>updateDept("rcFaculty","rcDepartment"));$("rcEditFaculty").addEventListener("change",()=>fill("rcEditDepartment",departments[$("rcEditFaculty").value]||[]));$("rcSearch").addEventListener("input",render);
-$("rcCloseModal").onclick=closeModal;$("rcCancelEdit").onclick=closeModal;$("rcModal").addEventListener("click",e=>{if(e.target.id==="rcModal")closeModal()});
-$("registrarCourseForm").addEventListener("reset",()=>setTimeout(()=>{$("rcDepartment").innerHTML='<option value="">Select faculty first</option>';$('rcDepartment').disabled=true},0));
-$("registrarCourseForm").addEventListener("submit",async e=>{e.preventDefault();const btn=$("rcSaveBtn");const c={courseName:$("rcCourseName").value.trim(),courseCode:$("rcCourseCode").value.trim().toUpperCase(),creditUnit:Number($("rcCreditUnit").value),faculty:$("rcFaculty").value,department:$("rcDepartment").value,level:$("rcLevel").value,session:$("rcSession").value};if(Object.values(c).some(v=>v===""||v===0)){status("Please complete all required course fields.",true);return}if(courses.some(x=>String(x.courseCode||"").toUpperCase()===c.courseCode&&x.department===c.department&&x.level===c.level&&x.session===c.session)){status("A course with this code already exists for the same department, level and session.",true);return}btn.disabled=true;btn.textContent="Saving…";try{await addDoc(collection(db,"courses"),{...c,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});e.target.reset();status("Course saved successfully to the shared Firebase database.");}catch(err){console.error(err);status(err.message||"Could not save course. Check Firestore Security Rules.",true)}finally{btn.disabled=false;btn.textContent="Save Course"});
-$("rcRows").addEventListener("click",async e=>{const edit=e.target.dataset.edit,del=e.target.dataset.delete;if(edit){const c=courses.find(x=>x.id===edit);if(c)openEdit(c)}if(del){const c=courses.find(x=>x.id===del);if(!c||!confirm(`Delete "${c.courseName}" (${c.courseCode})? This cannot be undone.`))return;try{await deleteDoc(doc(db,"courses",del));status("Course deleted successfully.");}catch(err){console.error(err);status(err.message||"Could not delete course.",true)}});
-$("rcEditForm").addEventListener("submit",async e=>{e.preventDefault();const id=$("rcEditId").value,c={courseName:$("rcEditName").value.trim(),courseCode:$("rcEditCode").value.trim().toUpperCase(),creditUnit:Number($("rcEditUnit").value),faculty:$("rcEditFaculty").value,department:$("rcEditDepartment").value,level:$("rcEditLevel").value,session:$("rcEditSession").value};if(Object.values(c).some(v=>v===""||v===0)){status("Please complete all required course fields.",true);return}if(courses.some(x=>x.id!==id&&String(x.courseCode||"").toUpperCase()===c.courseCode&&x.department===c.department&&x.level===c.level&&x.session===c.session)){status("Another course already uses this code for the same department, level and session.",true);return}const b=$("rcUpdateBtn");b.disabled=true;b.textContent="Updating…";try{await updateDoc(doc(db,"courses",id),{...c,updatedAt:serverTimestamp()});closeModal();status("Course updated successfully.");}catch(err){console.error(err);status(err.message||"Could not update course.",true)}finally{b.disabled=false;b.textContent="Update Course"});
-try{onSnapshot(collection(db,"courses"),snap=>{courses=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));render();status(`Connected. ${courses.length} course${courses.length===1?"":"s"} in the shared Firebase collection.`)},err=>{console.error(err);status(err.message||"Could not read the shared courses collection.",true)})}catch(err){console.error(err);status(err.message||"Firebase could not be initialized.",true)}
+const $=id=>document.getElementById(id), esc=v=>String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+let courses=[],programmes=[],sessions=[],editingId="";
+const status=t=>{const e=$("rcStatus");if(e)e.textContent=t};
+function fillSelect(id,items,placeholder,fn){
+ const e=$(id);if(!e)return;
+ e.innerHTML=`<option value="">${placeholder}</option>`;
+ items.forEach(x=>{const o=document.createElement("option");o.value=fn(x);o.textContent=fn(x);e.appendChild(o)});
+}
+function render(){
+ const q=($("rcSearch")?.value||"").trim().toLowerCase();
+ const list=courses.filter(c=>!q||`${c.courseTitle||c.courseName||""} ${c.courseCode||""} ${c.programmeName||c.programme||""}`.toLowerCase().includes(q));
+ $("rcRows").innerHTML=list.length?list.map(c=>`<tr><td>${esc(c.courseTitle||c.courseName)}</td><td>${esc(c.courseCode)}</td><td>${esc(c.courseUnit??c.creditUnit??"")}</td><td>${esc(c.programmeName||c.programme||"")}</td><td>${esc(c.levelName||c.level||"")}</td><td>${esc(c.semester||"")}</td><td>${esc(c.sessionName||c.academicSession||c.session||"")}</td><td><button class="course-edit-btn" data-edit="${esc(c.id)}">Edit</button><button class="course-delete-btn" data-delete="${esc(c.id)}">Delete</button></td></tr>`).join(""):'<tr><td colspan="8">No course records found in Firebase.</td></tr>';
+}
+function resetForm(){editingId="";$("registrarCourseForm")?.reset();$("rcSaveBtn").textContent="Save Course";}
+function loadSource(){
+ fillSelect("rcProgramme",programmes,"Select programme",x=>x.name||x.programmeName||"");
+ fillSelect("rcSession",sessions,"Select session",x=>x.name||x.sessionName||"");
+}
+$("rcSearch")?.addEventListener("input",render);
+$("registrarCourseForm")?.addEventListener("reset",()=>setTimeout(resetForm,0));
+$("registrarCourseForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();
+ const payload={courseTitle:$("rcCourseName").value.trim(),courseName:$("rcCourseName").value.trim(),courseCode:$("rcCourseCode").value.trim().toUpperCase(),courseUnit:Number($("rcCreditUnit").value),semester:$("rcSemester").value,programmeName:$("rcProgramme").value,levelName:$("rcLevel").value,sessionName:$("rcSession").value,academicSession:$("rcSession").value,status:"Active",updatedAt:serverTimestamp()};
+ if(!payload.courseTitle||!payload.courseCode||!payload.courseUnit||!payload.programmeName||!payload.levelName||!payload.semester||!payload.academicSession){status("Please complete all required course fields.");return}
+ try{if(editingId)await updateDoc(doc(db,"courses",editingId),payload);else{payload.createdAt=serverTimestamp();await addDoc(collection(db,"courses"),payload)}resetForm();status("Course saved to the shared Firebase database.")}catch(err){console.error(err);status(err.message||"Could not save course.")}
+});
+$("rcRows")?.addEventListener("click",async e=>{
+ const ed=e.target.closest("[data-edit]")?.dataset.edit,del=e.target.closest("[data-delete]")?.dataset.delete;
+ if(ed){const c=courses.find(x=>x.id===ed);if(!c)return;editingId=ed;$("rcCourseName").value=c.courseTitle||c.courseName||"";$("rcCourseCode").value=c.courseCode||"";$("rcCreditUnit").value=c.courseUnit??c.creditUnit??"";loadSource();$("rcProgramme").value=c.programmeName||c.programme||"";$("rcLevel").value=c.levelName||c.level||"";$("rcSemester").value=c.semester||"";$("rcSession").value=c.sessionName||c.academicSession||c.session||"";$("rcSaveBtn").textContent="Update Course";window.scrollTo({top:0,behavior:"smooth"})}
+ if(del&&confirm("Delete this course record from Firebase?")){try{await deleteDoc(doc(db,"courses",del));status("Course deleted.")}catch(err){status(err.message||"Could not delete course.")}}
+});
+onSnapshot(collection(db,"courses"),s=>{courses=s.docs.map(d=>({id:d.id,...d.data()}));render();status(`Connected • ${courses.length} course record${courses.length===1?"":"s"} loaded.`)});
+onSnapshot(collection(db,"programmes"),s=>{programmes=s.docs.map(d=>({id:d.id,...d.data()}));loadSource()});
+onSnapshot(collection(db,"academicSessions"),s=>{sessions=s.docs.map(d=>({id:d.id,...d.data()}));loadSource()});
+loadSource();
 </script>
 
 <script type="module" id="lecturer-firebase-manager">
@@ -733,21 +641,7 @@ let studentsFS=[], coursesFS=[], registrationsFS=[];
 
 function status(t,error=false){const e=$("syncRegistrationStatus");if(e){e.textContent=t;e.style.color=error?"#a61b16":"#087f5b"}
 
-async function seedStudents(){
-  if(!db||!window.__GGCHST_getStudents)return;
-  const existing=await getDocs(collection(db,"students"));
-  const byMatric=new Map(existing.docs.map(d=>[norm(d.data().matricNo||d.data().admissionNo||d.id),d]));
-  const source=window.__GGCHST_getStudents()||[];
-  for(const x of source){
-    const matric=clean(x[0]), name=clean(x[1]); if(!matric||!name)continue;
-    if(byMatric.has(norm(matric)))continue;
-    await addDoc(collection(db,"students"),{
-      matricNo:matric,admissionNo:matric,studentName:name,fullName:name,
-      programme:clean(x[2]),level:clean(x[3]),session:clean(x[4])||"2026/2027",
-      phone:clean(x[5]),status:clean(x[6])||"Active",source:"registrar.html",createdAt:serverTimestamp(),updatedAt:serverTimestamp()
-    });
-  }
-}
+async function seedStudents(){ return; }
 
 function renderStudentsSelect(){
   const e=$("syncStudentSelect");if(!e)return;
@@ -795,21 +689,7 @@ async function loadExisting(){
   status(`Loaded ${codes.length} existing registration${codes.length===1?"":"s"} for ${s.studentName||s.name}.`);
 }
 
-async function seedTimetable(){
-  if(!db||!window.__GGCHST_getTmData)return;
-  const snap=await getDocs(collection(db,"timetables"));
-  const ids=new Set(snap.docs.map(d=>clean(d.data().id||d.id)));
-  for(const t of window.__GGCHST_getTmData()){
-    if(ids.has(clean(t.id)))continue;
-    await setDoc(doc(db,"timetables",clean(t.id)),{
-      ...t,id:clean(t.id),courseCode:clean(t.course).split(" — ")[0],
-      courseName:clean(t.course).split(" — ").slice(1).join(" — "),
-      lecturerName:clean(t.lecturer),venue:clean(t.room),
-      academicSession:clean(t.session),semester:clean(t.semester),
-      source:"registrar.html",createdAt:serverTimestamp(),updatedAt:serverTimestamp()
-    });
-  }
-}
+async function seedTimetable(){ return; }
 
 async function syncTimetableRecord(id,fromForm=true){
   if(!db||!id)return;
@@ -900,8 +780,8 @@ function studentObject(matric,name,programme,level,session,phone,status="Active"
     programme:programme||"",
     courseOfStudy:programme||"",
     level:level||"",
-    session:session||"2026/2027",
-    academicSession:session||"2026/2027",
+    session:session||"",
+    academicSession:session||"",
     phone:phone||"",
     phoneNumber:phone||"",
     studentUid:"",
@@ -926,7 +806,7 @@ document.addEventListener("click", async e=>{
   const programme=clean(document.getElementById("newProgramme")?.value);
   const level=clean(document.getElementById("newLevel")?.value);
   const phone=clean(document.getElementById("newPhone")?.value);
-  const session="2026/2027";
+  const session="";
 
   if(!name){alert("Enter student name.");return}
   if(!matric){alert("Enter matric number.");return}
@@ -957,7 +837,7 @@ onSnapshot(collection(db,"students"),snap=>{
       x.studentName||x.fullName||x.name||"Unnamed Student",
       x.programme||x.courseOfStudy||"",
       x.level||"",
-      x.session||x.academicSession||"2026/2027",
+      x.session||x.academicSession||"",
       x.phone||x.phoneNumber||"Not provided",
       x.status||"Active"
     ];
@@ -988,6 +868,247 @@ window.GGCHST_AUTH_READY=ready;
 window.GGCHST_UID=()=>auth.currentUser?.uid||null;
 window.GGCHST_CURRENT_USER=()=>auth.currentUser||null;
 onAuthStateChanged(auth,async user=>{await ready; window.GGCHST_AUTH_USER=user||null; window.GGCHST_AUTH_UID=user?.uid||null; window.dispatchEvent(new CustomEvent("ggchst-auth-changed",{detail:{user,uid:user?.uid||null}));});
+</script>
+
+<script type="module" id="registrar-production-live-data">
+import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {getAuth,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getFirestore,collection,onSnapshot,getDocs,query,where,limit,serverTimestamp,addDoc,updateDoc,doc} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
+ authDomain:"ggchst-sms-new.firebaseapp.com",
+ projectId:"ggchst-sms-new",
+ storageBucket:"ggchst-sms-new.firebasestorage.app",
+ messagingSenderId:"942770190211",
+ appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+const app=getApps().length?getApp():initializeApp(firebaseConfig);
+const auth=getAuth(app),db=getFirestore(app);
+window.GGCHST_FIREBASE_APP=app;window.GGCHST_FIREBASE_AUTH=auth;window.GGCHST_FIRESTORE=db;
+
+const qid=id=>document.getElementById(id);
+const clean=v=>String(v??"").trim();
+const norm=v=>clean(v).toLowerCase().replace(/\s+/g," ");
+const val=(o,keys,f="")=>{for(const k of keys){if(o&&o[k]!==undefined&&o[k]!==null&&clean(o[k])!=="")return o[k]}return f};
+const esc2=v=>clean(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const arr=s=>s?.docs?.map(d=>({id:d.id,...d.data()}))||[];
+
+const live={
+ students:[],applications:[],lecturers:[],staff:[],users:[],courses:[],programmes:[],
+ academicSessions:[],semesters:[],academicLevels:[],curriculumMappings:[],
+ lecturerCourseAssignments:[],programmeHodAssignments:[],hodCourseAssignments:[],
+ results:[],gradeSettings:[],examinations:[],attendance:[],timetables:[],venues:[],
+ registrations:[],assignments:[],lectureNotes:[],
+ graduation:[],clearances:[],requests:[],documents:[],
+ audits:[],departments:[],accreditation:[],admissions:[]
+};
+window.__GGCHST_live=live;
+
+function setMsg(text,ok=true){
+ const el=qid("firebaseStatus")||qid("syncRegistrationStatus");
+ if(el){el.textContent=text;el.style.color=ok?"#087f5b":"#b42318";}
+}
+function userRole(u){return norm(u?.role||u?.staffRole||u?.accountType);}
+async function findUser(uid,email){
+ let q=await getDocs(query(collection(db,"users"),where("uid","==",uid),limit(1)));
+ if(!q.empty)return {id:q.docs[0].id,...q.docs[0].data()};
+ q=await getDocs(query(collection(db,"users"),where("authUid","==",uid),limit(1)));
+ if(!q.empty)return {id:q.docs[0].id,...q.docs[0].data()};
+ if(email){
+   q=await getDocs(query(collection(db,"users"),where("email","==",email),limit(1)));
+   if(!q.empty)return {id:q.docs[0].id,...q.docs[0].data()};
+ }
+ return null;
+}
+function allowed(u){
+ const r=userRole(u);
+ return r==="registrar"||r.includes("registrar")||r==="admin"||r==="administrator"||r.includes("super admin")||r==="provost"||r==="deputy provost";
+}
+function lockPage(message){
+ document.body.innerHTML=`<div style="min-height:100vh;display:grid;place-items:center;background:#f3f8f4;padding:20px"><div style="max-width:560px;background:#fff;border:1px solid #dfe9e2;border-radius:16px;padding:28px;text-align:center;box-shadow:0 10px 30px #10182812"><h2 style="margin:0 0 10px;color:#173024">Registrar Access</h2><p style="color:#617268">${esc2(message)}</p><a href="login.html" style="display:inline-block;margin-top:12px;padding:10px 16px;background:#16834b;color:#fff;border-radius:8px;text-decoration:none;font-weight:700">Back to Login</a></div></div>`;
+}
+function listen(name,cb){
+ try{
+  return onSnapshot(collection(db,name),snap=>{cb(arr(snap));setMsg("Firebase connected • live data loaded");},err=>{
+   console.warn("Registrar collection",name,err);
+   cb([]);
+  });
+ }catch(e){cb([]);return null}
+}
+
+function syncGlobals(){
+ // Replace every old prototype array with live Firebase data.
+ window.students=live.students.map(x=>[
+  val(x,["studentId","studentID","matricNo","admissionNo"],x.id),
+  val(x,["fullName","studentName","name"],""),
+  val(x,["programme","programmeName","courseOfStudy"],""),
+  val(x,["level","levelName"],""),
+  val(x,["academicSession","session"],""),
+  val(x,["phone","phoneNumber","mobile"],""),
+  val(x,["status","accountStatus"],"")
+ ]);
+ window.applications=live.applications.map(x=>[
+  val(x,["applicationNo","applicationId","reference","id"],x.id),
+  val(x,["fullName","applicantName","name"],""),
+  val(x,["programme","programmeName","courseOfStudy"],""),
+  val(x,["phone","phoneNumber","mobile"],""),
+  val(x,["qualification","credits","resultSummary"],""),
+  val(x,["applicationDate","submittedAt","createdAt"],""),
+  val(x,["status","applicationStatus"],"")
+ ]);
+ window.staff=live.lecturers.map(x=>[
+  val(x,["staffId","schoolId"],x.id),val(x,["name","fullName"],""),val(x,["programmeName","programme","department"],""),
+  val(x,["rank","position","role"],""),val(x,["qualification"],""),val(x,["phone","phoneNumber"],""),val(x,["status","accountStatus"],"")
+ ]);
+ const non=live.staff.filter(x=>!live.lecturers.some(l=>l.id===x.id));
+ window.nonStaff=non.map(x=>[
+  val(x,["staffId","schoolId"],x.id),val(x,["name","fullName"],""),val(x,["department","unit"],""),val(x,["role","position"],""),
+  val(x,["phone","phoneNumber"],""),val(x,["status","accountStatus"],"")
+ ]);
+ window.programmes=live.programmes.map(x=>[
+  val(x,["name","programmeName"],""),val(x,["code","programmeCode"],""),val(x,["duration"],""),
+  val(x,["departmentName","department"],""),val(x,["regulatoryBody","accreditingBody"],""),val(x,["status"],"")
+ ]);
+ window.courses=live.courses.map(x=>[
+  val(x,["courseCode","code"],x.id),val(x,["courseTitle","courseName","title"],""),val(x,["courseUnit","unit","creditUnit"],""),
+  val(x,["levelName","level"],""),val(x,["programmeName","programme"],""),val(x,["semester","semesterName"],"")
+ ]);
+ window.academicResults=live.results.map(x=>[
+  val(x,["studentName","fullName","name"],""),val(x,["studentId","matricNo","admissionNo"],""),
+  val(x,["courseCode","courseId","course"],""),val(x,["totalScore","score","total"],""),val(x,["grade"],""),
+  val(x,["hodStatus","verificationStatus","status"],""),val(x,["registrarStatus","finalStatus"],"")
+ ]);
+ window.requests=live.requests.map(x=>[
+  val(x,["requestId","reference","id"],x.id),val(x,["studentName","fullName","name"],""),val(x,["requestType","type","service"],""),
+  val(x,["createdAt","date","submittedAt"],""),val(x,["status"],"")
+ ]);
+ window.docs=live.documents.map(x=>[
+  val(x,["documentId","reference","id"],x.id),val(x,["studentName","fullName","name"],""),val(x,["documentType","type","title"],""),
+  val(x,["uploadedAt","createdAt","date"],""),val(x,["verificationStatus","status"],"")
+ ]);
+ window.audits=live.audits.map(x=>[
+  val(x,["timestamp","createdAt","date"],""),val(x,["actorName","userName","role"],""),val(x,["module"],""),
+  val(x,["action","description"],""),val(x,["entityId","recordId"],""),norm(val(x,["result","status"],"")).includes("success")?"Success":val(x,["result","status"],"")
+ ]);
+ window.deps=live.departments.map(x=>[
+  val(x,["name","departmentName"],""),val(x,["hodName","hod"],""),val(x,["programmeCount","programmes"],""),
+  val(x,["studentCount","students"],""),val(x,["staffCount","staff"],""),val(x,["status"],"")
+ ]);
+ window.acc=live.accreditation.map(x=>[
+  val(x,["programmeName","name"],""),val(x,["regulatoryBody","accreditingBody"],""),val(x,["status"],""),
+  val(x,["validFrom","startYear"],""),val(x,["validUntil","endYear"],""),val(x,["documentCount","files"],""),val(x,["complianceStatus","compliance"],"")
+ ]);
+ window.grad=live.graduation.map(x=>[
+  val(x,["studentId","matricNo","admissionNo"],""),val(x,["studentName","fullName","name"],""),val(x,["programme","programmeName"],""),
+  val(x,["cgpa","CGPA"],""),val(x,["academicClearance","academic"],""),val(x,["financeClearance","finance"],""),
+  val(x,["registryClearance","registry"],""),val(x,["eligibility","status"],"")
+ ]);
+ window.clearances=live.clearances.map(x=>[
+  val(x,["studentName","fullName","name"],""),val(x,["academic"],""),val(x,["finance"],""),
+  val(x,["library"],""),val(x,["registry"],""),val(x,["overallStatus","status"],"")
+ ]);
+ // Registrar source arrays used by the old UI.
+ syncSessionCards();
+ try{renderStudents();renderApplications();renderStaff();renderRegistry();renderAcademics();renderGraduation();renderAcc();renderReports();renderAudit();}catch(e){console.warn("Registrar render refresh:",e)}
+ updateDashboard();
+}
+
+function updateDashboard(){
+ const d=document.querySelector("#dashboard");
+ if(!d)return;
+ const stats=d.querySelectorAll(".stat");
+ const registered=live.registrations.length?new Set(live.registrations.map(x=>val(x,["studentId","studentUid","matricNo"])).filter(Boolean)).size:0;
+ const graduating=live.graduation.length;
+ if(stats[0])stats[0].textContent=live.students.length;
+ if(stats[1])stats[1].textContent=live.applications.length;
+ if(stats[2])stats[2].textContent=registered;
+ if(stats[3])stats[3].textContent=graduating;
+}
+
+function syncSessionCards(){
+ const box=qid("dynamicSessionCards");if(!box)return;
+ if(!live.academicSessions.length&&!live.semesters.length){box.innerHTML='<div class="empty">No academic session records found in Firebase.</div>';return;}
+ box.innerHTML=live.academicSessions.map(s=>`<div class="card"><b>${esc2(val(s,["name","sessionName"],s.id))}</b><p class="small">${esc2(val(s,["description"],""))}</p><span class="status ${norm(val(s,["status"]))==="active"?"active-status":"pending"}">${esc2(val(s,["status"],""))}</span></div>`).join("")+
+ live.semesters.map(s=>`<div class="card"><b>${esc2(val(s,["name","semesterName"],s.id))}</b><p class="small">${esc2(val(s,["sessionName","academicSession"],""))}</p><span class="status ${norm(val(s,["status"]))==="active"?"active-status":"pending"}">${esc2(val(s,["status"],""))}</span></div>`).join("");
+}
+
+function refreshProgrammesFromCourses(){
+ const map=new Map();
+ live.courses.forEach(c=>{
+  const name=val(c,["programmeName","programme"],""); if(!name)return;
+  const key=norm(name);if(!map.has(key))map.set(key,{name,code:val(c,["programmeCode"],""),duration:"",department:"",regulatoryBody:"",status:"Active"});
+ });
+ if(!live.programmes.length) window.programmes=[...map.values()].map(x=>[x.name,x.code,x.duration,x.department,x.regulatoryBody,x.status]);
+}
+
+function renderDynamicTimetable(){
+ const raw=live.timetables;
+ if(!Array.isArray(raw)||!raw.length)return;
+ // Feed the existing timetable UI without creating any demo records.
+ if(Array.isArray(window.__GGCHST_tmData))window.__GGCHST_tmData.splice(0,window.__GGCHST_tmData.length,...raw);
+}
+function replaceStaticSessionFields(){
+ document.querySelectorAll('input[type="date"][value],select').forEach(el=>{
+   if(el.matches('input[type="date"][value]')) el.removeAttribute("value");
+ });
+}
+
+onAuthStateChanged(auth,async user=>{
+ if(!user){lockPage("You must sign in through the school login before opening the Registrar Portal.");return;}
+ try{
+  const record=await findUser(user.uid,user.email);
+  if(!record){lockPage("Your Firebase Authentication UID is not linked to a school users record.");return;}
+  if(!allowed(record)){lockPage("This Firebase account is not assigned the Registrar role.");return;}
+  window.GGCHST_REGISTRAR_USER={uid:user.uid,email:user.email||"",record};
+  const badge=document.querySelector(".badge");if(badge)badge.textContent=`Registrar • ${user.email||record.name||user.uid}`;
+  const logout=qid("logoutBtn");if(logout){logout.onclick=async()=>{await signOut(auth);location.href="login.html";};}
+  setMsg(`Authenticated • UID: ${user.uid}`);
+  // Live Firestore listeners. Empty collections stay empty; nothing is seeded.
+  // Exact Firestore collections used by the current Admin modules.
+  // No guessed/legacy collection names are used here.
+  const collections={
+   students:"students",
+   applications:"admissions",
+   admissions:"admissions",
+   lecturers:"lecturers",
+   staff:"staff",
+   users:"users",
+   courses:"courses",
+   programmes:"programmes",
+   academicSessions:"academicSessions",
+   semesters:"semesters",
+   academicLevels:"academicLevels",
+   curriculumMappings:"curriculumMappings",
+   lecturerCourseAssignments:"lecturerCourseAssignments",
+   programmeHodAssignments:"programmeHodAssignments",
+   hodCourseAssignments:"hodCourseAssignments",
+   results:"results",
+   gradeSettings:"gradeSettings",
+   examinations:"examinations",
+   attendance:"attendance",
+   timetables:"timetables",
+   venues:"venues",
+   courseRegistrations:"courseRegistrations",
+   registrations:"courseRegistrations",
+   assignments:"assignments",
+   lectureNotes:"lectureNotes",
+   auditLogs:"auditLogs",
+   audits:"auditLogs",
+   departments:"departments",
+   accreditation:"accreditations"
+  };
+  for(const [key,col] of Object.entries(collections)) listen(col,v=>{
+    live[key]=v;
+    if(key==="admissions"||key==="applications") live.applications=v;
+    syncGlobals();
+  });
+  refreshProgrammesFromCourses();
+  replaceStaticSessionFields();
+ }catch(e){
+  console.error(e);lockPage("Registrar Firebase access could not be verified: "+(e.message||e));
+ }
+});
 </script>
 </body>
 </html>
