@@ -89,6 +89,43 @@ tr:last-child td{border-bottom:0}
 .footer{text-align:center;color:var(--muted);font-size:13px;margin-top:35px}
 a.file-link{color:var(--green);font-weight:800;text-decoration:none}
 
+
+/* My Details */
+.profile-update-date{margin:10px auto 0;text-align:center;color:var(--muted);font-size:13px;font-weight:700}
+.my-details-btn{display:block;margin:12px auto 0;border:0;background:var(--green);color:#fff;border-radius:10px;padding:11px 24px;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 3px 8px rgba(8,116,67,.14)}
+.my-details-btn:hover{background:var(--green2)}
+.my-details-btn:disabled{background:#98a6a0;cursor:not-allowed;box-shadow:none}
+.details-modal{display:none;position:fixed;inset:0;background:rgba(8,20,15,.58);z-index:100;align-items:center;justify-content:center;padding:18px}
+.details-modal.show{display:flex}
+.details-panel{width:min(760px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;box-shadow:0 20px 70px rgba(0,0,0,.25);padding:26px}
+.details-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}
+.details-head h2{margin:0;color:var(--green2);font-size:27px}
+.details-head p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.45}
+.close-details{border:0;background:#eef5f1;color:#315346;width:38px;height:38px;border-radius:10px;font-size:22px;font-weight:900;cursor:pointer}
+.profile-photo-upload{text-align:center;padding:8px 0 20px}
+.details-photo-preview{width:125px;height:125px;border-radius:50%;object-fit:cover;background:#dff8e7;border:3px solid #c5e8d2;display:block;margin:0 auto 12px}
+.photo-fallback{display:grid;place-items:center;font-size:42px;font-weight:900;color:var(--green);}
+.photo-picker{display:inline-block;background:#e8f8ee;color:var(--green2);border:1px solid #bfe2cc;border-radius:10px;padding:10px 15px;font-weight:900;cursor:pointer}
+.photo-picker input{display:none}
+.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.detail-field{display:flex;flex-direction:column;gap:7px}
+.detail-field.full{grid-column:1/-1}
+.detail-field label{font-size:13px;color:#526878;font-weight:900}
+.detail-field input,.detail-field select,.detail-field textarea{width:100%;border:1px solid #cfded7;border-radius:10px;padding:12px 13px;font:inherit;color:var(--text);background:#fff;outline:none}
+.detail-field textarea{min-height:86px;resize:vertical}
+.detail-field input:focus,.detail-field select:focus,.detail-field textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(8,116,67,.09)}
+.detail-readonly{background:#f3f6f4!important;color:#687870!important}
+.details-lock{display:none;background:#fff4f4;border:1px solid #f1c6c2;color:#a32920;border-radius:11px;padding:12px 14px;font-size:13px;font-weight:800;line-height:1.45;margin-bottom:16px}
+.details-lock.show{display:block}
+.details-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.details-cancel,.details-save{border:0;border-radius:10px;padding:12px 18px;font-weight:900;cursor:pointer}
+.details-cancel{background:#eef5f1;color:#315346}
+.details-save{background:var(--green);color:#fff}
+.details-save:disabled{background:#98a6a0;cursor:not-allowed}
+.details-status{margin-top:12px;padding:11px 13px;border-radius:10px;font-size:13px;font-weight:800;display:none}
+.details-status.show{display:block}.details-status.ok{background:#eaf8ef;color:#17633d}.details-status.err{background:#fff0ee;color:#a32920}
+@media(max-width:750px){.details-grid{grid-template-columns:1fr}.detail-field.full{grid-column:auto}.details-panel{padding:20px;border-radius:18px}.details-head h2{font-size:23px}}
+
 @media(max-width:750px){
   .head{padding:10px 12px}.logo{width:45px;height:45px}.school{font-size:13px}.logout{padding:9px 11px;font-size:11px}
   main{padding:18px 12px 45px}
@@ -145,9 +182,18 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
 .exam-slip.exam-ready .countdown-note{color:#38664b}
 .exam-slip.exam-ready .print-btn{background:#087443;cursor:pointer}
 .exam-slip.exam-ready .print-btn:hover{background:#075c45}
+.exam-slip.exam-fee-locked .exam-countdown{background:#fff4f4;border-color:#dc2626}
+.exam-slip.exam-fee-locked .countdown-label,
+.exam-slip.exam-fee-locked .countdown-note{color:#b42318}
+.exam-slip.exam-fee-locked .print-btn{background:#dc2626;color:#fff;cursor:not-allowed;opacity:1}
+.exam-slip.exam-fee-locked .print-btn:hover{background:#dc2626}
 
 /* Examination slip */
-.exam-slip{position:relative;padding:30px;margin-top:30px;width:100%;max-width:none}
+.exam-slip{position:relative;padding:30px;margin-top:30px;width:100%;max-width:none;display:block}
+/* On screen, show only countdown + print controls. The actual slip is hidden. */
+.exam-slip > :not(.exam-actions){display:none}
+.exam-slip .exam-actions{display:flex}
+
 .exam-actions{text-align:right;margin-bottom:18px}
 .print-btn{border:0;background:var(--green);color:#fff;border-radius:10px;padding:12px 18px;font-weight:800;cursor:pointer}
 .exam-header{display:grid;grid-template-columns:90px 1fr 190px;align-items:center;gap:18px}
@@ -181,6 +227,8 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
 
 @media(max-width:750px){
   .exam-slip{padding:18px 14px}
+  .exam-slip > :not(.exam-actions){display:none}
+  .exam-slip .exam-actions{display:flex}
   .countdown-values{gap:4px}
   .countdown-values span{min-width:48px;padding:6px 3px}
   .countdown-values b{font-size:19px}
@@ -211,6 +259,8 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
   main{display:block!important;max-width:none!important;margin:0!important;padding:0!important}
   main > *{display:none!important}
   main > #examSlip{display:block!important}
+  #examSlip > *{display:block!important}
+  #examSlip .exam-actions{display:none!important}
   .card{box-shadow:none!important}
   #examSlip{
     width:100%!important;max-width:none!important;min-height:0!important;
@@ -265,6 +315,8 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
       <span class="pill" id="session">Academic Session</span>
     </div>
     <div class="status" id="status">LOADING</div>
+    <div class="profile-update-date" id="profileUpdateDate">Profile details not yet completed</div>
+    <button type="button" class="my-details-btn" id="myDetailsBtn">MY DETAILS</button>
   </section>
 
   <!-- SUMMARY: ONE CONTAINER / 2x2 GRID -->
@@ -318,10 +370,15 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
     </div>
   </section>
 
-  <!-- GRADE SUMMARY -->
-  <section class="card section-card">
-    <h2 class="section-title">Grade Summary</h2>
-    <p class="section-sub">Current academic performance</p>
+  <!-- RESULTS -->
+  <section class="card section-card" id="studentResultsSection">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 class="section-title" style="margin-bottom:4px">Results</h2>
+        <p class="section-sub">Student academic results for the current session and semester</p>
+      </div>
+      <span class="badge" id="resultSessionBadge">RESULTS</span>
+    </div>
     <div id="results" class="table-wrap">
       <div class="loading"><div class="spinner"></div>Loading results...</div>
     </div>
@@ -395,25 +452,9 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
     </div>
   </section>
 
-  <!-- STUDENT SERVICES -->
-  <section class="card section-card">
-    <h2 class="section-title">Student Services</h2>
-    <p class="section-sub">Quick access</p>
-    <div class="pills" style="justify-content:flex-start">
-      <a class="pill" href="course-registration.html">Course Registration</a>
-      <a class="pill" href="results.html">Results</a>
-      <a class="pill" href="transcript.html">Transcript</a>
-      <a class="pill" href="announcements.html">Announcements</a>
-      <a class="pill" href="library.html">Library</a>
-      <a class="pill" href="hostel.html">Hostel</a>
-      <a class="pill" href="medical.html">Medical</a>
-    </div>
-  </section>
-
-
   <!-- EXAMINATION SLIP -->
   <section class="card exam-slip" id="examSlip">
-    <div class="exam-actions">
+    <div class="exam-actions" id="examSlipControls">
       <div class="exam-countdown" id="examCountdown" aria-live="polite">
         <div class="countdown-label" id="countdownLabel">EXAM SLIP PRINTING OPENS IN</div>
         <div class="countdown-values">
@@ -496,13 +537,73 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
     <p class="exam-success">Wishing you success in your examinations!</p>
   </section>
 
+  <!-- STUDENT SERVICES -->
+  <section class="card section-card">
+    <h2 class="section-title">Student Services</h2>
+    <p class="section-sub">Quick access</p>
+    <div class="pills" style="justify-content:flex-start">
+      <a class="pill" href="course-registration.html">Course Registration</a>
+      <a class="pill" href="results.html">Results</a>
+      <a class="pill" href="transcript.html">Transcript</a>
+      <a class="pill" href="announcements.html">Announcements</a>
+      <a class="pill" href="library.html">Library</a>
+      <a class="pill" href="hostel.html">Hostel</a>
+      <a class="pill" href="medical.html">Medical</a>
+    </div>
+  </section>
+
+
+
+
+  <!-- MY DETAILS FORM -->
+  <div class="details-modal" id="detailsModal" aria-hidden="true">
+    <div class="details-panel" role="dialog" aria-modal="true" aria-labelledby="detailsTitle">
+      <div class="details-head">
+        <div>
+          <h2 id="detailsTitle">My Details</h2>
+          <p>Complete your personal profile information and upload your profile picture. Your details are saved directly to your student record for the Admin dashboard.</p>
+        </div>
+        <button type="button" class="close-details" id="closeDetails" aria-label="Close">×</button>
+      </div>
+      <div class="details-lock" id="detailsLock"></div>
+      <form id="detailsForm">
+        <div class="profile-photo-upload">
+          <img id="detailsPhotoPreview" class="details-photo-preview" alt="Profile picture preview">
+          <label class="photo-picker">📷 Upload Profile Picture
+            <input type="file" id="detailsPhoto" accept="image/*">
+          </label>
+          <div style="font-size:12px;color:#71827a;margin-top:8px">Choose a photo from your phone gallery.</div>
+        </div>
+        <div class="details-grid">
+          <div class="detail-field"><label for="dFullName">Full Name</label><input id="dFullName" name="fullName" required></div>
+          <div class="detail-field"><label for="dEmail">Email</label><input id="dEmail" name="email" type="email"></div>
+          <div class="detail-field"><label for="dPhone">Phone Number</label><input id="dPhone" name="phone" type="tel"></div>
+          <div class="detail-field"><label for="dDob">Date of Birth</label><input id="dDob" name="dateOfBirth" type="date"></div>
+          <div class="detail-field"><label for="dGender">Gender</label><select id="dGender" name="gender"><option value="">Select gender</option><option>Male</option><option>Female</option></select></div>
+          <div class="detail-field"><label for="dState">State of Origin</label><input id="dState" name="stateOfOrigin"></div>
+          <div class="detail-field"><label for="dLga">LGA</label><input id="dLga" name="lga"></div>
+          <div class="detail-field"><label for="dBlood">Blood Group</label><select id="dBlood" name="bloodGroup"><option value="">Select blood group</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>
+          <div class="detail-field"><label for="dGenotype">Genotype</label><select id="dGenotype" name="genotype"><option value="">Select genotype</option><option>AA</option><option>AS</option><option>SS</option><option>AC</option><option>SC</option></select></div>
+          <div class="detail-field"><label for="dNok">Next of Kin</label><input id="dNok" name="nextOfKin"></div>
+          <div class="detail-field"><label for="dNokPhone">Next of Kin Phone</label><input id="dNokPhone" name="nextOfKinPhone" type="tel"></div>
+          <div class="detail-field full"><label for="dAddress">Residential Address</label><textarea id="dAddress" name="address"></textarea></div>
+        </div>
+        <div class="details-status" id="detailsStatus"></div>
+        <div class="details-actions">
+          <button type="button" class="details-cancel" id="cancelDetails">Close</button>
+          <button type="submit" class="details-save" id="saveDetails">Save My Details</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="footer">Green Garden • Student Profile</div>
 </main>
 
 <script type="module">
 import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import{getAuth,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import{getFirestore,collection,getDocs}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import{getFirestore,collection,getDocs,doc,updateDoc}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
@@ -533,6 +634,8 @@ let student=null;
 let assignedCourses=[];
 let allResults=[];
 let attendanceRecords=[];
+let detailsPhotoData="";
+let detailsPhotoChanged=false;
 
 function showMessage(text,type="info"){
   const el=$("message");
@@ -661,6 +764,111 @@ function calculateAttendance(records){
   }
   return total?Math.round((present/total)*100):null;
 }
+function getProfileUpdatedDate(s){
+  const raw=s?.profileLastUpdatedAt||s?.profileLastUpdatedISO||s?.profileUpdatedAt||s?.profileUpdateDate;
+  if(!raw)return null;
+  if(typeof raw?.toDate==="function")return raw.toDate();
+  const d=new Date(raw);
+  return Number.isNaN(d.getTime())?null:d;
+}
+function profileEditLocked(){
+  const d=getProfileUpdatedDate(student);
+  if(!d)return false;
+  return (Date.now()-d.getTime()) >= 7*24*60*60*1000;
+}
+function formatProfileDate(d){
+  return d?d.toLocaleString(undefined,{day:"2-digit",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
+}
+function setDetailsField(id,value){const el=$(id);if(el)el.value=value??"";}
+function openDetails(){
+  if(!student)return;
+  setDetailsField("dFullName",val(student,["fullName","studentName","name"]));
+  setDetailsField("dEmail",val(student,["email"]));
+  setDetailsField("dPhone",val(student,["phone","phoneNumber"]));
+  setDetailsField("dDob",val(student,["dateOfBirth","dob","birthDate"]));
+  setDetailsField("dGender",val(student,["gender","sex"]));
+  setDetailsField("dState",val(student,["stateOfOrigin","state"]));
+  setDetailsField("dLga",val(student,["lga","localGovernment","localGovernmentArea"]));
+  setDetailsField("dBlood",val(student,["bloodGroup","bloodType"]));
+  setDetailsField("dGenotype",val(student,["genotype"]));
+  setDetailsField("dNok",val(student,["nextOfKin","nextOfKinName"]));
+  setDetailsField("dNokPhone",val(student,["nextOfKinPhone","nextOfKinPhoneNumber"]));
+  setDetailsField("dAddress",val(student,["address","residentialAddress","homeAddress"]));
+  const src=photoUrl(student);
+  const preview=$("detailsPhotoPreview");
+  if(src){preview.src=src;preview.classList.remove("photo-fallback");}
+  else{preview.removeAttribute("src");preview.classList.add("photo-fallback");preview.alt=initials(val(student,["fullName","studentName"],"Student"));}
+  detailsPhotoData="";detailsPhotoChanged=false;
+  const locked=profileEditLocked();
+  const lock=$("detailsLock"),save=$("saveDetails");
+  if(locked){
+    lock.textContent="Your profile was last updated on "+formatProfileDate(getProfileUpdatedDate(student))+". The edit period has ended after 7 days. Your details are now read-only. Please contact the Admin if you need a correction.";
+    lock.classList.add("show");
+  }else{
+    lock.textContent="";lock.classList.remove("show");
+  }
+  document.querySelectorAll("#detailsForm input,#detailsForm select,#detailsForm textarea").forEach(el=>el.disabled=locked);
+  $("detailsPhoto").disabled=locked;
+  save.disabled=locked;
+  save.textContent=locked?"Editing Locked":"Save My Details";
+  $("detailsStatus").className="details-status";
+  $("detailsStatus").textContent="";
+  $("detailsModal").classList.add("show");
+  $("detailsModal").setAttribute("aria-hidden","false");
+}
+function closeDetails(){
+  $("detailsModal").classList.remove("show");
+  $("detailsModal").setAttribute("aria-hidden","true");
+}
+function renderProfileUpdateDate(){
+  const el=$("profileUpdateDate");
+  const d=getProfileUpdatedDate(student);
+  el.textContent=d?`Profile details last updated: ${formatProfileDate(d)}`:"Profile details not yet completed";
+}
+function showDetailsStatus(text,type){
+  const el=$("detailsStatus");el.textContent=text;el.className="details-status show "+(type||"ok");
+}
+async function uploadStudentPhoto(file){
+  if(!file)return "";
+  if(!file.type.startsWith("image/"))throw new Error("Please select an image file.");
+  if(file.size>8*1024*1024)throw new Error("Please choose a profile picture smaller than 8MB.");
+  const fd=new FormData();
+  fd.append("file",file);
+  fd.append("upload_preset","Obaestate");
+  fd.append("folder","students");
+  const res=await fetch("https://api.cloudinary.com/v1_1/hjdnytcb/image/upload",{method:"POST",body:fd});
+  const data=await res.json();
+  if(!res.ok||!data.secure_url)throw new Error(data.error?.message||"Profile picture upload failed.");
+  return data.secure_url;
+}
+async function saveMyDetails(e){
+  e.preventDefault();
+  if(!student||profileEditLocked())return;
+  const btn=$("saveDetails");btn.disabled=true;btn.textContent="Saving...";
+  try{
+    let photo=photoUrl(student);
+    if(detailsPhotoChanged&&detailsPhotoData){showDetailsStatus("Uploading profile picture...","ok");photo=await uploadStudentPhoto(detailsPhotoData);}
+    const now=new Date();
+    const data={
+      fullName:$("dFullName").value.trim(),email:$("dEmail").value.trim(),phone:$("dPhone").value.trim(),
+      dateOfBirth:$("dDob").value,gender:$("dGender").value,stateOfOrigin:$("dState").value.trim(),lga:$("dLga").value.trim(),
+      bloodGroup:$("dBlood").value,genotype:$("dGenotype").value,nextOfKin:$("dNok").value.trim(),
+      nextOfKinPhone:$("dNokPhone").value.trim(),address:$("dAddress").value.trim(),
+      profilePhoto:photo,photoURL:photo,photoUrl:photo,profileLastUpdatedAt:now.toISOString(),profileLastUpdatedISO:now.toISOString()
+    };
+    if(!data.fullName)throw new Error("Full Name is required.");
+    await updateDoc(doc(db,"students",student.id),data);
+    student={...student,...data};
+    renderProfile();renderProfileUpdateDate();
+    showDetailsStatus("Your profile details have been saved successfully and are now available to the Admin dashboard.","ok");
+    btn.disabled=false;btn.textContent="Save My Details";
+    setTimeout(closeDetails,1200);
+  }catch(err){
+    console.error(err);showDetailsStatus(err.message||"Could not save your details.","err");
+    btn.disabled=false;btn.textContent="Save My Details";
+  }
+}
+
 function renderProfile(){
   const name=val(student,["fullName","studentName","name"],"Student");
   const sid=val(student,["studentId","studentID","matricNo"],"—");
@@ -679,6 +887,7 @@ function renderProfile(){
   $("status").textContent=String(status).toUpperCase();
   $("status").style.color=norm(status)==="active"?"#138344":"#8a3b12";
   setPhoto(photoUrl(student),name);
+  renderProfileUpdateDate();
 }
 function renderCourses(){
   $("courseCount").textContent=assignedCourses.length;
@@ -699,6 +908,10 @@ function renderCourses(){
     </table>`;
 }
 function renderResults(){
+  const resultSession=val(student,["academicSession","session"],"Current Academic Session");
+  const resultSemester=val(student,["semester","currentSemester"],"");
+  const resultBadge=$("resultSessionBadge");
+  if(resultBadge) resultBadge.textContent=`${resultSession}${resultSemester?" • "+resultSemester:""}`;
   if(!allResults.length){
     $("results").innerHTML='<div class="empty">No result records are available yet.</div>';
   }else{
@@ -864,6 +1077,8 @@ function renderFees(payments){
 
 let examCountdownTimer=null;
 let examPrintReady=false;
+let examTimeReached=false;
+let examFeesPaid=false;
 
 function getExamStartDate(record){
   const rawDate=val(record,["date","examDate","scheduledDate"],"");
@@ -916,23 +1131,15 @@ function setCountdownValues(x){
 
 function setExamReady(){
   if(examCountdownTimer)clearInterval(examCountdownTimer);
-  examPrintReady=true;
-  $("examSlip").classList.add("exam-ready");
-  $("countdownLabel").textContent="EXAM SLIP PRINTING IS NOW OPEN";
-  $("countdownNote").textContent="The examination slip is ready to print.";
-  $("countMonths").textContent="00";
-  $("countWeeks").textContent="00";
-  $("countDays").textContent="00";
-  $("countHours").textContent="00";
-  $("countMinutes").textContent="00";
-  $("countSeconds").textContent="00";
-  const btn=$("printExamSlip");
-  btn.disabled=false;
-  btn.removeAttribute("aria-disabled");
-  btn.classList.remove("print-locked");
+  examTimeReached=true;
+  examPrintReady=examFeesPaid;
+  applyExamPrintAccess();
 }
 
 function startExamCountdown(firstExamDate){
+  $("examCountdown").style.display="block";
+  examTimeReached=false;
+  examPrintReady=false;
   if(!firstExamDate){
     $("countdownLabel").textContent="EXAM SLIP PRINTING DATE NOT AVAILABLE";
     $("countdownNote").textContent="The examination timetable does not contain a valid first examination date yet.";
@@ -947,6 +1154,74 @@ function startExamCountdown(firstExamDate){
   tick();
   if(examCountdownTimer)clearInterval(examCountdownTimer);
   examCountdownTimer=setInterval(tick,1000);
+}
+
+
+function isPaymentFullyPaid(payments){
+  if(!payments.length)return false;
+
+  const session=norm(val(student,["academicSession","session"]));
+  const relevant=payments.filter(r=>{
+    const rs=norm(val(r,["academicSession","session","sessionName"]));
+    return !session||!rs||rs===session;
+  });
+  if(!relevant.length)return false;
+
+  // An explicit paid status is authoritative.
+  const explicit=relevant.some(r=>{
+    const s=norm(val(r,["paymentStatus","status","feeStatus"]));
+    return s==="paid"||s==="fully paid"||s==="complete"||s==="completed";
+  });
+  if(explicit)return true;
+
+  // Otherwise use total/paid/balance amounts.
+  let hasAmounts=false, total=0, paid=0, balance=0;
+  for(const r of relevant){
+    const t=numeric(val(r,["total","totalAmount","feeAmount","amountDue","expectedAmount"]));
+    const p=numeric(val(r,["paid","amountPaid","paymentAmount","amount"]));
+    const b=numeric(val(r,["balance","amountBalance","outstanding"]));
+    if(t!==null||p!==null||b!==null)hasAmounts=true;
+    if(t!==null)total+=t;
+    if(p!==null)paid+=p;
+    if(b!==null)balance+=b;
+  }
+  return hasAmounts && total>0 && paid>=total && balance<=0;
+}
+
+function applyExamPrintAccess(){
+  const slip=$("examSlip");
+  const btn=$("printExamSlip");
+  const countdown=$("examCountdown");
+  const note=$("countdownNote");
+
+  slip.classList.remove("exam-ready","exam-fee-locked");
+
+  if(!examTimeReached){
+    btn.disabled=true;
+    btn.setAttribute("aria-disabled","true");
+    btn.classList.add("print-locked");
+    return;
+  }
+
+  // Once the exam countdown reaches zero, the countdown disappears.
+  countdown.style.display="none";
+
+  if(examFeesPaid){
+    slip.classList.add("exam-ready");
+    btn.disabled=false;
+    btn.removeAttribute("aria-disabled");
+    btn.classList.remove("print-locked");
+    note.textContent="";
+  }else{
+    slip.classList.add("exam-fee-locked");
+    btn.disabled=true;
+    btn.setAttribute("aria-disabled","true");
+    btn.classList.add("print-locked");
+    // Reuse the message area requested by the user.
+    const label=$("countdownLabel");
+    label.textContent="PRINTING LOCKED";
+    note.textContent="To print your exam slip you have to complete your school fees.";
+  }
 }
 
 function renderExamStudent(){
@@ -1060,9 +1335,12 @@ async function loadData(){
   renderList("assignments",assignmentRecords,"assignments");
   renderList("announcements",combinedAnnouncements,"announcements");
   renderAttendanceDetail(attendanceRecords);
-  renderFees(payments.filter(matchStudent));
+  const studentPayments=payments.filter(matchStudent);
+  renderFees(studentPayments);
+  examFeesPaid=isPaymentFullyPaid(studentPayments);
   renderExamStudent();
   renderExamSlip(examRecords);
+  if(examTimeReached)applyExamPrintAccess();
 }
 async function start(user){
   student=await findStudent(user);
@@ -1077,7 +1355,24 @@ async function start(user){
   await loadData();
 }
 $("logout").onclick=async()=>{try{await signOut(auth)}finally{location.href="login.html"}};
-$("printExamSlip").onclick=()=>{if(examPrintReady)window.print();};
+$("printExamSlip").onclick=()=>{
+  if(!examPrintReady||!examFeesPaid||!examTimeReached)return;
+  window.print();
+};
+$("myDetailsBtn").onclick=openDetails;
+$("closeDetails").onclick=closeDetails;
+$("cancelDetails").onclick=closeDetails;
+$("detailsModal").addEventListener("click",e=>{if(e.target===$("detailsModal"))closeDetails();});
+$("detailsForm").addEventListener("submit",saveMyDetails);
+$("detailsPhoto").addEventListener("change",e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  detailsPhotoData=file;detailsPhotoChanged=true;
+  const preview=$("detailsPhotoPreview");
+  const reader=new FileReader();
+  reader.onload=()=>{preview.src=reader.result;preview.classList.remove("photo-fallback");};
+  reader.readAsDataURL(file);
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("detailsModal").classList.contains("show"))closeDetails();});
 
 let started=false;
 onAuthStateChanged(auth,async user=>{
