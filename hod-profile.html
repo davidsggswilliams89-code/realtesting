@@ -73,6 +73,9 @@ tr:last-child td{border-bottom:0}
 .loading{padding:25px;text-align:center;color:var(--muted)}
 .footer{text-align:center;color:var(--muted);font-size:11px;padding:22px 10px}
 .hidden{display:none!important}
+.course-code{font-weight:800;color:var(--dark)}
+.course-title{font-weight:700}
+.course-sub{font-size:10px;color:var(--muted);margin-top:2px}
 @media(max-width:900px){
   .profile-grid{grid-template-columns:1fr}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -187,6 +190,39 @@ tr:last-child td{border-bottom:0}
               </thead>
               <tbody id="studentTable">
                 <tr><td colspan="7" class="empty">Loading students...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card" style="margin-top:18px">
+          <h3>Programme Courses</h3>
+          <div class="toolbar">
+            <input id="courseSearch" class="search" type="search"
+              placeholder="Search course code, title, level or semester...">
+            <select id="courseLevelFilter" class="filter">
+              <option value="">All Levels</option>
+            </select>
+            <select id="courseSemesterFilter" class="filter">
+              <option value="">All Semesters</option>
+            </select>
+            <span class="count" id="showingCourseCount">0 Courses</span>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Course Code</th>
+                  <th>Course Title</th>
+                  <th>Unit</th>
+                  <th>Level</th>
+                  <th>Semester</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="courseTable">
+                <tr><td colspan="6" class="empty">Loading Programme courses...</td></tr>
               </tbody>
             </table>
           </div>
@@ -517,6 +553,88 @@ function renderStats(){
   $("levelCount").textContent=levels.size;
 }
 
+function courseCode(c){
+  return first(c,["courseCode","code","courseID","courseId"],"");
+}
+function courseTitle(c){
+  return first(c,["courseTitle","courseName","name","title"],"");
+}
+function courseUnit(c){
+  return first(c,["courseUnit","creditUnit","unit","units"],"");
+}
+function courseLevel(c){
+  return first(c,["levelName","level","academicLevel","levelId"],"");
+}
+function courseSemester(c){
+  return first(c,["semesterName","semester","term"],"");
+}
+
+function updateCourseFilters(rows){
+  const levelEl=$("courseLevelFilter");
+  const semesterEl=$("courseSemesterFilter");
+  const oldLevel=levelEl.value;
+  const oldSemester=semesterEl.value;
+
+  const levels=[...new Set(rows.map(courseLevel).filter(Boolean))]
+    .sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
+  const semesters=[...new Set(rows.map(courseSemester).filter(Boolean))]
+    .sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
+
+  levelEl.innerHTML='<option value="">All Levels</option>'+
+    levels.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  semesterEl.innerHTML='<option value="">All Semesters</option>'+
+    semesters.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
+
+  if(levels.some(v=>v===oldLevel)) levelEl.value=oldLevel;
+  if(semesters.some(v=>v===oldSemester)) semesterEl.value=oldSemester;
+}
+
+function renderCourses(){
+  const base=courses.filter(programmeMatchesCourse);
+  updateCourseFilters(base);
+
+  const q=norm($("courseSearch").value);
+  const level=norm($("courseLevelFilter").value);
+  const semester=norm($("courseSemesterFilter").value);
+
+  const rows=base.filter(c=>{
+    const hay=[
+      courseCode(c),courseTitle(c),courseLevel(c),courseSemester(c),
+      courseUnit(c)
+    ].map(norm).join(" ");
+
+    return (!q||hay.includes(q))
+      && (!level||norm(courseLevel(c))===level)
+      && (!semester||norm(courseSemester(c))===semester);
+  }).sort((a,b)=>
+    String(courseCode(a)).localeCompare(String(courseCode(b))) ||
+    String(courseLevel(a)).localeCompare(String(courseLevel(b)),undefined,{numeric:true})
+  );
+
+  $("showingCourseCount").textContent=rows.length+" Course"+(rows.length===1?"":"s");
+
+  if(!rows.length){
+    $("courseTable").innerHTML='<tr><td colspan="6" class="empty">No courses found for this Programme.</td></tr>';
+    return;
+  }
+
+  $("courseTable").innerHTML=rows.map(c=>{
+    const statusValue=courseStatus(c)||"Active";
+    const statusClass=norm(statusValue)==="active"?"active":"inactive";
+    return `<tr>
+      <td class="course-code">${esc(courseCode(c)||"—")}</td>
+      <td>
+        <div class="course-title">${esc(courseTitle(c)||"—")}</div>
+        <div class="course-sub">${esc(c.courseType||c.type||"Course")}</div>
+      </td>
+      <td>${esc(courseUnit(c)||"—")}</td>
+      <td>${esc(courseLevel(c)||"—")}</td>
+      <td>${esc(courseSemester(c)||"—")}</td>
+      <td><span class="badge ${statusClass}">${esc(statusValue)}</span></td>
+    </tr>`;
+  }).join("");
+}
+
 function showApp(){
   showLoading(false);
   $("deniedArea").classList.add("hidden");
@@ -547,6 +665,7 @@ function startLiveData(){
   coursesUnsub=onSnapshot(collection(db,"courses"),snap=>{
     courses=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderStats();
+    renderCourses();
   },err=>{
     console.error(err);
     showNotice("Could not load Programme courses: "+err.message,"error");
@@ -572,6 +691,9 @@ async function boot(user){
 
     renderProfile();
     showApp();
+    renderStats();
+    renderStudents();
+    renderCourses();
     startLiveData();
 
     showNotice("HOD account connected successfully. Programme students are loaded from Firebase in real time.","success");
@@ -584,6 +706,9 @@ async function boot(user){
 $("studentSearch").addEventListener("input",renderStudents);
 $("levelFilter").addEventListener("change",renderStudents);
 $("statusFilter").addEventListener("change",renderStudents);
+$("courseSearch").addEventListener("input",renderCourses);
+$("courseLevelFilter").addEventListener("change",renderCourses);
+$("courseSemesterFilter").addEventListener("change",renderCourses);
 
 $("logoutBtn").addEventListener("click",async()=>{
   try{
