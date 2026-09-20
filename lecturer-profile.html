@@ -1042,7 +1042,14 @@ async function loadActiveSession(){
   if($("activeSessionLabel")) $("activeSessionLabel").textContent=activeSession?val(activeSession,["name","sessionName","session"],"—"):"—";
 }
 async function loadAssignedCourses(){
-  const maps=await rows("lecturerCourseAssignments"), courses=await rows("courses"), programmes=await rows("programmes"), levels=await rows("academicLevels");
+  // Load the independent Firestore collections in parallel instead of waiting
+  // for each request one after another. This is the main page-load speed fix.
+  const [maps,courses,programmes,levels]=await Promise.all([
+    rows("lecturerCourseAssignments"),
+    rows("courses"),
+    rows("programmes"),
+    rows("academicLevels")
+  ]);
   const lid=lecturerIdOf(currentLecturer), email=norm(val(currentLecturer,["email","lecturerEmail","emailAddress"]));
   let a=maps.filter(x=>active(x)&&(
     norm(x.lecturerId)===norm(lid)||norm(x.staffId)===norm(lid)||norm(x.authUid)===norm(currentUser.uid)||norm(x.lecturerEmail)===email
@@ -1051,7 +1058,17 @@ async function loadAssignedCourses(){
   assigned=a.map(a=>{const c=courses.find(c=>c.id===a.courseId)||{};return {...c,...a,courseCode:codeOf(c)||val(a,["courseCode","code"]),courseTitle:nameOf(c)||val(a,["courseTitle","courseName","name"]),courseUnit:val(c,["courseUnit","unit"],val(a,["courseUnit","unit"],"—")),programmeId:a.programmeId,programmeName:a.programmeName,levelId:a.levelId,levelName:a.levelName,semesterName:a.semesterName,sessionName:a.sessionName}}).filter(x=>codeOf(x));
   // enrich names when the assignment stores only IDs
   assigned=assigned.map(a=>({...a,programmeName:a.programmeName||programmes.find(p=>p.id===a.programmeId)?.name||"",levelName:a.levelName||levels.find(l=>l.id===a.levelId)?.name||""}));
-  renderCourseSelectors();renderCourseCards();await loadStudents();renderAttendanceCourses();await loadResults();await loadTimetable();await updateLecturerDashboardStats();
+  // Render the lecturer's own information immediately. The heavier sections
+  // continue loading in the background so they do not delay the profile.
+  renderCourseSelectors();
+  renderCourseCards();
+  renderAttendanceCourses();
+
+  Promise.allSettled([
+    loadStudents(),
+    loadResults(),
+    loadTimetable()
+  ]).then(()=>updateLecturerDashboardStats());
 }
 function renderCourseSelectors(){
   const opts=assigned.map(c=>`<option value="${esc(codeOf(c))}">${esc(codeOf(c))} — ${esc(nameOf(c))}</option>`).join("");
@@ -1069,6 +1086,9 @@ async function loadStudents(){
   const unique=new Map();students.forEach(s=>unique.set((s.id||s.studentId)+"|"+codeOf(s._course),s));students=[...unique.values()];
   if($("studentBadge")) $("studentBadge").textContent=students.length+" Student"+(students.length===1?"":"s");
   $("studentsBody").innerHTML=students.length?students.map(s=>`<tr><td><strong>${esc(val(s,["fullName","studentName","name"],"—"))}</strong><div class="muted">${esc(val(s,["email"],""))}</div></td><td>${esc(val(s,["admissionNo","studentId","matricNo"],"—"))}</td><td>${esc(codeOf(s._course))}</td><td>${esc(val(s,["level"],s._course.levelName||"—"))}</td><td><a class="btn btn-secondary" href="student-profile.html?studentId=${encodeURIComponent(s.studentId||s.id)}">Profile</a></td><td><button class="btn btn-secondary" onclick="openAttendance('${esc(codeOf(s._course))}')">Attendance</button></td></tr>`).join(""):'<tr><td colspan="6" class="muted">No students found for the lecturer\'s assigned courses.</td></tr>';
+  // Refresh result-entry students as soon as the student data arrives.
+  if(typeof window.loadResultEntryStudents==='function') window.loadResultEntryStudents();
+  if($("registeredStudentsStat")) $("registeredStudentsStat").textContent=students.length;
 }
 function resultStudentMatch(r){const sid=norm(val(r,["studentId","studentID","matricNo","admissionNo","studentUid","authUid","firebaseUid","uid","studentDocId"]));return students.some(s=>sid&&[norm(s.studentId),norm(s.admissionNo),norm(s.id),norm(s.studentUid),norm(s.authUid)].includes(sid));}
 async function loadResults(){allResults=await rows("results");renderResults();}
@@ -1116,7 +1136,13 @@ window.handleLecturerLogout=async function(){
   window.location.href="login.html";
 };
 
-async function init(){await loadLecturer();await loadActiveSession();await loadAssignedCourses();window.loadResultEntryStudents();}
+async function init(){
+  // The lecturer record is the only dependency for rendering the profile.
+  // Show it first, then load the remaining Firestore data without blocking it.
+  await loadLecturer();
+  await loadActiveSession();
+  await loadAssignedCourses();
+}
 init().catch(e=>{console.error(e);alert(e.message||"Could not load lecturer profile.");});
 </script>
 
