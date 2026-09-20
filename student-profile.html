@@ -39,6 +39,22 @@ main{max-width:1120px;margin:auto;padding:24px 18px 60px}
 .stat-value{font-size:48px;font-weight:900;line-height:1}
 .stat-help{font-size:17px;color:var(--muted);margin-top:18px}
 
+/* Four academic summary cards inside ONE container */
+.stats-container{padding:28px}
+.stats-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.stat-tile{
+  min-height:245px;background:#fff;border:1px solid var(--line);border-radius:20px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:24px 18px;
+}
+.stat-icon{
+  width:72px;height:72px;border-radius:50%;background:#dff8e7;color:var(--green);
+  display:grid;place-items:center;font-size:30px;font-weight:900;margin-bottom:18px;
+}
+.stat-tile .stat-label{font-size:21px;margin:0 0 14px;color:#526878}
+.stat-tile .stat-value{font-size:56px}
+.stat-tile .stat-help{font-size:17px;line-height:1.35;margin-top:16px;max-width:270px}
+
 .section-card{padding:32px 30px}
 .section-title{font-size:32px;margin:0 0 8px}
 .section-sub{font-size:18px;color:var(--muted);margin:0 0 28px}
@@ -82,12 +98,25 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
   .student-name{font-size:31px}.identity{font-size:18px}
   .pill{font-size:14px;padding:8px 15px}.status{font-size:14px;padding:10px 20px}
   .stat-card{min-height:135px}.stat-label{font-size:16px}.stat-value{font-size:42px}.stat-help{font-size:15px}
+  .stats-container{padding:16px}
+  .stats-grid{gap:12px}
+  .stat-tile{min-height:205px;padding:18px 10px;border-radius:16px}
+  .stat-icon{width:58px;height:58px;font-size:23px;margin-bottom:12px}
+  .stat-tile .stat-label{font-size:16px;margin-bottom:10px}
+  .stat-tile .stat-value{font-size:40px}
+  .stat-tile .stat-help{font-size:13px;margin-top:10px}
   .section-card{padding:24px 16px}.section-title{font-size:26px}.section-sub{font-size:16px;margin-bottom:20px}
   th,td{padding:14px;font-size:14px}.two-col{grid-template-columns:1fr}
 }
 @media(max-width:420px){
   .school{text-align:left}.student-name{font-size:27px}.identity{font-size:16px}.avatar{width:115px;height:115px}
   .pill{font-size:12px}.status{font-size:12px}.section-title{font-size:23px}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .stat-tile{min-height:190px;padding:14px 6px}
+  .stat-icon{width:50px;height:50px;font-size:20px}
+  .stat-tile .stat-label{font-size:14px}
+  .stat-tile .stat-value{font-size:34px}
+  .stat-tile .stat-help{font-size:11px}
 }
 </style>
 </head>
@@ -125,29 +154,37 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
     <div class="status" id="status">LOADING</div>
   </section>
 
-  <!-- SUMMARY -->
-  <section class="card stat-card">
-    <div class="stat-label">Current CGPA</div>
-    <div class="stat-value" id="cgpa">—</div>
-    <div class="stat-help">Cumulative Grade Point Average</div>
-  </section>
+  <!-- SUMMARY: ONE CONTAINER / 2x2 GRID -->
+  <section class="card stats-container">
+    <div class="stats-grid">
+      <div class="stat-tile">
+        <div class="stat-icon">🎓</div>
+        <div class="stat-label">Current CGPA</div>
+        <div class="stat-value" id="cgpa">—</div>
+        <div class="stat-help">Cumulative Grade Point Average</div>
+      </div>
 
-  <section class="card stat-card">
-    <div class="stat-label">Current GPA</div>
-    <div class="stat-value" id="gpa">—</div>
-    <div class="stat-help">Current semester GPA</div>
-  </section>
+      <div class="stat-tile">
+        <div class="stat-icon">▮▮▮</div>
+        <div class="stat-label">Current GPA</div>
+        <div class="stat-value" id="gpa">—</div>
+        <div class="stat-help">Current semester GPA</div>
+      </div>
 
-  <section class="card stat-card">
-    <div class="stat-label">Registered Courses</div>
-    <div class="stat-value" id="courseCount">0</div>
-    <div class="stat-help">This session</div>
-  </section>
+      <div class="stat-tile">
+        <div class="stat-icon">📚</div>
+        <div class="stat-label">Registered Courses</div>
+        <div class="stat-value" id="courseCount">0</div>
+        <div class="stat-help">This session</div>
+      </div>
 
-  <section class="card stat-card">
-    <div class="stat-label">Attendance</div>
-    <div class="stat-value" id="attendanceRate">—</div>
-    <div class="stat-help">Overall recorded attendance</div>
+      <div class="stat-tile">
+        <div class="stat-icon">👥</div>
+        <div class="stat-label">Attendance</div>
+        <div class="stat-value" id="attendanceRate">—</div>
+        <div class="stat-help">Overall recorded attendance</div>
+      </div>
+    </div>
   </section>
 
   <!-- COURSES -->
