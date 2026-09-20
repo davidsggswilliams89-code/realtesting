@@ -528,6 +528,15 @@ main{max-width:1200px!important;margin:0 auto!important;padding:24px 18px 40px!i
 @media(max-width:600px){.topbar.student-style-header .header-top-layer{padding:12px!important;gap:10px!important}.topbar.student-style-header .header-top-layer .brand{gap:10px!important}.topbar.student-style-header .header-top-layer .brand-logo{width:58px!important;height:58px!important;flex-basis:58px!important}.topbar.student-style-header .header-top-layer .brand-title{font-size:17px!important;line-height:1.12!important}.sample-header-logout{font-size:14px!important;padding:11px 14px!important;min-width:82px!important;border-radius:16px!important}.topbar.student-style-header .header-middle-layer{padding:16px 14px 20px!important}.topbar.student-style-header .header-middle-layer .titleblock h1{font-size:29px!important;margin-bottom:7px!important}.topbar.student-style-header .header-middle-layer .titleblock p{font-size:16px!important}main{padding:18px 12px 30px!important}}
 @media(max-width:380px){.topbar.student-style-header .header-top-layer .brand-logo{width:50px!important;height:50px!important;flex-basis:50px!important}.topbar.student-style-header .header-top-layer .brand-title{font-size:15px!important}.sample-header-logout{font-size:13px!important;padding:9px 11px!important;min-width:72px!important}.topbar.student-style-header .header-middle-layer .titleblock h1{font-size:26px!important}.topbar.student-style-header .header-middle-layer .titleblock p{font-size:14px!important}}
 </style>
+
+<style id="requested-profile-photo-name-center">
+/* Center only the lecturer profile photo and name. Keep all other profile content intact. */
+.profile{grid-template-columns:1fr !important;gap:14px !important;}
+.profile > div:first-child{display:flex !important;justify-content:center !important;align-items:center !important;}
+.profile > div:nth-child(2){text-align:center !important;}
+.profile h2{margin-left:auto !important;margin-right:auto !important;}
+.profile-meta,.profile-actions,.details-date{text-align:left !important;}
+</style>
 </head>
 <body>
 
@@ -540,7 +549,7 @@ main{max-width:1200px!important;margin:0 auto!important;padding:24px 18px 40px!i
         <small>Green Garden College of Health Sciences &amp; Technology</small>
       </div>
     </div>
-    <button type="button" class="sample-header-logout" aria-label="Logout" onclick="return false;">Logout</button>
+    <button type="button" class="sample-header-logout" id="logoutBtn" aria-label="Logout" onclick="handleLecturerLogout()">Logout</button>
   </div>
   <div class="header-middle-layer">
     <div class="titleblock">
@@ -793,6 +802,7 @@ main{max-width:1200px!important;margin:0 auto!important;padding:24px 18px 40px!i
 </script>
 <script type="module">
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 
@@ -805,7 +815,7 @@ const firebaseConfig={
   appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
 };
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
-const db=getFirestore(app),storage=getStorage(app);
+const db=getFirestore(app),storage=getStorage(app),auth=getAuth(app);
 const $=id=>document.getElementById(id);
 const clean=v=>String(v??"").trim();
 const norm=v=>clean(v).toLowerCase();
@@ -1094,6 +1104,18 @@ window.openAttendance=async code=>{const rs=students.filter(s=>norm(codeOf(s._co
 window.saveAttendance=async(s,present)=>{try{await addDoc(collection(db,"attendance"),{studentId:s.studentId||s.id,studentDocId:s.id,studentUid:s.studentUid||"",studentName:s.name,admissionNo:s.admissionNo,courseCode:s.courseCode,present,status:present?"Present":"Absent",date:new Date().toISOString().slice(0,10),academicSession:selectedCourse(s.courseCode)?.sessionName||"",semester:selectedCourse(s.courseCode)?.semesterName||"",lecturerId:lecturerIdOf(currentLecturer),lecturerName:val(currentLecturer,["name","fullName","lecturerName"]),createdAt:serverTimestamp()});showToast("Attendance saved.");closeModal()}catch(e){showToast(e.message||"Attendance could not be saved.")}};
 async function loadTimetable(){const tt=await rows("timetables");const codes=new Set(assigned.map(c=>norm(codeOf(c))));const arr=tt.filter(r=>codes.has(norm(val(r,["courseCode","code"])))&&(norm(val(r,["lecturerId","staffId"]))===norm(lecturerIdOf(currentLecturer))||norm(val(r,["lecturerName"]))===norm(val(currentLecturer,["name","fullName","lecturerName"]))||!val(r,["lecturerId","staffId","lecturerName"])));$("timetableBody").innerHTML=arr.length?arr.map(r=>`<tr><td>${esc(val(r,["day"],"—"))}</td><td>${esc(val(r,["startTime"],""))} ${val(r,["endTime"])?"– "+esc(r.endTime):""}</td><td>${esc(val(r,["courseCode","code"],"—"))}</td><td>${esc(val(r,["level","levelName"],"—"))}</td><td>${esc(val(r,["venue","venueName"],"—"))}</td></tr>`).join(""):'<tr><td colspan="5" class="muted">No timetable records found for your assigned courses.</td></tr>'}
 window.openModal=(t,c)=>{$("modalTitle").textContent=t;$("modalContent").innerHTML=c;$('modal').style.display='flex'};window.closeModal=()=>{$('modal').style.display='none'};window.showToast=m=>{const t=document.getElementById('toast');if(t){t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}else alert(m)};
+window.handleLecturerLogout=async function(){
+  const btn=document.getElementById("logoutBtn");
+  if(btn){btn.disabled=true;btn.textContent="Logging out…";}
+  try{
+    await signOut(auth);
+  }catch(e){
+    console.warn("Firebase sign-out skipped/failed:",e);
+  }
+  try{localStorage.removeItem("lecturerId");}catch(e){}
+  window.location.href="login.html";
+};
+
 async function init(){await loadLecturer();await loadActiveSession();await loadAssignedCourses();window.loadResultEntryStudents();}
 init().catch(e=>{console.error(e);alert(e.message||"Could not load lecturer profile.");});
 </script>
