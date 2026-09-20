@@ -118,7 +118,17 @@ function courseCode(r){return val(r,["courseCode","code"],"")}
 function courseName(r){return val(r,["courseName","courseTitle","name","title"],"")}
 function sessionName(r){return val(r,["academicSession","session","sessionName","name"],"")}
 function semesterName(r){return val(r,["semester","semesterName","term"],"")}
-function programmeName(r){return val(r,["programme","programmeName","courseOfStudy"],"")}
+function programmeName(r){
+  return val(r,["name","programmeName","programme","programName","title","label","courseOfStudy"],"");
+}
+function programmeCode(r){
+  return val(r,["code","programmeCode","programCode"],"");
+}
+function programmeLabel(r){
+  const n=programmeName(r);
+  const c=programmeCode(r);
+  return n ? (c ? `${n} (${c})` : n) : (c || idOf(r) || "Unnamed Programme");
+}
 function levelName(r){return val(r,["level","levelName","academicLevel"],"")}
 
 function gradeFor(total){
@@ -172,8 +182,12 @@ function populateFilters(){
   $("filterCourse").innerHTML='<option value="">All Courses</option>'+
     courses.map(c=>`<option value="${escapeHtml(courseCode(c))}">${escapeHtml(courseCode(c))} — ${escapeHtml(courseName(c))}</option>`).join("");
 
+  const programmeList=[...programmes]
+    .filter(p=>programmeName(p)||programmeCode(p))
+    .sort((a,b)=>programmeLabel(a).localeCompare(programmeLabel(b)));
+
   $("entryProgramme").innerHTML='<option value="">All Programmes</option>'+
-    programmes.map(p=>`<option value="${idOf(p)}">${escapeHtml(programmeName(p))}</option>`).join("");
+    programmeList.map(p=>`<option value="${escapeHtml(idOf(p))}">${escapeHtml(programmeLabel(p))}</option>`).join("");
 
   $("entryLevel").innerHTML='<option value="">All Levels</option>'+
     [...new Set(courses.map(levelName).filter(Boolean))].map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");
@@ -218,7 +232,11 @@ function updateCourses(){
    const cp=val(c,["programmeId"]);
    const cl=levelName(c);
    const cs=sessionName(c), cm=semesterName(c);
-   const pOk=!pid||cp===pid||norm(programmeName(c))===norm(programmeName(programmes.find(p=>idOf(p)===pid)||{}));
+   const selectedProgramme=programmes.find(p=>idOf(p)===pid)||{};
+   const pOk=!pid||
+     cp===pid||
+     norm(programmeName(c))===norm(programmeName(selectedProgramme))||
+     norm(val(c,["programmeCode","programCode"]))===norm(programmeCode(selectedProgramme));
    const lOk=!lvl||norm(cl)===norm(lvl);
    const sOk=!sid||!cs||norm(cs)===norm(sn);
    const mOk=!sem||!cm||norm(cm)===norm(sm);
