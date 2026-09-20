@@ -144,7 +144,6 @@ body:before{
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapshot,getDocs,query,orderBy,limit} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
@@ -155,8 +154,8 @@ const firebaseConfig = {
   appId: "1:942770190211:web:aa9a085a38aaa517b368b6"
 };
 
-const app=initializeApp(firebaseConfig); const db=getFirestore(app); const auth=getAuth(app);
-window.GG={app,db,auth,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapshot,getDocs,query,orderBy,limit};
+const app=initializeApp(firebaseConfig); const db=getFirestore(app);
+window.GG={app,db,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapshot,getDocs,query,orderBy,limit};
 window.toast=(m)=>{const e=document.getElementById('toast');if(!e)return;e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',2600)};
 window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 </script>
@@ -211,46 +210,6 @@ window.uploadAdminVideo = (file, folder="ggchst/admin-videos") =>
   window.uploadToCloudinary(file,{resourceType:"video",folder});
 </script>
 </head><body>
-<script type="module">
-import {getDoc,doc} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-const ADMIN_LOGIN_PAGE = "login.html";
-
-function denyAdmin(){
-  window.location.replace(ADMIN_LOGIN_PAGE);
-}
-
-const waitForAuth = new Promise((resolve)=>{
-  const stop = window.GG.auth.onAuthStateChanged(async (user)=>{
-    stop();
-    if(!user){ denyAdmin(); return; }
-
-    try{
-      const snap = await getDoc(doc(window.GG.db,"users",user.uid));
-      if(!snap.exists()){ denyAdmin(); return; }
-
-      const data = snap.data() || {};
-      const role = String(data.role || "").toLowerCase();
-      const accountType = String(data.accountType || "").toLowerCase();
-
-      const isAdmin =
-        role === "admin" ||
-        role === "administrator" ||
-        accountType === "admin" ||
-        accountType.includes("admin");
-
-      if(!isAdmin){ denyAdmin(); return; }
-
-      sessionStorage.setItem("ggchstAdminVerified","1");
-      resolve(user);
-    }catch(error){
-      console.error("Admin verification failed:",error);
-      denyAdmin();
-    }
-  });
-});
-</script>
-
 <div class="page">
   <div class="content">
     <div class="top-images">
