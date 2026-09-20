@@ -160,13 +160,95 @@ window.GG={app,db,auth,collection,addDoc,doc,setDoc,updateDoc,deleteDoc,onSnapsh
 window.toast=(m)=>{const e=document.getElementById('toast');if(!e)return;e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',2600)};
 window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 </script>
-</head><body>
 <script>
-(function(){
-  if(sessionStorage.getItem("ggchstAdminVerified") !== "1"){
-    window.location.replace("admin-login.html");
+/*
+  Cloudinary configuration for GGCHST admin uploads.
+  IMPORTANT: Obaestate must be an UNSIGNED upload preset.
+  Never place the Cloudinary API secret in this file.
+*/
+window.GG_CLOUDINARY = {
+  cloudName: "hjdnytcb",
+  uploadPreset: "Obaestate"
+};
+
+window.uploadToCloudinary = async function(file, options = {}){
+  if(!file) throw new Error("Please select a file.");
+
+  const isVideo = file.type && file.type.startsWith("video/");
+  const resourceType = options.resourceType || (isVideo ? "video" : "image");
+  const folder = options.folder || "ggchst";
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", window.GG_CLOUDINARY.uploadPreset);
+  formData.append("folder", folder);
+
+  const endpoint =
+    `https://api.cloudinary.com/v1_1/${window.GG_CLOUDINARY.cloudName}/${resourceType}/upload`;
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await response.json().catch(()=>({}));
+
+  if(!response.ok || !data.secure_url){
+    console.error("Cloudinary upload error:", data);
+    throw new Error(
+      data?.error?.message ||
+      `Cloudinary ${resourceType} upload failed (${response.status}).`
+    );
   }
-})();
+
+  return data.secure_url;
+};
+
+window.uploadAdminImage = (file, folder="ggchst/admin-images") =>
+  window.uploadToCloudinary(file,{resourceType:"image",folder});
+
+window.uploadAdminVideo = (file, folder="ggchst/admin-videos") =>
+  window.uploadToCloudinary(file,{resourceType:"video",folder});
+</script>
+</head><body>
+<script type="module">
+import {getDoc,doc} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const ADMIN_LOGIN_PAGE = "login.html";
+
+function denyAdmin(){
+  window.location.replace(ADMIN_LOGIN_PAGE);
+}
+
+const waitForAuth = new Promise((resolve)=>{
+  const stop = window.GG.auth.onAuthStateChanged(async (user)=>{
+    stop();
+    if(!user){ denyAdmin(); return; }
+
+    try{
+      const snap = await getDoc(doc(window.GG.db,"users",user.uid));
+      if(!snap.exists()){ denyAdmin(); return; }
+
+      const data = snap.data() || {};
+      const role = String(data.role || "").toLowerCase();
+      const accountType = String(data.accountType || "").toLowerCase();
+
+      const isAdmin =
+        role === "admin" ||
+        role === "administrator" ||
+        accountType === "admin" ||
+        accountType.includes("admin");
+
+      if(!isAdmin){ denyAdmin(); return; }
+
+      sessionStorage.setItem("ggchstAdminVerified","1");
+      resolve(user);
+    }catch(error){
+      console.error("Admin verification failed:",error);
+      denyAdmin();
+    }
+  });
+});
 </script>
 
 <div class="page">
