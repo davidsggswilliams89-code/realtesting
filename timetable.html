@@ -49,7 +49,7 @@
 import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,getDocs,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
-const app=getApps().length?getApp():initializeApp(firebaseConfig),db=getFirestore(app),$=id=>document.getElementById(id);
+const app=getApps().find(a=>a.name==="GGCHSTCourseTimetable")||initializeApp(firebaseConfig,"GGCHSTCourseTimetable"),db=getFirestore(app),$=id=>document.getElementById(id);
 let sessions=[],semesters=[],programmes=[],levels=[],courses=[],mappings=[],lecturers=[],lecturerAssignments=[],venues=[],classRows=[];
 let classEdit=null;
 const dayOrder={Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6};
@@ -202,42 +202,78 @@ async function loadCollection(name){
 }
 
 async function loadTimetableData(){
- try{
-  const [
-   sessionRows,semesterRows,programmeRows,levelRows,courseRows,
-   mappingRows,lecturerRows,assignmentRows,venueRows,timetableRows
-  ]=await Promise.all([
-   loadCollection("academicSessions"),
-   loadCollection("semesters"),
-   loadCollection("programmes"),
-   loadCollection("academicLevels"),
-   loadCollection("courses"),
-   loadCollection("curriculumMappings"),
-   loadCollection("lecturers"),
-   loadCollection("lecturerCourseAssignments"),
-   loadCollection("venues"),
-   loadCollection("timetables")
-  ]);
+  const names=[
+    "academicSessions",
+    "semesters",
+    "programmes",
+    "academicLevels",
+    "courses",
+    "curriculumMappings",
+    "lecturers",
+    "lecturerCourseAssignments",
+    "venues",
+    "timetables"
+  ];
 
-  sessions=sessionRows.map(x=>({...x,name:sessionName(x)})).filter(active);
-  semesters=semesterRows.map(x=>({...x,name:semesterName(x)})).filter(active);
-  programmes=programmeRows.filter(active);
-  levels=levelRows.filter(active);
-  courses=courseRows.filter(active);
-  mappings=mappingRows.filter(active);
-  lecturers=lecturerRows.filter(active);
-  lecturerAssignments=assignmentRows.filter(active);
-  venues=venueRows.filter(active);
-  classRows=timetableRows;
+  const results=await Promise.all(
+    names.map(async name=>{
+      try{
+        return {name,rows:await loadCollection(name),error:null};
+      }catch(error){
+        console.error("Failed to load "+name,error);
+        return {name,rows:[],error};
+      }
+    })
+  );
 
+  const get=name=>results.find(x=>x.name===name)||{rows:[],error:null};
+
+  const sessionResult=get("academicSessions");
+  const semesterResult=get("semesters");
+  const programmeResult=get("programmes");
+  const levelResult=get("academicLevels");
+  const courseResult=get("courses");
+  const mappingResult=get("curriculumMappings");
+  const lecturerResult=get("lecturers");
+  const assignmentResult=get("lecturerCourseAssignments");
+  const venueResult=get("venues");
+  const timetableResult=get("timetables");
+
+  sessions=sessionResult.rows.map(x=>({...x,name:sessionName(x)})).filter(active);
+  semesters=semesterResult.rows.map(x=>({...x,name:semesterName(x)})).filter(active);
+  programmes=programmeResult.rows.filter(active);
+  levels=levelResult.rows.filter(active);
+  courses=courseResult.rows.filter(active);
+  mappings=mappingResult.rows.filter(active);
+  lecturers=lecturerResult.rows.filter(active);
+  lecturerAssignments=assignmentResult.rows.filter(active);
+  venues=venueResult.rows.filter(active);
+  classRows=timetableResult.rows;
+
+  // Always populate the session dropdown even if another optional
+  // collection is unavailable.
   renderClassCascade(false);
   renderFilters();
   renderClassTable();
 
- }catch(err){
-  console.error("Course timetable Firestore load error:",err);
-  notice("Unable to load timetable data: "+(err.message||err),"error");
- }
+  const failed=results.filter(x=>x.error).map(x=>x.name);
+
+  if(sessionResult.error){
+    notice(
+      "Academic Sessions could not be loaded from Firestore. Check Firestore rules and the academicSessions collection.",
+      "error"
+    );
+  }else if(!sessions.length){
+    notice(
+      "No Academic Sessions were found in the academicSessions collection.",
+      "error"
+    );
+  }else if(failed.length){
+    notice(
+      "Session loaded successfully. Some optional data could not be loaded: "+failed.join(", "),
+      "error"
+    );
+  }
 }
 
 $("classSession").addEventListener("change",()=>{
