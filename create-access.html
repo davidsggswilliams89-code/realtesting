@@ -256,8 +256,9 @@ function setCategory(c){
  $("studentForm").classList.toggle("hidden",c!=="student");
  $("lecturerForm").classList.toggle("hidden",c!=="lecturer");
  $("staffForm").classList.toggle("hidden",c!=="staff");
- $("formTitle").textContent=c==="student"?"New Student Access":c==="lecturer"?"New Lecturer Access":"New Staff Access";
- $("formDescription").textContent=c==="student"?"Create a brand-new student school record and Firebase login. The student can complete the remaining profile after first login.":c==="lecturer"?"Create a brand-new lecturer school record and Firebase login. The lecturer can complete the personal profile after first login.":"Create a new staff login and school access role.";
+ $("hodForm").classList.toggle("hidden",c!=="hod");
+ $("formTitle").textContent=c==="student"?"New Student Access":c==="lecturer"?"New Lecturer Access":c==="hod"?"New HOD Access":"New Staff Access";
+ $("formDescription").textContent=c==="student"?"Create a brand-new student school record and Firebase login. The student can complete the remaining profile after first login.":c==="lecturer"?"Create a brand-new lecturer school record and Firebase login. The lecturer can complete the personal profile after first login.":c==="hod"?"Create a new HOD account and attach it to a Programme.":"Create a new staff login and school access role.";
  $("loginEmail").readOnly=false;
  $("loginEmailHint").textContent="This email becomes the Firebase Authentication login email.";
  syncGeneral(); msg("");
@@ -270,6 +271,7 @@ function syncGeneral(){
  if(category==="student") status=$("studentStatus").value;
  if(category==="lecturer") status=$("lecturerStatus").value;
  if(category==="staff") status=$("staffStatus").value;
+ if(category==="hod") status=$("hodStatus").value;
  $("statusMirror").value=status;
 }
 ["studentStatus","lecturerStatus","staffStatus","hodStatus","loginEmail"].forEach(id=>$(id).addEventListener("input",syncGeneral));
