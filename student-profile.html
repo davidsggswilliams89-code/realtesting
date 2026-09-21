@@ -458,11 +458,7 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
       <div class="exam-countdown" id="examCountdown" aria-live="polite">
         <div class="countdown-label" id="countdownLabel">EXAM SLIP PRINTING OPENS IN</div>
         <div class="countdown-values">
-          <span><b id="countMonths">0</b><small>MONTHS</small></span>
-          <i>:</i>
-          <span><b id="countWeeks">0</b><small>WEEKS</small></span>
-          <i>:</i>
-          <span><b id="countDays">0</b><small>DAYS</small></span>
+          <span><b id="countDays">00</b><small>DAYS</small></span>
           <i>:</i>
           <span><b id="countHours">00</b><small>HOURS</small></span>
           <i>:</i>
@@ -1079,6 +1075,8 @@ let examCountdownTimer=null;
 let examPrintReady=false;
 let examTimeReached=false;
 let examFeesPaid=false;
+let activeSemester=null;
+let activeSemesterUid="";
 
 function getExamStartDate(record){
   const rawDate=val(record,["date","examDate","scheduledDate"],"");
@@ -1111,19 +1109,15 @@ function getExamStartDate(record){
 
 function splitCountdown(ms){
   const totalSeconds=Math.max(0,Math.floor(ms/1000));
-  let seconds=totalSeconds;
-  const minutes=Math.floor(seconds/60); seconds%=60;
-  const hours=Math.floor(minutes/60); const mins=minutes%60;
-  const days=Math.floor(hours/24); const hrs=hours%24;
-  const weeks=Math.floor(days/7); const remDays=days%7;
-  const months=Math.floor(weeks/4); const remWeeks=weeks%4;
-  return {months,weeks:remWeeks,days:remDays,hours:hrs,minutes:mins,seconds};
+  const days=Math.floor(totalSeconds/86400);
+  const hours=Math.floor((totalSeconds%86400)/3600);
+  const minutes=Math.floor((totalSeconds%3600)/60);
+  const seconds=totalSeconds%60;
+  return {days,hours,minutes,seconds};
 }
 
 function setCountdownValues(x){
-  $("countMonths").textContent=x.months;
-  $("countWeeks").textContent=x.weeks;
-  $("countDays").textContent=x.days;
+  $("countDays").textContent=String(x.days).padStart(2,"0");
   $("countHours").textContent=String(x.hours).padStart(2,"0");
   $("countMinutes").textContent=String(x.minutes).padStart(2,"0");
   $("countSeconds").textContent=String(x.seconds).padStart(2,"0");
@@ -1206,7 +1200,7 @@ function applyExamPrintAccess(){
   // Keep the countdown visible after reaching zero so the exam-slip status
   // remains visible to the student.
   countdown.style.display="block";
-  setCountdownValues({months:0,weeks:0,days:0,hours:0,minutes:0,seconds:0});
+  setCountdownValues({days:0,hours:0,minutes:0,seconds:0});
 
   if(examFeesPaid){
     slip.classList.add("exam-ready");
@@ -1282,7 +1276,7 @@ function renderExamSlip(records){
 
 async function loadData(){
   const [
-    courses,results,payments,attendance,timetables,exams,notes,assignments,announcements,notices
+    courses,results,payments,attendance,timetables,exams,notes,assignments,announcements,notices,semesters
   ]=await Promise.all([
     findCourses(student),
     rows("results"),
@@ -1293,8 +1287,14 @@ async function loadData(){
     rows("lectureNotes"),
     rows("assignments"),
     rows("announcements"),
-    rows("notices")
+    rows("notices"),
+    rows("semesters")
   ]);
+
+  // The active semester document UID is the single semester reference used
+  // to select the student's examination timetable and its countdown target.
+  activeSemester=semesters.find(x=>norm(x.status)==="active")||null;
+  activeSemesterUid=activeSemester?.id||"";
 
   assignedCourses=courses;
   allResults=results.filter(matchStudent).filter(r=>!val(r,["courseCode","code","courseId"])||matchCourse(r));
@@ -1302,14 +1302,23 @@ async function loadData(){
 
   const timetableRecords=timetables.filter(matchCourse);
   const targetSemester=norm(val(student,["semester","currentSemester","activeSemester"]));
+  const studentSession=norm(val(student,["academicSession","session"]));
   const examRecords=exams.filter(matchCourse).filter(r=>{
     const rs=norm(val(r,["academicSession","session","sessionName"]));
     const rm=norm(val(r,["semester","semesterName","term"]));
-    const studentSession=norm(val(student,["academicSession","session"]));
-    const semesterOK=!targetSemester||!rm||rm===targetSemester||rm.includes(targetSemester)||targetSemester.includes(rm);
+    const examSemesterUid=norm(val(r,["semesterId","semesterUid","semesterUID","termId"],""));
+
+    // Prefer the active semester UID. Older examination records without a
+    // semester UID continue to work through the existing name fallback.
+    const semesterUidOK=!!activeSemesterUid && examSemesterUid===norm(activeSemesterUid);
+    const semesterNameOK=!targetSemester||!rm||rm===targetSemester||rm.includes(targetSemester)||targetSemester.includes(rm);
     const sessionOK=!studentSession||!rs||rs===studentSession;
-    return sessionOK&&semesterOK;
-  }).sort((a,b)=>String(val(a,["date","examDate"],"")).localeCompare(String(val(b,["date","examDate"],""))));
+    return semesterUidOK&&semesterNameOK&&sessionOK;
+  }).sort((a,b)=>{
+    const da=getExamStartDate(a)?.getTime()??Number.MAX_SAFE_INTEGER;
+    const db=getExamStartDate(b)?.getTime()??Number.MAX_SAFE_INTEGER;
+    return da-db;
+  });
   const noteRecords=notes.filter(matchCourse);
   const assignmentRecords=assignments.filter(matchCourse);
 
