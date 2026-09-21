@@ -20,6 +20,79 @@ table{width:100%;border-collapse:collapse;background:#fff} th,td{padding:9px;bor
 .stat{font-size:28px;font-weight:800;color:var(--brand)} .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--soft);color:var(--brand2);font-size:11px;font-weight:700}
 .toast{position:fixed;right:15px;bottom:15px;background:#15352b;color:#fff;padding:12px 15px;border-radius:10px;display:none;z-index:30}
 @media(max-width:650px){.fields{grid-template-columns:1fr} .head{align-items:flex-start;flex-direction:column}}
+
+
+.school-header{
+  background:#fff;
+  color:#172033;
+  padding:0;
+  border-bottom:1px solid #e5e7eb;
+  position:static;
+}
+.school-header-inner{
+  max-width:1200px;
+  min-height:82px;
+  margin:0 auto;
+  padding:10px 15px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.school-logo{
+  width:54px;
+  height:54px;
+  flex:0 0 54px;
+  border-radius:50%;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  background:#eefbf3;
+  border:1px solid #d1fae5;
+  color:#087443;
+  font-weight:800;
+}
+.school-logo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.school-name{
+  flex:1;
+  color:#172033;
+  font-size:18px;
+  font-weight:800;
+  line-height:1.25;
+}
+.school-name span{
+  display:block;
+  margin-top:3px;
+  color:#667085;
+  font-size:12px;
+  font-weight:500;
+}
+.school-back{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+  background:#087443;
+  color:#fff;
+  padding:10px 15px;
+  border-radius:9px;
+  font-size:13px;
+  font-weight:700;
+  white-space:nowrap;
+}
+.school-back:hover{background:#075d36}
+@media(max-width:650px){
+  .school-header-inner{min-height:68px;padding:8px 10px;gap:9px}
+  .school-logo{width:43px;height:43px;flex-basis:43px}
+  .school-name{font-size:12px}
+  .school-name span{font-size:10px}
+  .school-back{padding:8px 9px;font-size:10px}
+}
+
 </style>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -41,10 +114,20 @@ window.toast=(m)=>{const e=document.getElementById('toast');if(!e)return;e.textC
 window.esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 </script>
 </head><body>
-<header><div class="head"><div><h1>Green Garden College of Health Sciences &amp; Technology</h1><p>Gusau • Administration Control Center</p></div><a class="btn secondary" href="admin.html">Admin Home</a></div></header>
-<nav><div class="inner">
-<a href="admin.html">Dashboard</a><a href="admin-users.html">1 Users</a><a href="admin-dashboard.html">2 Overview</a><a href="admin-notes.html">3 Notes</a><a href="admin-assignments.html">4 Assignments</a><a href="admin-finance.html">5 Finance</a><a href="admin-notices.html">6 Notices</a><a href="admin-calendar.html">7 Calendar</a><a href="admin-settings.html">8 Settings</a><a href="admin-audit.html">9 Audit</a><a href="admin-reports.html">10 Reports</a>
-</div></nav>
+<header class="school-header">
+  <div class="school-header-inner">
+    <div class="school-logo">
+      <img src="https://ggchstgusau.edu.ng/_next/image?q=75&url=%2Flogo.png&w=384"
+           alt="Green Garden College of Health Sciences & Technology logo"
+           onerror="this.style.display='none';this.parentElement.textContent='G';">
+    </div>
+    <div class="school-name">
+      Green Garden College of Health Sciences &amp; Technology
+      <span>Gusau, Zamfara State</span>
+    </div>
+    <a class="school-back" href="admin.html">← Back to Admin</a>
+  </div>
+</header>
 <main>
 <section class="hero"><h2>7. Academic Calendar</h2><p class="muted">Manage academic dates and events used to communicate sessions, registration, examinations and institutional deadlines.</p></section>
 <form id="f"><div class="fields">
