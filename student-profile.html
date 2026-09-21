@@ -1117,6 +1117,12 @@ function splitCountdown(ms){
 }
 
 function setCountdownValues(x){
+  // The existing UI has MONTHS / WEEKS / DAYS / HOURS / MIN / SEC.
+  // The actual countdown is driven by the exact exam due date/time.
+  // Months and weeks are kept at zero so the final four fields always
+  // reach exactly 00:00:00:00 at the due time.
+  $("countMonths").textContent="0";
+  $("countWeeks").textContent="0";
   $("countDays").textContent=String(x.days).padStart(2,"0");
   $("countHours").textContent=String(x.hours).padStart(2,"0");
   $("countMinutes").textContent=String(x.minutes).padStart(2,"0");
@@ -1291,10 +1297,11 @@ async function loadData(){
     rows("semesters")
   ]);
 
-  // The active semester document UID is the single semester reference used
-  // to select the student's examination timetable and its countdown target.
+  // IMPORTANT: The countdown reference starts from the Firestore UID of the
+  // currently ACTIVE semester. The examination timetable stores that same UID
+  // in semesterId. Do not use the student's semester text as the primary key.
   activeSemester=semesters.find(x=>norm(x.status)==="active")||null;
-  activeSemesterUid=activeSemester?.id||"";
+  activeSemesterUid=String(activeSemester?.id||"").trim();
 
   assignedCourses=courses;
   allResults=results.filter(matchStudent).filter(r=>!val(r,["courseCode","code","courseId"])||matchCourse(r));
@@ -1303,22 +1310,38 @@ async function loadData(){
   const timetableRecords=timetables.filter(matchCourse);
   const targetSemester=norm(val(student,["semester","currentSemester","activeSemester"]));
   const studentSession=norm(val(student,["academicSession","session"]));
-  const examRecords=exams.filter(matchCourse).filter(r=>{
+
+  // Examination timetable records are keyed to the semester document UID.
+  // First select the ACTIVE semester by its Firestore document ID, then use
+  // that ID as the sole primary reference for the countdown date/time.
+  const activeSemesterExams=exams.filter(r=>{
+    const examSemesterUid=String(val(r,["semesterId","semesterUid","semesterUID","termId"],"")||"").trim();
+    return !!activeSemesterUid && examSemesterUid===activeSemesterUid;
+  });
+
+  // These are the records displayed on the student's slip. They still use
+  // the student's assigned courses, but they are restricted to the active
+  // semester UID and the student's current session where available.
+  const examRecords=activeSemesterExams.filter(matchCourse).filter(r=>{
     const rs=norm(val(r,["academicSession","session","sessionName"]));
     const rm=norm(val(r,["semester","semesterName","term"]));
-    const examSemesterUid=norm(val(r,["semesterId","semesterUid","semesterUID","termId"],""));
-
-    // Prefer the active semester UID. Older examination records without a
-    // semester UID continue to work through the existing name fallback.
-    const semesterUidOK=!!activeSemesterUid && examSemesterUid===norm(activeSemesterUid);
     const semesterNameOK=!targetSemester||!rm||rm===targetSemester||rm.includes(targetSemester)||targetSemester.includes(rm);
     const sessionOK=!studentSession||!rs||rs===studentSession;
-    return semesterUidOK&&semesterNameOK&&sessionOK;
+    return semesterNameOK&&sessionOK;
   }).sort((a,b)=>{
     const da=getExamStartDate(a)?.getTime()??Number.MAX_SAFE_INTEGER;
     const db=getExamStartDate(b)?.getTime()??Number.MAX_SAFE_INTEGER;
     return da-db;
   });
+
+  // Countdown reference: ONLY the earliest valid examination belonging to
+  // the ACTIVE SEMESTER UID. It is intentionally independent of course
+  // filtering so the countdown can start even if a course registration has
+  // not yet been matched on the profile page.
+  const countdownExam=activeSemesterExams
+    .map(r=>({record:r,date:getExamStartDate(r)}))
+    .filter(x=>x.date)
+    .sort((a,b)=>a.date-b.date)[0]||null;
   const noteRecords=notes.filter(matchCourse);
   const assignmentRecords=assignments.filter(matchCourse);
 
@@ -1350,6 +1373,10 @@ async function loadData(){
   renderFees(studentPayments);
   examFeesPaid=isPaymentFullyPaid(studentPayments);
   renderExamStudent();
+
+  // Start the countdown directly from the active-semester examination date.
+  // renderExamSlip() is still responsible for the student's printable slip.
+  startExamCountdown(countdownExam?.date||null);
   renderExamSlip(examRecords);
   if(examTimeReached)applyExamPrintAccess();
 }
