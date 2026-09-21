@@ -27,7 +27,6 @@ button{font:inherit;border:0;border-radius:11px;padding:12px 17px;font-weight:80
 <a class="back" href="admin.html">← Back</a>
 </header>
 <main>
-<section class="hero"><h1>Curriculum Mapping</h1><p>Manage the courses mapped to each Programme and Academic Level. These mappings control the courses students automatically receive for their programme and level.</p></section>
 
 <section class="card"><h2>Programme Curriculum Setup</h2><div id="msg" class="message"></div>
 <div class="grid">
@@ -104,7 +103,7 @@ function renderMaps(){
  $("maps").innerHTML=rows.length?rows.map(m=>'<tr><td>'+esc(m.programmeName||m.programme||"—")+'</td><td>'+esc(m.levelName||m.level||"—")+'</td><td><b>'+esc(m.courseCode||"")+'</b><br><span class="meta">'+esc(m.courseName||m.courseTitle||"")+'</span></td><td>'+esc(m.courseUnit||0)+'</td><td>'+esc(m.semester||"—")+'</td><td><span class="badge">Active</span></td><td><button class="remove" data-remove="'+esc(m.id)+'" type="button">Remove</button></td></tr>').join(""):'<tr><td colspan="7" class="empty">No saved course mappings found.</td></tr>';
 }
 $("mapSearch").oninput=renderMaps;
-$("maps").onclick=async e=>{let b=e.target.closest("[data-remove]");if(!b)return;let m=maps.find(x=>x.id===b.dataset.remove);if(!m||!confirm("Remove "+(m.courseCode||"this course")+" from "+(m.programmeName||m.programme)+" — "+(m.levelName||m.level)+"?"))return;b.disabled=true;try{await updateDoc(doc(db,"curriculumMappings",m.id),{status:"Inactive",updatedAt:serverTimestamp()});message("Course removed from the Programme + Level structure.")}catch(e){message(e.message||"Could not remove course.","error")}finally{b.disabled=false};
+$("maps").onclick=async e=>{let b=e.target.closest("[data-remove]");if(!b)return;let m=maps.find(x=>x.id===b.dataset.remove);if(!m||!confirm("Remove "+(m.courseCode||"this course")+" from "+(m.programmeName||m.programme)+" — "+(m.levelName||m.level)+"?"))return;b.disabled=true;try{await updateDoc(doc(db,"curriculumMappings",m.id),{status:"Inactive",updatedAt:serverTimestamp()});message("Course removed from the Programme + Level structure.")}catch(e){message(e.message||"Could not remove course.","error")}finally{b.disabled=false}};
 
 onSnapshot(collection(db,"programmes"),s=>{programmes=s.docs.map(d=>({id:d.id,...d.data()}));fill("programme",programmes,"Select programme",pname);render()},e=>message("Could not load programmes: "+e.message,"error"));
 onSnapshot(collection(db,"academicLevels"),s=>{levels=s.docs.map(d=>({id:d.id,...d.data()}));fill("level",levels,"Select academic level",lname);render()},e=>message("Could not load levels: "+e.message,"error"));
