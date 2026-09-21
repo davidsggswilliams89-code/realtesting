@@ -69,7 +69,6 @@ import {
   getFirestore,collection,addDoc,doc,setDoc,deleteDoc,
   onSnapshot,getDocs,query,where,serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyAoT3LGcdw3A0fZHrPEuhTNCnfiTklGXY",
@@ -82,9 +81,9 @@ const firebaseConfig={
 
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
-const auth=getAuth(app);
 
-window.GG={db,auth,collection,addDoc,doc,setDoc,deleteDoc,onSnapshot,getDocs,query,where,serverTimestamp};
+
+window.GG={db,collection,addDoc,doc,setDoc,deleteDoc,onSnapshot,getDocs,query,where,serverTimestamp};
 
 window.esc=(s="")=>String(s).replace(/[&<>"']/g,m=>({
   "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
@@ -202,7 +201,7 @@ window.toast=(m)=>{
 
 <script type="module">
 const {
-  db,auth,collection,addDoc,doc,setDoc,deleteDoc,
+  db,collection,addDoc,doc,setDoc,deleteDoc,
   onSnapshot,getDocs,query,where,serverTimestamp
 }=window.GG;
 
@@ -487,40 +486,11 @@ async function loadHodProgrammes(uid){
   return result;
 }
 
-async function setupAccess(user){
-  currentUser=user;
-
-  const userSnaps=await getDocs(collection(db,"users"));
-  let profile=null;
-
-  userSnaps.forEach(x=>{
-    const d=x.data();
-    const ids=[
-      first(d,["uid","firebaseUid","authUid"],""),
-      first(d,["email"],"")
-    ];
-    if(ids.includes(user.uid) || ids.includes(user.email)) profile={id:x.id,...d};
-  });
-
-  userRole=roleName(profile||{});
-
-  if(!isAdminRole(userRole) && !isHodRole(userRole)){
-    setStatus("Access denied. This page is available to Admin or HOD accounts.",true);
-    return false;
-  }
-
-  if(isHodRole(userRole)){
-    allowedProgrammeIds=await loadHodProgrammes(user.uid);
-    if(!allowedProgrammeIds.size){
-      setStatus("No Programme has been assigned to this HOD account.",true);
-      return false;
-    }
-    setStatus("HOD access: you can assign courses only within your assigned Programme(s).");
-  }else{
-    allowedProgrammeIds=null;
-    setStatus("Admin access: select a Programme, lecturer and approved course(s) to create an assignment.");
-  }
-
+async function setupOpenAccess(){
+  currentUser={uid:"admin-panel",email:""};
+  userRole="Admin";
+  allowedProgrammeIds=null;
+  setStatus("Ready. Select a Programme, lecturer and approved course(s) to create an assignment.");
   $("assignPanel").style.display="";
   $("listPanel").style.display="";
   return true;
@@ -649,8 +619,8 @@ async function assignSelected(){
       semester:semname,
 
       status:"Active",
-      assignedByUid:currentUser.uid,
-      assignedByEmail:currentUser.email||"",
+      assignedByUid:"admin-panel",
+      assignedByEmail:"",
       assignedByRole:userRole,
       createdAt:serverTimestamp(),
       updatedAt:serverTimestamp()
@@ -685,30 +655,16 @@ $("clearBtn").onclick=clearForm;
 $("search").oninput=renderAssignments;
 $("filterProgramme").onchange=renderAssignments;
 
-let accessResolved=false;
-const accessTimer=setTimeout(()=>{
-  if(!accessResolved){
-    setStatus("Firebase authentication is taking too long. Please refresh and make sure you are logged in.",true);
-  }
-},10000);
-
-onAuthStateChanged(auth,async user=>{
-  accessResolved=true;
-  clearTimeout(accessTimer);
-
-  if(!user){
-    setStatus("Please log in before using this page.",true);
-    return;
-  }
-
+(async function init(){
   try{
-    const ok=await setupAccess(user);
-    if(ok)await loadAll();
+    const ok=await setupOpenAccess();
+    if(ok) await loadAll();
   }catch(err){
     console.error("Lecturer course assignment load error:",err);
     setStatus("Unable to load lecturer assignment data: "+(err.message||err),true);
   }
-});
+})();
+
 </script>
 </body>
 </html>
