@@ -704,14 +704,14 @@ main{max-width:1200px!important;margin:0 auto!important;padding:24px 18px 40px!i
   <div class="section-title">
     <div>
       <h2>Add Student Results</h2>
-      <div class="muted">Select a course, then enter each student's CA and examination grade.</div>
+      <div class="muted">Students are queried from the student master records created in student.html. Only students registered for courses assigned to this lecturer Firebase UID are shown.</div>
     </div>
     <span class="badge" id="entryCount">0 Students</span>
   </div>
 
   <div class="form-group" style="max-width:520px">
     <label for="enterResultsCourse">Course</label>
-    <select id="enterResultsCourse" onchange="loadResultEntryStudents"><option value="">Select assigned course</option></select>
+    <select id="enterResultsCourse" onchange="loadResultEntryStudents()"><option value="">Select assigned course</option></select>
   </div>
 
   <div style="overflow-x:auto">
@@ -827,6 +827,13 @@ async function rows(name){try{return(await getDocs(collection(db,name))).docs.ma
 function codeOf(c){return val(c,["courseCode","code"],"")}
 function nameOf(c){return val(c,["courseTitle","courseName","name"],codeOf(c)||"Course")}
 function lecturerIdOf(l){return val(l,["id","lecturerId","staffId","uid","authUid","firebaseUid"],"")}
+function lecturerFirebaseUid(l){
+  return val(l,["firebaseUid","authUid","uid","lecturerUid"],"") ||
+         (currentUser?.uid||"");
+}
+function studentFirebaseUid(s){
+  return val(s,["studentUid","authUid","firebaseUid","uid"],"");
+}
 function lecturerMatches(x,u,l){const ids=[x.id,x.lecturerId,x.staffId,x.authUid,x.firebaseUid,x.uid].map(norm);const emails=[x.email,x.lecturerEmail,x.emailAddress].map(norm);return ids.includes(norm(u?.uid))||ids.includes(norm(lecturerIdOf(l)))||emails.includes(norm(u?.email))||emails.includes(norm(l?.email))}
 function active(x){return norm(x.status||"Active")!=="inactive"}
 function courseMatch(a,c){return norm(codeOf(a))===norm(codeOf(c))||norm(a.courseId)===norm(c.id)}
@@ -1053,7 +1060,7 @@ async function loadAssignedCourses(){
   ]);
 
   const lecturerDocId=norm(currentLecturer?.id);
-  const lecturerUid=norm(val(currentLecturer,["firebaseUid","authUid","uid","lecturerUid"],""));
+  const lecturerUid=norm(lecturerFirebaseUid(currentLecturer));
   const lecturerStaffId=norm(val(currentLecturer,["staffId","lecturerId","employeeId"],""));
   const lecturerEmail=norm(val(currentLecturer,["email","lecturerEmail","emailAddress"],""));
   const currentAuthUid=norm(currentUser?.uid);
@@ -1062,20 +1069,23 @@ async function loadAssignedCourses(){
   let a=assignmentRows.filter(x=>{
     if(!active(x)) return false;
 
-    const ids=[
-      x.id,x.lecturerId,x.lecturerUid,x.staffId,x.staffUid,
-      x.authUid,x.firebaseUid
-    ].map(norm).filter(Boolean);
+    // Primary relationship: the lecturerCourseAssignments record must carry
+    // the selected lecturer's Firebase UID.
+    const assignmentUid=norm(val(x,["lecturerUid","firebaseUid","authUid","uid"],""));
+    if(lecturerUid && assignmentUid) return assignmentUid===lecturerUid;
 
+    // Legacy compatibility for older assignment records that were created
+    // before lecturer Firebase UID was stored.
+    const ids=[
+      x.id,x.lecturerId,x.staffId,x.staffUid
+    ].map(norm).filter(Boolean);
     const emails=[
       x.lecturerEmail,x.staffEmail,x.email
     ].map(norm).filter(Boolean);
 
     return (
       ids.includes(lecturerDocId) ||
-      ids.includes(lecturerUid) ||
       ids.includes(lecturerStaffId) ||
-      ids.includes(currentAuthUid) ||
       emails.includes(lecturerEmail) ||
       emails.includes(currentAuthEmail)
     );
@@ -1180,23 +1190,44 @@ async function loadStudents(){
 
   students=[];
 
-  const studentIdentity=s=>[
-    s.id,s.studentUid,s.firebaseUid,s.authUid,s.uid,
-    s.studentId,s.studentID,s.admissionNo,s.registrationNumber,s.matricNo
-  ].map(norm).filter(Boolean);
+  const lecturerUid=norm(lecturerFirebaseUid(currentLecturer));
+
+  const studentIdentity=s=>{
+    const uid=norm(studentFirebaseUid(s));
+    return {
+      uid,
+      ids:[
+        s.id,s.studentId,s.studentID,s.admissionNo,
+        s.registrationNumber,s.matricNo
+      ].map(norm).filter(Boolean)
+    };
+  };
 
   const registrationMatchesStudent=(r,s)=>{
+    const suid=norm(studentFirebaseUid(s));
+
+    // Firebase UID is the primary student relationship.
+    const rUid=norm(val(r,["studentUid","firebaseUid","authUid","uid"],""));
+    if(rUid && suid) return rUid===suid;
+
+    // Legacy compatibility when an old registration has no student UID.
     const rIds=[
-      r.studentUid,r.firebaseUid,r.authUid,r.uid,r.studentDocId,
-      r.studentId,r.studentID,r.admissionNo,r.registrationNumber,r.matricNo
+      r.studentDocId,r.studentId,r.studentID,
+      r.admissionNo,r.registrationNumber,r.matricNo
     ].map(norm).filter(Boolean);
-    const ids=studentIdentity(s);
-    return rIds.some(id=>ids.includes(id));
+
+    const si=studentIdentity(s);
+    return rIds.some(id=>si.ids.includes(id));
   };
 
   const registrationMatchesCourse=(r,c)=>{
-    const rCourseIds=[r.courseId,r.courseUid,r.courseID].map(norm).filter(Boolean);
-    const rCodes=[r.courseCode,r.code].map(norm).filter(Boolean);
+    const rCourseIds=[
+      r.courseId,r.courseUid,r.courseID
+    ].map(norm).filter(Boolean);
+
+    const rCodes=[
+      r.courseCode,r.code
+    ].map(norm).filter(Boolean);
 
     return (
       (c.courseId && rCourseIds.includes(norm(c.courseId))) ||
@@ -1206,6 +1237,8 @@ async function loadStudents(){
   };
 
   assigned.forEach(c=>{
+    // `assigned` has already been restricted to the selected lecturer's
+    // Firebase UID in loadAssignedCourses().
     const matchingRegistrations=registrations.filter(r=>
       active(r) && registrationMatchesCourse(r,c)
     );
@@ -1215,23 +1248,35 @@ async function loadStudents(){
     if(matchingRegistrations.length){
       matchedStudents=allStudents.filter(s=>
         active(s) &&
+        !!studentFirebaseUid(s) &&
         matchingRegistrations.some(r=>registrationMatchesStudent(r,s))
       );
     }else{
-      // Compatibility fallback for older data that has no courseRegistrations.
+      // Compatibility fallback for older course-registration data.
       matchedStudents=allStudents.filter(s=>
         active(s) &&
+        !!studentFirebaseUid(s) &&
         studentMatchCourse(s,c) &&
         sessionMatch(s,c)
       );
     }
 
-    matchedStudents.forEach(s=>students.push({...s,_course:c}));
+    matchedStudents.forEach(s=>{
+      students.push({
+        ...s,
+        studentUid:studentFirebaseUid(s),
+        _course:c,
+        _lecturerUid:lecturerUid
+      });
+    });
   });
 
   const unique=new Map();
   students.forEach(s=>{
-    unique.set((s.id||s.studentId)+"|"+codeOf(s._course),s);
+    unique.set(
+      norm(studentFirebaseUid(s))+"|"+norm(codeOf(s._course)),
+      s
+    );
   });
   students=[...unique.values()];
 
@@ -1247,7 +1292,7 @@ async function loadStudents(){
         <td><a class="btn btn-secondary" href="student-profile.html?studentId=${encodeURIComponent(s.studentId||s.id)}">Profile</a></td>
         <td><button class="btn btn-secondary" onclick="openAttendance('${esc(codeOf(s._course))}')">Attendance</button></td>
       </tr>`).join("")
-    :'<tr><td colspan="6" class="muted">No registered students found for the lecturer\'s assigned courses.</td></tr>';
+    :'<tr><td colspan="6" class="muted">No registered students found for the selected lecturer and assigned courses.</td></tr>';
 
   if(typeof window.loadResultEntryStudents==="function")
     window.loadResultEntryStudents();
@@ -1255,13 +1300,189 @@ async function loadStudents(){
   if($("registeredStudentsStat"))
     $("registeredStudentsStat").textContent=students.length;
 }
+function resultStudentMatch(r){
+  const rUid=norm(val(r,["studentUid","firebaseUid","authUid","uid"],""));
+  const rCourse=norm(val(r,["courseCode","code"],""));
+  const lecturerUid=norm(lecturerFirebaseUid(currentLecturer));
 
-function resultStudentMatch(r){const sid=norm(val(r,["studentId","studentID","matricNo","admissionNo","studentUid","authUid","firebaseUid","uid","studentDocId"]));return students.some(s=>sid&&[norm(s.studentId),norm(s.admissionNo),norm(s.id),norm(s.studentUid),norm(s.authUid)].includes(sid));}
-async function loadResults(){allResults=await rows("results");renderResults();}
-window.renderResults=()=>{const sel=$("resultsCourseFilter")?.value||"ALL";const arr=allResults.filter(r=>assigned.some(c=>norm(codeOf(c))===norm(val(r,["courseCode","code"])))) .filter(r=>sel==="ALL"||norm(val(r,["courseCode","code"]))===norm(sel));$("resultCount").textContent=arr.length+" Student"+(arr.length===1?"":"s");$("resultsBody").innerHTML=arr.length?arr.map(r=>`<tr><td><strong>${esc(val(r,["studentName","name"],"—"))}</strong></td><td>${esc(val(r,["admissionNo","studentId"],"—"))}</td><td><span class="badge">${esc(val(r,["courseCode","code"],"—"))}</span></td><td>${esc(val(r,["ca","caGrade","caScore"],"—"))}</td><td>${esc(val(r,["exam","examGrade","examScore"],"—"))}</td><td>${esc(val(r,["total","totalGrade","score"],"—"))}</td><td>${esc(val(r,["grade","letterGrade"],"—"))}</td><td>${esc(val(r,["status"],"—"))}</td></tr>`).join(""):'<tr><td colspan="8" class="muted">No results found for the assigned courses.</td></tr>'};
-window.loadResultEntryStudents=()=>{const code=$("enterResultsCourse")?.value||"";const body=$("resultEntryBody");if(!body)return;const ss=students.filter(s=>norm(codeOf(s._course))===norm(code));body.innerHTML=ss.map((s,i)=>{const r=allResults.find(x=>norm(val(x,["courseCode","code"]))===norm(code)&&norm(val(x,["studentId","admissionNo","studentUid"]))===norm(val(s,["studentId","admissionNo","studentUid"])));return `<tr><td><strong>${esc(val(s,["fullName","studentName","name"],"—"))}</strong></td><td>${esc(val(s,["admissionNo","studentId","matricNo"],"—"))}</td><td><input type="number" min="0" max="40" class="result-input ca-input" data-index="${i}" value="${r?esc(val(r,["ca","caGrade","caScore"],"")):""}" oninput="calculateEntryTotal(${i})"></td><td><input type="number" min="0" max="60" class="result-input exam-input" data-index="${i}" value="${r?esc(val(r,["exam","examGrade","examScore"],"")):""}" oninput="calculateEntryTotal(${i})"></td><td><strong id="entryTotal-${i}" class="grade-total">${r?esc((Number(val(r,["total","totalGrade","score"],0)))+" ("+val(r,["grade","letterGrade"],"")+")"):"—"}</strong></td></tr>`}).join("")||'<tr><td colspan="5" class="muted">No students are assigned to this course.</td></tr>';$("entryCount").textContent=ss.length+" Student"+(ss.length===1?"":"s")};
-window.calculateEntryTotal=i=>{const ca=Number(document.querySelector(`.ca-input[data-index="${i}"]`)?.value||0),ex=Number(document.querySelector(`.exam-input[data-index="${i}"]`)?.value||0),cell=$("entryTotal-"+i);if(cell){const t=ca+ex;cell.textContent=t+" ("+letter(t)+")"}};
-window.saveEnteredResults=async()=>{const code=$("enterResultsCourse")?.value||"",msg=$("resultEntryMessage");if(!code){msg.textContent="Select an assigned course.";return}const ss=students.filter(s=>norm(codeOf(s._course))===norm(code));try{for(let i=0;i<ss.length;i++){const caEl=document.querySelector(`.ca-input[data-index="${i}"]`),exEl=document.querySelector(`.exam-input[data-index="${i}"]`);const ca=caEl.value===""?null:Number(caEl.value),exam=exEl.value===""?null:Number(exEl.value);if(ca===null||exam===null)continue;if(ca<0||ca>40||exam<0||exam>60)throw Error("CA must be 0–40 and Exam must be 0–60.");const total=ca+exam,grade=letter(total),existing=allResults.find(r=>norm(val(r,["courseCode","code"]))===norm(code)&&norm(val(r,["studentId","admissionNo","studentUid"]))===norm(val(ss[i],["studentId","admissionNo","studentUid"])));const data={studentId:ss[i].studentId||ss[i].id,studentDocId:ss[i].id,studentUid:ss[i].studentUid||ss[i].authUid||"",studentName:val(ss[i],["fullName","studentName","name"]),admissionNo:val(ss[i],["admissionNo","studentId","matricNo"]),courseCode:code,courseName:nameOf(selectedCourse(code)),courseId:selectedCourse(code)?.courseId||selectedCourse(code)?.id||"",programmeId:selectedCourse(code)?.programmeId||"",programmeName:selectedCourse(code)?.programmeName||"",levelId:selectedCourse(code)?.levelId||"",levelName:selectedCourse(code)?.levelName||"",semester:selectedCourse(code)?.semesterName||val(ss[i],["semester"]),academicSession:selectedCourse(code)?.sessionName||val(ss[i],["academicSession","session"]),ca,exam,total,grade,point:points(grade),status:"Draft",updatedAt:serverTimestamp()};if(existing)await updateDoc(doc(db,"results",existing.id),data);else await addDoc(collection(db,"results"),{...data,createdAt:serverTimestamp()})}msg.textContent="Results saved successfully.";await loadResults();window.loadResultEntryStudents()}catch(e){console.error(e);msg.textContent=e.message||"Could not save results."}};
+  return !!rUid &&
+    students.some(s=>
+      norm(studentFirebaseUid(s))===rUid &&
+      norm(codeOf(s._course))===rCourse &&
+      (!val(r,["lecturerUid","lecturerFirebaseUid"],"") ||
+       norm(val(r,["lecturerUid","lecturerFirebaseUid"],""))===lecturerUid)
+    );
+}
+
+async function loadResults(){
+  allResults=await rows("results");
+  renderResults();
+}
+
+window.renderResults=()=>{
+  const sel=$("resultsCourseFilter")?.value||"ALL";
+  const lecturerUid=norm(lecturerFirebaseUid(currentLecturer));
+
+  const arr=allResults
+    .filter(r=>{
+      const courseCode=norm(val(r,["courseCode","code"],""));
+      const assignedCourse=assigned.find(c=>norm(codeOf(c))===courseCode);
+      if(!assignedCourse)return false;
+
+      // If a result already contains lecturerUid, it must belong to this
+      // selected lecturer. Legacy results without lecturerUid remain visible
+      // when their course is assigned to this lecturer.
+      const rLecturerUid=norm(val(r,["lecturerUid","lecturerFirebaseUid"],""));
+      return !rLecturerUid || rLecturerUid===lecturerUid;
+    })
+    .filter(r=>sel==="ALL"||norm(val(r,["courseCode","code"],""))===norm(sel))
+    .filter(resultStudentMatch);
+
+  $("resultCount").textContent=arr.length+" Student"+(arr.length===1?"":"s");
+
+  $("resultsBody").innerHTML=arr.length
+    ?arr.map(r=>`<tr>
+        <td><strong>${esc(val(r,["studentName","name"],"—"))}</strong></td>
+        <td>${esc(val(r,["admissionNo","studentId"],"—"))}</td>
+        <td><span class="badge">${esc(val(r,["courseCode","code"],"—"))}</span></td>
+        <td>${esc(val(r,["ca","caGrade","caScore"],"—"))}</td>
+        <td>${esc(val(r,["exam","examGrade","examScore"],"—"))}</td>
+        <td>${esc(val(r,["total","totalGrade","score"],"—"))}</td>
+        <td>${esc(val(r,["grade","letterGrade"],"—"))}</td>
+        <td>${esc(val(r,["status"],"—"))}</td>
+      </tr>`).join("")
+    :'<tr><td colspan="8" class="muted">No results found for this lecturer\'s Firebase UID and assigned courses.</td></tr>';
+};
+
+window.loadResultEntryStudents=()=>{
+  const code=$("enterResultsCourse")?.value||"";
+  const body=$("resultEntryBody");
+  if(!body)return;
+
+  const ss=students.filter(s=>
+    norm(codeOf(s._course))===norm(code) &&
+    !!studentFirebaseUid(s)
+  );
+
+  body.innerHTML=ss.map((s,i)=>{
+    const studentUid=norm(studentFirebaseUid(s));
+
+    const r=allResults.find(x=>
+      norm(val(x,["courseCode","code"],""))===norm(code) &&
+      norm(val(x,["studentUid","firebaseUid","authUid","uid"],""))===studentUid &&
+      (!val(x,["lecturerUid","lecturerFirebaseUid"],"") ||
+       norm(val(x,["lecturerUid","lecturerFirebaseUid"],""))===norm(lecturerFirebaseUid(currentLecturer)))
+    );
+
+    return `<tr>
+      <td>
+        <strong>${esc(val(s,["fullName","studentName","name"],"—"))}</strong>
+        <div class="muted">Firebase UID: ${esc(studentUid)}</div>
+      </td>
+      <td>${esc(val(s,["admissionNo","studentId","matricNo"],"—"))}</td>
+      <td><input type="number" min="0" max="40" class="result-input ca-input" data-index="${i}" value="${r?esc(val(r,["ca","caGrade","caScore"],"")):""}" oninput="calculateEntryTotal(${i})"></td>
+      <td><input type="number" min="0" max="60" class="result-input exam-input" data-index="${i}" value="${r?esc(val(r,["exam","examGrade","examScore"],"")):""}" oninput="calculateEntryTotal(${i})"></td>
+      <td><strong id="entryTotal-${i}" class="grade-total">${r?esc((Number(val(r,["total","totalGrade","score"],0)))+" ("+val(r,["grade","letterGrade"],"")+")"):"—"}</strong></td>
+    </tr>`;
+  }).join("")||'<tr><td colspan="5" class="muted">No registered students were found for this lecturer\'s assigned course.</td></tr>';
+
+  $("entryCount").textContent=ss.length+" Student"+(ss.length===1?"":"s");
+};
+
+window.calculateEntryTotal=i=>{
+  const ca=Number(document.querySelector(`.ca-input[data-index="${i}"]`)?.value||0);
+  const ex=Number(document.querySelector(`.exam-input[data-index="${i}"]`)?.value||0);
+  const cell=$("entryTotal-"+i);
+  if(cell){
+    const t=ca+ex;
+    cell.textContent=t+" ("+letter(t)+")";
+  }
+};
+
+window.saveEnteredResults=async()=>{
+  const code=$("enterResultsCourse")?.value||"";
+  const msg=$("resultEntryMessage");
+  if(!code){
+    msg.textContent="Select an assigned course.";
+    return;
+  }
+
+  const lecturerUid=clean(lecturerFirebaseUid(currentLecturer));
+  if(!lecturerUid){
+    msg.textContent="The selected lecturer does not have a Firebase UID.";
+    return;
+  }
+
+  const ss=students.filter(s=>
+    norm(codeOf(s._course))===norm(code) &&
+    !!studentFirebaseUid(s)
+  );
+
+  try{
+    for(let i=0;i<ss.length;i++){
+      const caEl=document.querySelector(`.ca-input[data-index="${i}"]`);
+      const exEl=document.querySelector(`.exam-input[data-index="${i}"]`);
+      const ca=caEl.value===""?null:Number(caEl.value);
+      const exam=exEl.value===""?null:Number(exEl.value);
+
+      if(ca===null||exam===null)continue;
+      if(ca<0||ca>40||exam<0||exam>60)
+        throw Error("CA must be 0–40 and Exam must be 0–60.");
+
+      const total=ca+exam;
+      const grade=letter(total);
+      const studentUid=clean(studentFirebaseUid(ss[i]));
+      const course=selectedCourse(code);
+
+      const existing=allResults.find(r=>
+        norm(val(r,["courseCode","code"],""))===norm(code) &&
+        norm(val(r,["studentUid","firebaseUid","authUid","uid"],""))===norm(studentUid) &&
+        norm(val(r,["lecturerUid","lecturerFirebaseUid"],""))===norm(lecturerUid)
+      );
+
+      const data={
+        studentId:ss[i].studentId||ss[i].id,
+        studentDocId:ss[i].id,
+        studentUid,
+        studentName:val(ss[i],["fullName","studentName","name"]),
+        admissionNo:val(ss[i],["admissionNo","studentId","matricNo"]),
+        courseCode:code,
+        courseName:nameOf(course),
+        courseId:course?.courseId||course?.id||"",
+        programmeId:course?.programmeId||"",
+        programmeName:course?.programmeName||"",
+        levelId:course?.levelId||"",
+        levelName:course?.levelName||"",
+        semester:course?.semesterName||val(ss[i],["semester"]),
+        academicSession:course?.sessionName||val(ss[i],["academicSession","session"]),
+        lecturerUid,
+        lecturerFirebaseUid:lecturerUid,
+        lecturerId:currentLecturer?.id||"",
+        lecturerName:val(currentLecturer,["fullName","name","lecturerName"],""),
+        lecturerEmail:val(currentLecturer,["email","lecturerEmail","emailAddress"],""),
+        ca,
+        exam,
+        total,
+        grade,
+        point:points(grade),
+        status:"Draft",
+        updatedAt:serverTimestamp()
+      };
+
+      if(existing)
+        await updateDoc(doc(db,"results",existing.id),data);
+      else
+        await addDoc(collection(db,"results"),{...data,createdAt:serverTimestamp()});
+    }
+
+    msg.textContent="Results saved successfully for the selected lecturer Firebase UID.";
+    await loadResults();
+    window.loadResultEntryStudents();
+  }catch(e){
+    console.error(e);
+    msg.textContent=e.message||"Could not save results.";
+  }
+};
 window.openStudents=(code,name)=>{const rs=students.filter(s=>norm(codeOf(s._course))===norm(code));openModal(code+" — "+name,rs.length?`<div class="note"><strong>${rs.length} students</strong> are automatically attached to this course through Programme + Level.</div><div class="table-scroll"><table><thead><tr><th>Student</th><th>Admission</th><th>Level</th><th>Profile</th></tr></thead><tbody>${rs.map(s=>`<tr><td>${esc(val(s,["fullName","studentName","name"]))}</td><td>${esc(val(s,["admissionNo","studentId"]))}</td><td>${esc(val(s,["level"],"—"))}</td><td><a class="btn btn-secondary" href="student-profile.html?studentId=${encodeURIComponent(s.studentId||s.id)}">Profile</a></td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No students found for this course.</div>')};
 window.openAssignment=code=>{const s=$("assignmentCourse");if(s)s.value=code;$("assignmentTitle")?.focus();document.getElementById("assignmentTitle")?.scrollIntoView({behavior:"smooth",block:"center"})};
 window.openNotes=code=>{const s=$("noteCourse");if(s)s.value=code;document.getElementById("noteFile")?.click()};
