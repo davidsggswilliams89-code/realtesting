@@ -388,6 +388,17 @@ function renderTable(){
 
 
 
+function venueClash(data,ignoreId){
+  if(!data.venueId) return false;
+  return schedules.some(x=>
+    x.id!==ignoreId &&
+    x.examDate===data.examDate &&
+    String(x.venueId||"")===String(data.venueId||"") &&
+    x.startTime && x.endTime &&
+    data.startTime<x.endTime && x.startTime<data.endTime
+  );
+}
+
 function courseClash(data,ignoreId){
  return schedules.some(x=>
   x.id!==ignoreId &&
