@@ -123,7 +123,7 @@ footer{text-align:center;padding:24px 15px;color:var(--muted);font-size:12px}
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,addDoc,updateDoc,doc,onSnapshot,query,orderBy,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-const firebaseConfig={apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
+const firebaseConfig={apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
@@ -203,5 +203,6 @@ onSnapshot(collection(db,'lecturers'),snap=>{
 
 resetH();
 
+</script>
 </body>
 </html>
