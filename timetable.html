@@ -46,262 +46,586 @@
 
 </main>
 <script type="module">
-import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot,getDocs,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-const firebaseConfig={apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
-const app=getApps().find(a=>a.name==="GGCHSTCourseTimetable")||initializeApp(firebaseConfig,"GGCHSTCourseTimetable"),db=getFirestore(app),$=id=>document.getElementById(id);
-let sessions=[],semesters=[],programmes=[],levels=[],courses=[],mappings=[],lecturers=[],lecturerAssignments=[],venues=[],classRows=[];
-let classEdit=null;
-const dayOrder={Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6};
-const norm=v=>String(v??"").toLowerCase().trim();
-const esc=v=>String(v??"").replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-const active=x=>{const s=norm(x?.status||"Active");return s!=="inactive"&&s!=="canceled"};
-const nameOf=x=>x?.name||x?.fullName||x?.programmeName||x?.levelName||x?.title||"";
-const codeOf=x=>x?.code||x?.programmeCode||x?.levelCode||"";
-function notice(msg,type="success"){const n=$("notice");n.textContent=msg;n.className="notice "+type;n.style.display="block";clearTimeout(window.__nt);window.__nt=setTimeout(()=>n.style.display="none",4000)}
-function fillSelect(id,arr,placeholder,selected=""){const el=$(id);if(!el)return;el.innerHTML='<option value="">'+placeholder+'</option>'+arr.map(x=>`<option value="${esc(x.id)}">${esc(nameOf(x))}${codeOf(x)?" — "+esc(codeOf(x)):""}</option>`).join("");if(selected&&arr.some(x=>x.id===selected))el.value=selected}
-function sessionName(x){return x?.name||x?.sessionName||""}
-function semesterName(x){return x?.name||x?.semesterName||""}
-function courseCode(x){return x?.courseCode||x?.code||""}
-function courseName(x){return x?.courseTitle||x?.courseName||x?.name||x?.title||""}
-function courseUnit(x){return x?.courseUnit??x?.creditUnit??x?.unit??""}
-function personName(x){return x?.name||x?.fullName||x?.lecturerName||""}
-function venueName(x){return x?.name||x?.venueName||""}
-function semesterList(sid){
- const s=sessions.find(x=>x.id===sid);
- const sName=norm(sessionName(s));
- return semesters.filter(x=>{
-  if(!active(x)||!sid)return active(x);
-  const xSid=String(x.sessionId||x.academicSessionId||"");
-  const xName=norm(x.sessionName||x.academicSession||x.session||"");
-  return xSid===sid || (!!sName && xName===sName);
- }).sort((a,b)=>semesterName(a).localeCompare(semesterName(b)));
-}
-function mappedCourses(pid,lid,sid){
- if(!pid||!lid)return[];
 
- const p=programmes.find(x=>x.id===pid);
- const pName=norm(p?.name||p?.programmeName||"");
- const semester=semesters.find(x=>x.id===sid);
- const semName=norm(semesterName(semester));
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
+  getDocs, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
- const ms=mappings.filter(m=>{
-  if(!active(m))return false;
-  const mpid=m.programmeId||m.programId||m.programmeUid||"";
-  const mlid=m.levelId||m.academicLevelId||"";
-  const mLevel=norm(m.level||m.levelName||"");
-  const mpName=norm(m.programmeName||m.programme||"");
-  const mSemId=m.semesterId||"";
-  const mSemName=norm(m.semester||m.semesterName||m.term||"");
+const firebaseConfig = {
+  apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
+  authDomain: "ggchst-sms-new.firebaseapp.com",
+  projectId: "ggchst-sms-new",
+  storageBucket: "ggchst-sms-new.firebasestorage.app",
+  messagingSenderId: "942770190211",
+  appId: "1:942770190211:web:aa9a085a38aaa517b368b6"
+};
 
-  const programmeOK=mpid===pid || (!!pName && mpName===pName);
-  const levelOK=mlid===lid || (!!mLevel && mLevel===norm(nameOf(levels.find(x=>x.id===lid))));
-  const semesterOK=!sid || !mSemId || mSemId===sid || (!!semName && mSemName===semName);
-  return programmeOK&&levelOK&&semesterOK;
- });
+const app = getApps().find(a => a.name === "GGCHSTCourseTimetable")
+  || initializeApp(firebaseConfig, "GGCHSTCourseTimetable");
+const db = getFirestore(app);
+const $ = id => document.getElementById(id);
 
- const ids=[...new Set(ms.map(m=>m.courseId||m.courseUid).filter(Boolean))];
- let result=ids.map(id=>courses.find(c=>c.id===id)).filter(Boolean);
+let sessions = [], semesters = [], programmes = [], levels = [];
+let courses = [], mappings = [], lecturers = [], lecturerAssignments = [];
+let venues = [], classRows = [], classEdit = null;
 
- // Compatibility fallback: some course records already contain Programme/Level.
- if(!result.length){
-  result=courses.filter(c=>{
-   const cpid=c.programmeId||c.programId||c.programmeUid||"";
-   const cpName=norm(c.programmeName||c.programme||"");
-   const cLevel=norm(c.level||c.levelName||c.courseLevel||"");
-   const cSemId=c.semesterId||"";
-   const cSemName=norm(c.semester||c.semesterName||c.term||"");
+const dayOrder = {
+  Monday:1, Tuesday:2, Wednesday:3, Thursday:4, Friday:5, Saturday:6
+};
 
-   return (cpid===pid || (!!pName&&cpName===pName)) &&
-          (cLevel===norm(nameOf(levels.find(x=>x.id===lid))) || c.levelId===lid) &&
-          (!sid || !cSemId || cSemId===sid || (!!semName&&cSemName===semName));
-  });
- }
+const norm = v => String(v ?? "").trim().toLowerCase();
+const esc = v => String(v ?? "").replace(/[&<>'"]/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"
+}[c]));
 
- return result.filter(active).sort((a,b)=>
-  (courseCode(a)+courseName(a)).localeCompare(courseCode(b)+courseName(b))
- );
-}
-function assignedLecturers(sid,se,p,l,c){
- const sem=semesters.find(x=>x.id===se);
- const semName=norm(semesterName(sem));
- const sess=sessions.find(x=>x.id===sid);
- const sessName=norm(sessionName(sess));
+const active = x => {
+  const s = norm(x?.status || "Active");
+  return s !== "inactive" && s !== "canceled";
+};
 
- const ids=[...new Set(
-  lecturerAssignments
-   .filter(a=>{
-    if(!active(a))return false;
+const nameOf = x => x?.name || x?.fullName || x?.programmeName ||
+  x?.levelName || x?.title || "";
+const codeOf = x => x?.code || x?.programmeCode || x?.levelCode || "";
+const sessionName = x => x?.name || x?.sessionName || x?.session || x?.academicSession || "";
+const semesterName = x => x?.name || x?.semesterName || x?.semester || x?.term || "";
+const courseCode = x => x?.courseCode || x?.code || "";
+const courseName = x => x?.courseTitle || x?.courseName || x?.name || x?.title || "";
+const personName = x => x?.name || x?.fullName || x?.lecturerName || "";
+const venueName = x => x?.name || x?.venueName || "";
 
-    const aCourse=a.courseId||a.courseUid||"";
-    if(aCourse!==c)return false;
-
-    const aSession=a.sessionId||a.academicSessionId||"";
-    const aSessionName=norm(a.sessionName||a.academicSession||a.session||"");
-    const aSemester=a.semesterId||"";
-    const aSemesterName=norm(a.semesterName||a.semester||a.term||"");
-    const aProgramme=a.programmeId||a.programId||a.programmeUid||"";
-    const aLevel=a.levelId||"";
-
-    const sessionOK=!sid || !aSession || aSession===sid || (!!sessName&&aSessionName===sessName);
-    const semesterOK=!se || !aSemester || aSemester===se || (!!semName&&aSemesterName===semName);
-    const programmeOK=!p || !aProgramme || aProgramme===p;
-    const levelOK=!l || !aLevel || aLevel===l;
-
-    return sessionOK&&semesterOK&&programmeOK&&levelOK;
-   })
-   .map(a=>a.lecturerId||a.lecturerUid||a.staffUid)
-   .filter(Boolean)
- )];
-
- return lecturers.filter(x=>
-  active(x) &&
-  ids.includes(x.id)
- ).sort((a,b)=>personName(a).localeCompare(personName(b)));
-}
-function renderClassCascade(preserve=true){
- const sid=$("classSession").value,se=$("classSemester").value,p=$("classProgramme").value,l=$("classLevel").value,c=$("classCourse").value,lec=$("classLecturer").value,ven=$("classVenue").value;
- fillSelect("classSession",sessions.filter(active).sort((a,b)=>sessionName(a).localeCompare(sessionName(b))).map(x=>({...x,name:sessionName(x)})),"Select session",sid);
- const ss=semesterList(sid);fillSelect("classSemester",ss,"Select semester",se);$("classSemester").disabled=!sid;
- fillSelect("classProgramme",programmes.filter(active).sort((a,b)=>nameOf(a).localeCompare(nameOf(b))),"Select programme",p);
- fillSelect("classLevel",levels.filter(active).sort((a,b)=>(Number(a.displayOrder||999)-Number(b.displayOrder||999))||nameOf(a).localeCompare(nameOf(b))),"Select level",l);
- const cs=mappedCourses(p,l,$("classSemester").value);fillSelect("classCourse",cs,"Select course",c);
- const ls=assignedLecturers(sid,$("classSemester").value,p,l,$("classCourse").value);fillSelect("classLecturer",ls,"Select lecturer",lec);
- fillSelect("classVenue",venues.filter(active).sort((a,b)=>venueName(a).localeCompare(venueName(b))),"Select venue",ven);
-}
-function renderFilters(){
- const cf={s:$('classFilterSession').value,se:$('classFilterSemester').value,p:$('classFilterProgramme').value,l:$('classFilterLevel').value};
- fillSelect("classFilterSession",sessions.filter(active).sort((a,b)=>sessionName(a).localeCompare(sessionName(b))).map(x=>({...x,name:sessionName(x)})),"All sessions",cf.s);
- fillSelect("classFilterProgramme",programmes.filter(active).sort((a,b)=>nameOf(a).localeCompare(nameOf(b))),"All programmes",cf.p);
- fillSelect("classFilterLevel",levels.filter(active),"All levels",cf.l);
- fillSelect("classFilterSemester",semesterList($("classFilterSession").value),"All semesters",cf.se);
- function badge(s){const n=norm(s).replace(/\s+/g,"");return `<span class="status ${esc(n)}">${esc(s||"")}</span>`}
-function renderClassTable(){
- const q=norm($("classSearch").value),sid=$("classFilterSession").value,se=$("classFilterSemester").value,p=$("classFilterProgramme").value,l=$("classFilterLevel").value;
- const a=classRows.filter(x=>(!q||[x.sessionName,x.semesterName,x.programmeName,x.levelName,x.day,x.courseCode,x.courseName,x.lecturerName,x.venue,x.notes].map(norm).join(" ").includes(q))&&(!sid||x.sessionId===sid)&&(!se||x.semesterId===se)&&(!p||x.programmeId===p)&&(!l||x.levelId===l)).sort((a,b)=>String(a.sessionName).localeCompare(String(b.sessionName))||String(a.semesterName).localeCompare(String(b.semesterName))||(dayOrder[a.day]||99)-(dayOrder[b.day]||99)||String(a.startTime).localeCompare(String(b.startTime)));
- $("classTotal").textContent=classRows.length;$("classActive").textContent=classRows.filter(x=>norm(x.status)==="active").length;$("classDraft").textContent=classRows.filter(x=>norm(x.status)==="draft").length;$("classInactive").textContent=classRows.filter(x=>norm(x.status)==="inactive").length;
- $("classTable").innerHTML=a.length?a.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.sessionName)}</td><td>${esc(x.semesterName)}</td><td>${esc(x.programmeName)}</td><td>${esc(x.levelName)}</td><td>${esc(x.day)}</td><td>${esc(x.startTime)} – ${esc(x.endTime)}</td><td><strong>${esc(x.courseCode)}</strong><br>${esc(x.courseName)}</td><td>${esc(x.lecturerName||"—")}</td><td>${esc(x.venue||"—")}</td><td>${badge(x.status)}</td><td><button class="secondary small" data-ce="${esc(x.id)}">Edit</button> <button class="danger small" data-cd="${esc(x.id)}">Delete</button></td></tr>`).join(""):'<tr><td colspan="12" class="empty">No class timetable entries found.</td></tr>';
- document.querySelectorAll("[data-ce]").forEach(b=>b.onclick=()=>editClass(b.dataset.ce));document.querySelectorAll("[data-cd]").forEach(b=>b.onclick=()=>deleteClass(b.dataset.cd));
-}
-function overlap(a,b,c,d){return a<d&&c<b}
-function lecturerClash(d,ignore){return classRows.some(x=>x.id!==ignore&&x.sessionId===d.sessionId&&x.semesterId===d.semesterId&&x.lecturerId===d.lecturerId&&x.day===d.day&&x.startTime&&x.endTime&&overlap(d.startTime,d.endTime,x.startTime,x.endTime))}
-function courseClashClass(d,ignore){return classRows.some(x=>x.id!==ignore&&x.sessionId===d.sessionId&&x.semesterId===d.semesterId&&x.courseId===d.courseId&&x.day===d.day&&x.startTime&&x.endTime&&overlap(d.startTime,d.endTime,x.startTime,x.endTime))}
-function venueClashClass(d,ignore){return !!d.venueId&&classRows.some(x=>x.id!==ignore&&x.sessionId===d.sessionId&&x.semesterId===d.semesterId&&x.venueId===d.venueId&&x.day===d.day&&x.startTime&&x.endTime&&overlap(d.startTime,d.endTime,x.startTime,x.endTime))}
-function resetClass(){classEdit=null;$("classFormTitle").textContent="Create Class Timetable Entry";$("classForm").reset();$("classStatus").value="Draft";$("classCancel").style.display="none";renderClassCascade(false)}
-function editClass(id){const x=classRows.find(a=>a.id===id);if(!x)return;classEdit=id;$("classFormTitle").textContent="Edit Class Timetable Entry";$("classSession").value=x.sessionId||"";renderClassCascade();$("classSemester").value=x.semesterId||"";renderClassCascade();$("classProgramme").value=x.programmeId||"";$("classLevel").value=x.levelId||"";renderClassCascade();$("classCourse").value=x.courseId||"";renderClassCascade();$("classLecturer").value=x.lecturerId||"";$("classVenue").value=x.venueId||"";$("classDay").value=x.day||"";$("classStart").value=x.startTime||"";$("classEnd").value=x.endTime||"";$("classStatus").value=x.status||"Draft";$("classNotes").value=x.notes||"";$("classCancel").style.display="inline-block";scrollTo({top:0,behavior:"smooth"})}
-async function deleteClass(id){const x=classRows.find(a=>a.id===id);if(!x||!confirm(`Delete class timetable entry for ${x.courseCode||x.courseName}?`))return;try{await deleteDoc(doc(db,"timetables",id));notice("Class timetable entry deleted successfully.")}catch(e){notice("Unable to delete class timetable entry: "+e.message,"error")}
-$("classForm").addEventListener("submit",async e=>{e.preventDefault();const s=sessions.find(x=>x.id===$("classSession").value),se=semesters.find(x=>x.id===$("classSemester").value),p=programmes.find(x=>x.id===$("classProgramme").value),lv=levels.find(x=>x.id===$("classLevel").value),c=courses.find(x=>x.id===$("classCourse").value),l=lecturers.find(x=>x.id===$("classLecturer").value),v=venues.find(x=>x.id===$("classVenue").value);if(!s||!se||!p||!lv||!c||!l)return notice("Please select session, semester, programme, level, course and lecturer.","error");if($("classStart").value>=$("classEnd").value)return notice("End time must be later than start time.","error");const d={sessionId:s.id,sessionName:sessionName(s),semesterId:se.id,semesterName:semesterName(se),programmeId:p.id,programmeName:nameOf(p),programmeCode:codeOf(p),levelId:lv.id,levelName:nameOf(lv),levelCode:codeOf(lv),courseId:c.id,courseCode:courseCode(c),courseName:courseName(c),courseUnit:courseUnit(c),lecturerId:l.id,lecturerName:personName(l),lecturerEmail:l.email||l.emailAddress||l.lecturerEmail||"",staffId:l.staffId||l.staffID||l.employeeId||l.employeeID||"",venueId:v?.id||"",venue:venueName(v),day:$("classDay").value,startTime:$("classStart").value,endTime:$("classEnd").value,status:$("classStatus").value,notes:$("classNotes").value.trim(),updatedAt:serverTimestamp()};if(lecturerClash(d,classEdit))return notice("This lecturer already has another class at the selected time.","error");if(courseClashClass(d,classEdit))return notice("This course already has another class at the selected time.","error");if(venueClashClass(d,classEdit))return notice("Venue clash: another class is scheduled in this venue at the selected time.","error");const btn=$("classSave");btn.disabled=true;try{if(classEdit)await updateDoc(doc(db,"timetables",classEdit),d);else{d.createdAt=serverTimestamp();await addDoc(collection(db,"timetables"),d)}notice(classEdit?"Class timetable updated successfully.":"Class timetable saved successfully.");resetClass()}catch(err){notice("Unable to save class timetable: "+err.message,"error")}finally{btn.disabled=false});
-$("classCancel").onclick=resetClass;
-$("classSession").addEventListener("change",()=>{renderClassCascade();renderClassTable()});$("classSemester").addEventListener("change",()=>{renderClassCascade();renderClassTable()});$("classProgramme").addEventListener("change",()=>{renderClassCascade();});$("classLevel").addEventListener("change",()=>{renderClassCascade();});$("classCourse").addEventListener("change",()=>{renderClassCascade();});
-$("classFilterSession").addEventListener("change",()=>{const old=$("classFilterSemester").value;fillSelect("classFilterSemester",semesterList($("classFilterSession").value),"All semesters",old);renderClassTable()});$("classFilterSemester").addEventListener("change",renderClassTable);$("classFilterProgramme").addEventListener("change",renderClassTable);$("classFilterLevel").addEventListener("change",renderClassTable);$("classSearch").addEventListener("input",renderClassTable);
-// Course Timetable is the only module on this page.
-
-async function loadCollection(name){
- const snap=await getDocs(collection(db,name));
- return snap.docs.map(d=>({id:d.id,...d.data()}));
+function notice(msg, type="success"){
+  const n = $("notice");
+  n.textContent = msg;
+  n.className = "notice " + type;
+  n.style.display = "block";
+  clearTimeout(window.__noticeTimer);
+  window.__noticeTimer = setTimeout(() => n.style.display = "none", 4500);
 }
 
-async function loadTimetableData(){
-  const names=[
-    "academicSessions",
-    "semesters",
-    "programmes",
-    "academicLevels",
-    "courses",
-    "curriculumMappings",
-    "lecturers",
-    "lecturerCourseAssignments",
-    "venues",
-    "timetables"
-  ];
+function fillSelect(id, items, placeholder, selected=""){
+  const el = $(id);
+  if(!el) return;
+  el.innerHTML =
+    `<option value="">${esc(placeholder)}</option>` +
+    items.map(x =>
+      `<option value="${esc(x.id)}">${esc(nameOf(x))}${codeOf(x) ? " — " + esc(codeOf(x)) : ""}</option>`
+    ).join("");
+  if(selected && items.some(x => x.id === selected)) el.value = selected;
+}
 
-  const results=await Promise.all(
-    names.map(async name=>{
-      try{
-        return {name,rows:await loadCollection(name),error:null};
-      }catch(error){
-        console.error("Failed to load "+name,error);
-        return {name,rows:[],error};
-      }
+async function getRows(name){
+  const snap = await getDocs(collection(db, name));
+  return snap.docs.map(d => ({id:d.id, ...d.data()}));
+}
+
+function selectedSession(){
+  return sessions.find(x => x.id === $("classSession").value);
+}
+
+function selectedSemester(){
+  return semesters.find(x => x.id === $("classSemester").value);
+}
+
+function selectedProgramme(){
+  return programmes.find(x => x.id === $("classProgramme").value);
+}
+
+function semesterList(sessionId){
+  const s = sessions.find(x => x.id === sessionId);
+  const sName = norm(sessionName(s));
+
+  return semesters
+    .filter(x => {
+      if(!active(x)) return false;
+      if(!sessionId) return true;
+
+      const xSid = String(x.sessionId || x.academicSessionId || "");
+      const xName = norm(x.sessionName || x.academicSession || x.session || "");
+
+      return xSid === sessionId || (!!sName && xName === sName);
     })
+    .sort((a,b) => semesterName(a).localeCompare(semesterName(b)));
+}
+
+function programmeMatches(record, programmeId){
+  if(!programmeId) return true;
+  const p = programmes.find(x => x.id === programmeId);
+  const pName = norm(nameOf(p));
+
+  const id = record.programmeId || record.programId || record.programmeUid || "";
+  const name = norm(record.programmeName || record.programme || "");
+
+  return id === programmeId || (!!pName && name === pName);
+}
+
+function levelMatches(record, levelId){
+  if(!levelId) return true;
+  const l = levels.find(x => x.id === levelId);
+  const lName = norm(nameOf(l));
+
+  const id = record.levelId || record.academicLevelId || "";
+  const name = norm(record.level || record.levelName || record.courseLevel || "");
+
+  return id === levelId || (!!lName && name === lName);
+}
+
+function semesterMatches(record, semesterId){
+  if(!semesterId) return true;
+  const s = semesters.find(x => x.id === semesterId);
+  const sName = norm(semesterName(s));
+
+  const id = record.semesterId || "";
+  const name = norm(record.semester || record.semesterName || record.term || "");
+
+  return !id || id === semesterId || (!!sName && name === sName);
+}
+
+function getCourses(){
+  const pid = $("classProgramme").value;
+  const lid = $("classLevel").value;
+  const sid = $("classSemester").value;
+
+  if(!pid || !lid) return [];
+
+  const mappedIds = new Set(
+    mappings
+      .filter(m =>
+        active(m) &&
+        programmeMatches(m,pid) &&
+        levelMatches(m,lid) &&
+        semesterMatches(m,sid)
+      )
+      .map(m => m.courseId || m.courseUid)
+      .filter(Boolean)
   );
 
-  const get=name=>results.find(x=>x.name===name)||{rows:[],error:null};
+  let result = courses.filter(c => {
+    if(!active(c)) return false;
+    const mapped = mappedIds.has(c.id);
+    const direct = programmeMatches(c,pid) && levelMatches(c,lid) && semesterMatches(c,sid);
+    return mapped || direct;
+  });
 
-  const sessionResult=get("academicSessions");
-  const semesterResult=get("semesters");
-  const programmeResult=get("programmes");
-  const levelResult=get("academicLevels");
-  const courseResult=get("courses");
-  const mappingResult=get("curriculumMappings");
-  const lecturerResult=get("lecturers");
-  const assignmentResult=get("lecturerCourseAssignments");
-  const venueResult=get("venues");
-  const timetableResult=get("timetables");
+  return result.sort((a,b) =>
+    (courseCode(a) + courseName(a)).localeCompare(courseCode(b) + courseName(b))
+  );
+}
 
-  sessions=sessionResult.rows.map(x=>({...x,name:sessionName(x)})).filter(active);
-  semesters=semesterResult.rows.map(x=>({...x,name:semesterName(x)})).filter(active);
-  programmes=programmeResult.rows.filter(active);
-  levels=levelResult.rows.filter(active);
-  courses=courseResult.rows.filter(active);
-  mappings=mappingResult.rows.filter(active);
-  lecturers=lecturerResult.rows.filter(active);
-  lecturerAssignments=assignmentResult.rows.filter(active);
-  venues=venueResult.rows.filter(active);
-  classRows=timetableResult.rows;
+function getLecturers(){
+  const courseId = $("classCourse").value;
+  const pid = $("classProgramme").value;
+  const lid = $("classLevel").value;
+  const sid = $("classSession").value;
+  const semid = $("classSemester").value;
 
-  // Always populate the session dropdown even if another optional
-  // collection is unavailable.
-  renderClassCascade(false);
-  renderFilters();
-  renderClassTable();
+  if(!courseId) return [];
 
-  const failed=results.filter(x=>x.error).map(x=>x.name);
+  const assignedIds = new Set(
+    lecturerAssignments
+      .filter(a => {
+        if(!active(a)) return false;
 
-  if(sessionResult.error){
-    notice(
-      "Academic Sessions could not be loaded from Firestore. Check Firestore rules and the academicSessions collection.",
-      "error"
+        const c = a.courseId || a.courseUid || "";
+        if(c !== courseId) return false;
+
+        const ap = a.programmeId || a.programId || a.programmeUid || "";
+        const al = a.levelId || "";
+        const as = a.academicSessionId || a.sessionId || "";
+        const asem = a.semesterId || "";
+
+        const programmeOK = !ap || ap === pid;
+        const levelOK = !al || al === lid;
+        const sessionOK = !as || as === sid;
+        const semesterOK = !asem || asem === semid;
+
+        return programmeOK && levelOK && sessionOK && semesterOK;
+      })
+      .map(a => a.lecturerId || a.lecturerUid || a.staffUid)
+      .filter(Boolean)
+  );
+
+  return lecturers
+    .filter(l => active(l) && assignedIds.has(l.id))
+    .sort((a,b) => personName(a).localeCompare(personName(b)));
+}
+
+function renderForm(){
+  const old = {
+    session:$("classSession").value,
+    semester:$("classSemester").value,
+    programme:$("classProgramme").value,
+    level:$("classLevel").value,
+    course:$("classCourse").value,
+    lecturer:$("classLecturer").value,
+    venue:$("classVenue").value
+  };
+
+  fillSelect(
+    "classSession",
+    sessions.filter(active).sort((a,b)=>sessionName(a).localeCompare(sessionName(b)))
+      .map(x=>({...x,name:sessionName(x)})),
+    "Select session",
+    old.session
+  );
+
+  const sid = $("classSession").value;
+  fillSelect("classSemester", semesterList(sid), "Select semester", old.semester);
+  $("classSemester").disabled = !sid;
+
+  fillSelect(
+    "classProgramme",
+    programmes.filter(active).sort((a,b)=>nameOf(a).localeCompare(nameOf(b))),
+    "Select programme",
+    old.programme
+  );
+
+  fillSelect(
+    "classLevel",
+    levels.filter(active).sort((a,b)=>
+      (Number(a.displayOrder||999)-Number(b.displayOrder||999)) ||
+      nameOf(a).localeCompare(nameOf(b))
+    ),
+    "Select level",
+    old.level
+  );
+
+  const cs = getCourses();
+  fillSelect("classCourse", cs, "Select course", old.course);
+
+  const ls = getLecturers();
+  fillSelect("classLecturer", ls, "Select lecturer", old.lecturer);
+
+  fillSelect(
+    "classVenue",
+    venues.filter(active).sort((a,b)=>venueName(a).localeCompare(venueName(b))),
+    "Select venue",
+    old.venue
+  );
+}
+
+function renderFilters(){
+  const old = {
+    s:$("classFilterSession").value,
+    se:$("classFilterSemester").value,
+    p:$("classFilterProgramme").value,
+    l:$("classFilterLevel").value
+  };
+
+  fillSelect(
+    "classFilterSession",
+    sessions.filter(active).sort((a,b)=>sessionName(a).localeCompare(sessionName(b)))
+      .map(x=>({...x,name:sessionName(x)})),
+    "All sessions",
+    old.s
+  );
+
+  fillSelect(
+    "classFilterSemester",
+    semesterList($("classFilterSession").value),
+    "All semesters",
+    old.se
+  );
+
+  fillSelect("classFilterProgramme", programmes.filter(active), "All programmes", old.p);
+  fillSelect("classFilterLevel", levels.filter(active), "All levels", old.l);
+}
+
+function badge(status){
+  const n = norm(status).replace(/\s+/g,"");
+  return `<span class="status ${esc(n)}">${esc(status || "")}</span>`;
+}
+
+function renderTable(){
+  const q = norm($("classSearch").value);
+  const sid = $("classFilterSession").value;
+  const se = $("classFilterSemester").value;
+  const p = $("classFilterProgramme").value;
+  const l = $("classFilterLevel").value;
+
+  const rows = classRows
+    .filter(x =>
+      (!q || [
+        x.sessionName,x.semesterName,x.programmeName,x.levelName,
+        x.day,x.courseCode,x.courseName,x.lecturerName,x.venue,x.notes
+      ].map(norm).join(" ").includes(q)) &&
+      (!sid || x.sessionId === sid) &&
+      (!se || x.semesterId === se) &&
+      (!p || x.programmeId === p) &&
+      (!l || x.levelId === l)
+    )
+    .sort((a,b) =>
+      String(a.sessionName||"").localeCompare(String(b.sessionName||"")) ||
+      String(a.semesterName||"").localeCompare(String(b.semesterName||"")) ||
+      (dayOrder[a.day]||99)-(dayOrder[b.day]||99) ||
+      String(a.startTime||"").localeCompare(String(b.startTime||""))
     );
-  }else if(!sessions.length){
-    notice(
-      "No Academic Sessions were found in the academicSessions collection.",
-      "error"
-    );
-  }else if(failed.length){
-    notice(
-      "Session loaded successfully. Some optional data could not be loaded: "+failed.join(", "),
-      "error"
-    );
+
+  $("classTotal").textContent = classRows.length;
+  $("classActive").textContent = classRows.filter(x=>norm(x.status)==="active").length;
+  $("classDraft").textContent = classRows.filter(x=>norm(x.status)==="draft").length;
+  $("classInactive").textContent = classRows.filter(x=>norm(x.status)==="inactive").length;
+
+  $("classTable").innerHTML = rows.length
+    ? rows.map((x,i)=>`<tr>
+        <td>${i+1}</td>
+        <td>${esc(x.sessionName)}</td>
+        <td>${esc(x.semesterName)}</td>
+        <td>${esc(x.programmeName)}</td>
+        <td>${esc(x.levelName)}</td>
+        <td>${esc(x.day)}</td>
+        <td>${esc(x.startTime)} – ${esc(x.endTime)}</td>
+        <td><strong>${esc(x.courseCode)}</strong><br>${esc(x.courseName)}</td>
+        <td>${esc(x.lecturerName||"—")}</td>
+        <td>${esc(x.venue||"—")}</td>
+        <td>${badge(x.status)}</td>
+        <td>
+          <button class="secondary small" data-ce="${esc(x.id)}">Edit</button>
+          <button class="danger small" data-cd="${esc(x.id)}">Delete</button>
+        </td>
+      </tr>`).join("")
+    : '<tr><td colspan="12" class="empty">No class timetable entries found.</td></tr>';
+
+  document.querySelectorAll("[data-ce]").forEach(b => b.onclick=()=>editClass(b.dataset.ce));
+  document.querySelectorAll("[data-cd]").forEach(b => b.onclick=()=>deleteClass(b.dataset.cd));
+}
+
+function overlap(a,b,c,d){
+  return a < d && c < b;
+}
+
+function lecturerClash(d,ignore){
+  return classRows.some(x =>
+    x.id!==ignore &&
+    x.sessionId===d.sessionId &&
+    x.semesterId===d.semesterId &&
+    x.lecturerId===d.lecturerId &&
+    x.day===d.day &&
+    x.startTime && x.endTime &&
+    overlap(d.startTime,d.endTime,x.startTime,x.endTime)
+  );
+}
+
+function courseClash(d,ignore){
+  return classRows.some(x =>
+    x.id!==ignore &&
+    x.sessionId===d.sessionId &&
+    x.semesterId===d.semesterId &&
+    x.courseId===d.courseId &&
+    x.day===d.day &&
+    x.startTime && x.endTime &&
+    overlap(d.startTime,d.endTime,x.startTime,x.endTime)
+  );
+}
+
+function venueClash(d,ignore){
+  return !!d.venueId && classRows.some(x =>
+    x.id!==ignore &&
+    x.sessionId===d.sessionId &&
+    x.semesterId===d.semesterId &&
+    x.venueId===d.venueId &&
+    x.day===d.day &&
+    x.startTime && x.endTime &&
+    overlap(d.startTime,d.endTime,x.startTime,x.endTime)
+  );
+}
+
+function resetClass(){
+  classEdit = null;
+  $("classFormTitle").textContent = "Create Class Timetable Entry";
+  $("classForm").reset();
+  $("classStatus").value = "Draft";
+  $("classCancel").style.display = "none";
+  renderForm();
+}
+
+function editClass(id){
+  const x = classRows.find(a=>a.id===id);
+  if(!x) return;
+
+  classEdit = id;
+  $("classFormTitle").textContent = "Edit Class Timetable Entry";
+
+  $("classSession").value = x.sessionId || "";
+  renderForm();
+  $("classSemester").value = x.semesterId || "";
+
+  $("classProgramme").value = x.programmeId || "";
+  $("classLevel").value = x.levelId || "";
+  renderForm();
+  $("classCourse").value = x.courseId || "";
+  renderForm();
+
+  $("classLecturer").value = x.lecturerId || "";
+  $("classVenue").value = x.venueId || "";
+  $("classDay").value = x.day || "";
+  $("classStart").value = x.startTime || "";
+  $("classEnd").value = x.endTime || "";
+  $("classStatus").value = x.status || "Draft";
+  $("classNotes").value = x.notes || "";
+  $("classCancel").style.display = "inline-block";
+  scrollTo({top:0,behavior:"smooth"});
+}
+
+async function deleteClass(id){
+  const x = classRows.find(a=>a.id===id);
+  if(!x || !confirm(`Delete class timetable entry for ${x.courseCode||x.courseName}?`)) return;
+
+  try{
+    await deleteDoc(doc(db,"timetables",id));
+    classRows = classRows.filter(a=>a.id!==id);
+    renderTable();
+    notice("Class timetable entry deleted successfully.");
+  }catch(e){
+    notice("Unable to delete class timetable entry: "+e.message,"error");
   }
 }
 
+$("classForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+
+  const s = sessions.find(x=>x.id===$("classSession").value);
+  const se = semesters.find(x=>x.id===$("classSemester").value);
+  const p = programmes.find(x=>x.id===$("classProgramme").value);
+  const lv = levels.find(x=>x.id===$("classLevel").value);
+  const c = courses.find(x=>x.id===$("classCourse").value);
+  const l = lecturers.find(x=>x.id===$("classLecturer").value);
+  const v = venues.find(x=>x.id===$("classVenue").value);
+
+  if(!s||!se||!p||!lv||!c||!l){
+    return notice("Please select session, semester, programme, level, course and lecturer.","error");
+  }
+
+  if($("classStart").value >= $("classEnd").value){
+    return notice("End time must be later than start time.","error");
+  }
+
+  const d = {
+    sessionId:s.id,
+    sessionName:sessionName(s),
+    semesterId:se.id,
+    semesterName:semesterName(se),
+    programmeId:p.id,
+    programmeName:nameOf(p),
+    programmeCode:codeOf(p),
+    levelId:lv.id,
+    levelName:nameOf(lv),
+    levelCode:codeOf(lv),
+    courseId:c.id,
+    courseCode:courseCode(c),
+    courseName:courseName(c),
+    courseUnit:c.courseUnit ?? c.creditUnit ?? c.unit ?? "",
+    lecturerId:l.id,
+    lecturerName:personName(l),
+    lecturerEmail:l.email || l.emailAddress || l.lecturerEmail || "",
+    staffId:l.staffId || l.staffID || l.employeeId || l.employeeID || "",
+    venueId:v?.id || "",
+    venue:venueName(v),
+    day:$("classDay").value,
+    startTime:$("classStart").value,
+    endTime:$("classEnd").value,
+    status:$("classStatus").value,
+    notes:$("classNotes").value.trim(),
+    updatedAt:serverTimestamp()
+  };
+
+  if(lecturerClash(d,classEdit))
+    return notice("This lecturer already has another class at the selected time.","error");
+
+  if(courseClash(d,classEdit))
+    return notice("This course already has another class at the selected time.","error");
+
+  if(venueClash(d,classEdit))
+    return notice("Venue clash: another class is scheduled in this venue at the selected time.","error");
+
+  const btn = $("classSave");
+  btn.disabled = true;
+
+  try{
+    if(classEdit){
+      await updateDoc(doc(db,"timetables",classEdit),d);
+    }else{
+      d.createdAt = serverTimestamp();
+      await addDoc(collection(db,"timetables"),d);
+    }
+
+    notice(classEdit ? "Class timetable updated successfully." : "Class timetable saved successfully.");
+    await loadTimetableData();
+    resetClass();
+  }catch(err){
+    notice("Unable to save class timetable: "+err.message,"error");
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+$("classCancel").onclick = resetClass;
+
 $("classSession").addEventListener("change",()=>{
- renderClassCascade(false);
- renderClassTable();
+  const old = $("classSemester").value;
+  fillSelect("classSemester",semesterList($("classSession").value),"Select semester",old);
+  $("classSemester").disabled = !$("classSession").value;
+  renderForm();
 });
-$("classSemester").addEventListener("change",()=>{
- renderClassCascade(false);
- renderClassTable();
-});
-$("classProgramme").addEventListener("change",()=>{
- renderClassCascade(false);
-});
-$("classLevel").addEventListener("change",()=>{
- renderClassCascade(false);
-});
-$("classCourse").addEventListener("change",()=>{
- renderClassCascade(false);
-});
+
+$("classSemester").addEventListener("change",renderForm);
+$("classProgramme").addEventListener("change",renderForm);
+$("classLevel").addEventListener("change",renderForm);
+$("classCourse").addEventListener("change",renderForm);
+
 $("classFilterSession").addEventListener("change",()=>{
- const old=$("classFilterSemester").value;
- fillSelect("classFilterSemester",semesterList($("classFilterSession").value),"All semesters",old);
- renderClassTable();
+  const old = $("classFilterSemester").value;
+  fillSelect("classFilterSemester",semesterList($("classFilterSession").value),"All semesters",old);
+  renderTable();
 });
-$("classFilterSemester").addEventListener("change",renderClassTable);
-$("classFilterProgramme").addEventListener("change",renderClassTable);
-$("classFilterLevel").addEventListener("change",renderClassTable);
-$("classSearch").addEventListener("input",renderClassTable);
+
+$("classFilterSemester").addEventListener("change",renderTable);
+$("classFilterProgramme").addEventListener("change",renderTable);
+$("classFilterLevel").addEventListener("change",renderTable);
+$("classSearch").addEventListener("input",renderTable);
+
+async function loadTimetableData(){
+  try{
+    const [
+      sessionRows,semesterRows,programmeRows,levelRows,courseRows,
+      mappingRows,lecturerRows,assignmentRows,venueRows,timetableRows
+    ] = await Promise.all([
+      getRows("academicSessions"),
+      getRows("semesters"),
+      getRows("programmes"),
+      getRows("academicLevels"),
+      getRows("courses"),
+      getRows("curriculumMappings"),
+      getRows("lecturers"),
+      getRows("lecturerCourseAssignments"),
+      getRows("venues"),
+      getRows("timetables")
+    ]);
+
+    sessions = sessionRows.filter(active);
+    semesters = semesterRows.filter(active);
+    programmes = programmeRows.filter(active);
+    levels = levelRows.filter(active);
+    courses = courseRows.filter(active);
+    mappings = mappingRows.filter(active);
+    lecturers = lecturerRows.filter(active);
+    lecturerAssignments = assignmentRows.filter(active);
+    venues = venueRows.filter(active);
+    classRows = timetableRows;
+
+    renderForm();
+    renderFilters();
+    renderTable();
+
+    if(!sessions.length){
+      notice("No Academic Sessions found in Firestore collection 'academicSessions'.","error");
+    }
+  }catch(err){
+    console.error(err);
+    notice("Unable to load timetable data: "+err.message,"error");
+  }
+}
 
 loadTimetableData();
 
