@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GGCHST | HOD Profile</title>
+<style>
+:root{
+  --green:#08783f;--dark:#07552f;--light:#eef8f2;--border:#dce8e1;
+  --text:#17221c;--muted:#66736b;--danger:#c62828;--warning:#a15c00;
+  --white:#fff;--shadow:0 6px 20px rgba(0,0,0,.06)
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;max-width:100%;overflow-x:hidden}
+body{font-family:Arial,Helvetica,sans-serif;background:#f5f8f6;color:var(--text)}
+button,input,select{font:inherit}
+.school-header{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.06);position:sticky;top:0;z-index:20}
+.school-header-inner{width:100%;max-width:1220px;margin:auto;padding:9px 16px;display:flex;align-items:center;gap:13px;min-height:74px}
+.school-logo{width:58px;height:58px;flex:0 0 58px;border-radius:50%;object-fit:cover;border:2px solid #e1eee7;background:#fff}
+.school-title{min-width:0;flex:1;text-align:center}
+.school-title h1{margin:0;color:var(--dark);font-size:18px;line-height:1.25;font-weight:800}
+.school-title p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.header-actions{display:flex;gap:7px;align-items:center}
+.header-btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:800;text-decoration:none;cursor:pointer;white-space:nowrap}
+.header-btn.green{background:var(--green);color:#fff}
+.header-btn.soft{background:#e9f0ec;color:var(--dark)}
+main{width:100%;max-width:1220px;margin:20px auto;padding:0 16px 40px}
+.hero{background:linear-gradient(135deg,#07552f,#08783f);color:#fff;border-radius:22px;padding:27px 30px;margin-bottom:18px;box-shadow:0 8px 24px rgba(8,120,63,.14)}
+.hero-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.hero h2{margin:0 0 6px;font-size:28px}
+.hero p{margin:0;line-height:1.5;opacity:.93}
+.hero-badge{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);padding:9px 12px;border-radius:10px;font-size:12px;font-weight:800;white-space:nowrap}
+.notice{display:none;padding:12px 14px;border-radius:10px;margin-bottom:16px;font-size:13px;font-weight:700}
+.notice.show{display:block}.notice.error{background:#fdeaea;color:#a51e1e}.notice.success{background:#e8f7ed;color:#126237}.notice.info{background:#eef5ff;color:#17528a}
+.profile-grid{display:grid;grid-template-columns:310px minmax(0,1fr);gap:18px;align-items:start}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:18px;min-width:0}
+.card h3{margin:0 0 14px;color:var(--dark);font-size:17px}
+.profile-card{text-align:center}
+.avatar{width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #e5f1ea;background:#f3f7f4;margin:4px auto 12px;display:block}
+.profile-name{font-size:20px;font-weight:800;color:var(--dark)}
+.profile-role{margin-top:5px;color:var(--muted);font-size:13px}
+.programme-box{margin-top:16px;padding:14px;border-radius:11px;background:var(--light);border:1px solid #d5e9dd;text-align:left}
+.programme-box small{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}
+.programme-box strong{display:block;color:var(--dark);font-size:15px;line-height:1.4}
+.detail-list{margin-top:15px;text-align:left}
+.detail-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #edf1ee;font-size:12px}
+.detail-row:last-child{border-bottom:0}
+.detail-row span:first-child{color:var(--muted)}
+.detail-row span:last-child{font-weight:700;text-align:right;overflow-wrap:anywhere}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.stat{background:#fff;border:1px solid var(--border);border-radius:13px;padding:15px;box-shadow:var(--shadow)}
+.stat .label{color:var(--muted);font-size:11px;font-weight:700}
+.stat .value{margin-top:7px;color:var(--dark);font-size:25px;font-weight:900}
+.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:13px}
+.search{flex:1;min-width:220px}
+input,select{width:100%;padding:10px 11px;border:1px solid #cbd8d0;border-radius:8px;background:#fff;color:var(--text);outline:none}
+.search{width:auto}
+select:focus,input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(8,120,63,.1)}
+.filter{width:170px}
+.count{background:var(--light);color:var(--dark);border-radius:8px;padding:10px 12px;font-size:12px;font-weight:800;white-space:nowrap}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+table{width:100%;min-width:850px;border-collapse:collapse}
+th,td{text-align:left;padding:10px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
+th{background:#f3f7f4;color:var(--dark);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.student-photo{width:34px;height:34px;border-radius:50%;object-fit:cover;background:#edf2ef;border:1px solid #dce8e1}
+.student-cell{display:flex;align-items:center;gap:9px}
+.student-name{font-weight:800;color:var(--dark)}
+.student-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.badge{display:inline-block;padding:5px 8px;border-radius:20px;font-size:10px;font-weight:800}
+.active{background:#e3f5ea;color:#08783f}.inactive{background:#eee;color:#666}
+.empty{text-align:center;padding:32px 10px;color:var(--muted)}
+.loading{padding:25px;text-align:center;color:var(--muted)}
+.footer{text-align:center;color:var(--muted);font-size:11px;padding:22px 10px}
+.hidden{display:none!important}
+@media(max-width:900px){
+  .profile-grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .school-header-inner{min-height:65px;padding:7px 9px;gap:8px}
+  .school-logo{width:47px;height:47px;flex-basis:47px}
+  .school-title h1{font-size:14px}.school-title p{font-size:10px}
+  .header-btn{padding:8px 8px;font-size:10px}
+  main{margin:14px auto;padding:0 10px 30px}
+  .hero{padding:22px 19px;border-radius:19px}
+  .hero-top{display:block}.hero h2{font-size:23px}.hero-badge{display:inline-block;margin-top:12px}
+  .stats{gap:9px}.stat{padding:12px}.stat .value{font-size:22px}
+  .toolbar{align-items:stretch}.search,.filter{width:100%;min-width:0}
+  .card{padding:14px}
+}
+</style>
+</head>
+<body>
+
+<header class="school-header">
+  <div class="school-header-inner">
+    <img class="school-logo"
+      src="https://ggchstgusau.edu.ng/_next/image?q=75&url=%2Flogo.png&w=384"
+      alt="Green Garden College of Health Sciences & Technology logo">
+    <div class="school-title">
+      <h1>Green Garden College of Health Sciences &amp; Technology, Gusau</h1>
+      <p>HOD Profile &amp; Programme Management</p>
+    </div>
+    <div class="header-actions">
+      <a class="header-btn soft" href="lecturer-profile.html">Lecturer</a>
+      <button class="header-btn green" id="logoutBtn" type="button">Logout</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-top">
+      <div>
+        <h2 id="heroTitle">HOD Profile</h2>
+        <p id="heroSubtitle">Loading your assigned programme...</p>
+      </div>
+      <div class="hero-badge" id="accountBadge">Loading profile...</div>
+    </div>
+  </section>
+
+  <div id="notice" class="notice"></div>
+
+  <div id="loadingArea" class="card loading">Loading HOD profile...</div>
+
+  <div id="appArea" class="hidden">
+    <section class="profile-grid">
+      <aside class="card profile-card">
+        <h3>HOD Profile</h3>
+        <img id="hodPhoto" class="avatar" src="" alt="HOD profile photo">
+        <div id="hodName" class="profile-name">—</div>
+        <div class="profile-role">Head of Programme / HOD</div>
+
+        <div class="programme-box">
+          <small>Assigned Programme</small>
+          <strong id="programmeName">—</strong>
+        </div>
+
+        <div class="detail-list">
+          <div class="detail-row"><span>Staff ID</span><span id="staffId">—</span></div>
+          <div class="detail-row"><span>Email</span><span id="hodEmail">—</span></div>
+          <div class="detail-row"><span>Programme Code</span><span id="programmeCode">—</span></div>
+          <div class="detail-row"><span>Assignment</span><span id="assignmentStatus">—</span></div>
+        </div>
+      </aside>
+
+      <section>
+        <div class="stats">
+          <div class="stat"><div class="label">Programme Students</div><div class="value" id="studentCount">0</div></div>
+          <div class="stat"><div class="label">Active Students</div><div class="value" id="activeStudentCount">0</div></div>
+          <div class="stat"><div class="label">Programme Courses</div><div class="value" id="courseCount">0</div></div>
+          <div class="stat"><div class="label">Programme Levels</div><div class="value" id="levelCount">0</div></div>
+        </div>
+
+        <section class="card">
+          <h3>Programme Students</h3>
+          <div class="toolbar">
+            <input id="studentSearch" class="search" type="search"
+              placeholder="Search student name, ID, admission no or email...">
+            <select id="levelFilter" class="filter">
+              <option value="">All Levels</option>
+            </select>
+            <select id="statusFilter" class="filter">
+              <option value="">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Graduated">Graduated</option>
+              <option value="Suspended">Suspended</option>
+              <option value="Withdrawn">Withdrawn</option>
+            </select>
+            <span class="count" id="showingCount">0 Students</span>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Student ID</th>
+                  <th>Admission No.</th>
+                  <th>Level</th>
+                  <th>Semester</th>
+                  <th>Academic Session</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="studentTable">
+                <tr><td colspan="7" class="empty">Loading students...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </section>
+  </div>
+
+  <div id="deniedArea" class="card hidden">
+    <h3>HOD Profile Not Found</h3>
+    <p id="deniedText" style="color:var(--muted);line-height:1.6;margin-bottom:16px">
+      No active HOD assignment is currently available.
+    </p>
+    <a class="header-btn green" href="lecturer-profile.html">Open Lecturer Portal</a>
+  </div>
+
+  <div class="footer">Green Garden College of Health Sciences &amp; Technology, Gusau</div>
+</main>
+
+<script type="module">
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {
+  getFirestore, collection, getDocs, query, where, onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
+  authDomain: "ggchst-sms-new.firebaseapp.com",
+  projectId: "ggchst-sms-new",
+  storageBucket: "ggchst-sms-new.firebasestorage.app",
+  messagingSenderId: "942770190211",
+  appId: "1:942770190211:web:aa9a085a38aaa517b368b6"
+};
+
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const $ = id => document.getElementById(id);
+
+let currentUserRecord = null;
+let hodAssignment = null;
+let lecturerRecord = null;
+let programmeRecord = null;
+let students = [];
+let courses = [];
+let assignmentsUnsub = null;
+let studentsUnsub = null;
+let coursesUnsub = null;
+
+const norm = v => String(v ?? "").trim().toLowerCase();
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+}[c]));
+
+function first(obj, keys, fallback=""){
+  for(const k of keys){
+    if(obj && obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "")
+      return obj[k];
+  }
+  return fallback;
+}
+
+function studentProgramme(s){
+  return first(s,[
+    "programmeId","programmeID","programId","programID"
+  ],"");
+}
+function studentProgrammeName(s){
+  return first(s,[
+    "programmeName","programme","courseOfStudy","programName","program"
+  ],"");
+}
+function studentLevel(s){
+  return first(s,["levelName","level","academicLevel","currentLevel"],"");
+}
+function studentStatus(s){
+  return first(s,["status","studentStatus","enrollmentStatus"],"Active");
+}
+function studentId(s){
+  return first(s,["studentId","studentID","matricNo","matricNumber"],"");
+}
+function admissionNo(s){
+  return first(s,["admissionNo","admissionNumber","registrationNumber"],"");
+}
+function studentName(s){
+  return first(s,["fullName","studentName","name"],"");
+}
+function studentEmail(s){
+  return first(s,["email","emailAddress"],"");
+}
+function studentPhoto(s){
+  return first(s,["photoURL","photoUrl","photo","profilePhoto","profileImage"],"");
+}
+function semesterName(s){
+  return first(s,["semester","semesterName","currentSemester","term"],"");
+}
+function sessionName(s){
+  return first(s,["academicSession","session","sessionName"],"");
+}
+function courseProgramme(c){
+  return first(c,["programmeId","programmeID","programId","programID"],"");
+}
+function courseProgrammeName(c){
+  return first(c,["programmeName","programme","programName","program"],"");
+}
+function courseStatus(c){
+  return first(c,["status","courseStatus"],"Active");
+}
+
+function showNotice(text,type="info"){
+  const n=$("notice");
+  n.textContent=text;
+  n.className="notice show "+type;
+}
+function hideNotice(){
+  $("notice").className="notice";
+}
+
+function showLoading(show){
+  $("loadingArea").classList.toggle("hidden",!show);
+}
+
+function lecturerMatchesSelector(l, selector){
+  const q=norm(selector);
+  if(!q) return false;
+  return [
+    l.id, l.lecturerId, l.staffId, l.staffID, l.employeeId, l.employeeID,
+    l.email, l.emailAddress, l.lecturerEmail, l.firebaseUid, l.authUid, l.uid
+  ].map(norm).includes(q);
+}
+
+async function findLecturerForAssignment(assignment){
+  const ref=collection(db,"lecturers");
+  const snap=await getDocs(ref);
+  const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(!assignment) return null;
+  const hodId=norm(assignment.hodId);
+  const hodUid=norm(assignment.hodUid);
+  const hodEmail=norm(assignment.hodEmail);
+  return rows.find(l=>{
+    const ids=[l.id,l.lecturerId,l.staffId,l.staffID,l.employeeId,l.employeeID,l.firebaseUid,l.authUid,l.uid,l.email,l.emailAddress,l.lecturerEmail].map(norm);
+    return (hodId && ids.includes(hodId)) || (hodUid && ids.includes(hodUid)) || (hodEmail && ids.includes(hodEmail));
+  }) || null;
+}
+
+async function findHodAssignmentBySelector(selector){
+  const ref=collection(db,"programmeHodAssignments");
+  const snap=await getDocs(ref);
+  const rows=snap.docs.map(d=>({id:d.id,...d.data()}))
+    .filter(x=>norm(x.status)!=="inactive");
+  if(!rows.length) return null;
+
+  const q=norm(selector);
+  if(q){
+    const exact=rows.find(x=>[
+      x.id,x.hodId,x.hodUid,x.hodEmail,x.staffId,x.staffID,
+      x.hodName,x.programmeId,x.programmeCode,x.programmeName
+    ].map(norm).includes(q));
+    if(exact) return exact;
+  }
+
+  // Optional local selection for standalone use.
+  const saved=norm(localStorage.getItem("hodId")||localStorage.getItem("lecturerId")||"");
+  if(saved){
+    const exact=rows.find(x=>[x.id,x.hodId,x.hodUid,x.hodEmail,x.staffId,x.staffID].map(norm).includes(saved));
+    if(exact) return exact;
+  }
+
+  // If no selector is supplied, load the first active assignment so the page remains standalone.
+  return rows[0];
+}
+
+async function loadProgramme(assignment){
+  if(!assignment?.programmeId) return null;
+  const ref=collection(db,"programmes");
+  const snap=await getDocs(query(ref));
+  const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
+  return rows.find(p=>p.id===assignment.programmeId) || null;
+}
+
+function programmeMatchesStudent(s){
+  if(!hodAssignment) return false;
+
+  const sid=norm(studentProgramme(s));
+  const sname=norm(studentProgrammeName(s));
+  const pid=norm(hodAssignment.programmeId);
+  const pname=norm(hodAssignment.programmeName);
+
+  if(pid && sid && sid===pid) return true;
+  if(pname && sname && (sname===pname || sname.includes(pname) || pname.includes(sname))) return true;
+
+  return false;
+}
+
+function programmeMatchesCourse(c){
+  if(!hodAssignment) return false;
+  const cid=norm(courseProgramme(c));
+  const cname=norm(courseProgrammeName(c));
+  const pid=norm(hodAssignment.programmeId);
+  const pname=norm(hodAssignment.programmeName);
+
+  if(pid && cid && cid===pid) return true;
+  if(pname && cname && (cname===pname || cname.includes(pname) || pname.includes(cname))) return true;
+  return false;
+}
+
+function renderProfile(){
+  const l=lecturerRecord||{};
+  const p=programmeRecord||{};
+  const name=first(hodAssignment,["hodName"],first(l,["fullName","name","lecturerName","staffName","displayName"],"HOD"));
+  const email=first(hodAssignment,["hodEmail"],first(l,["email","emailAddress","lecturerEmail"],""));
+  const staff=first(hodAssignment,["staffId"],first(l,["staffId","staffID","employeeId","employeeID"],"—"));
+  const photo=first(l,["photoURL","photoUrl","photo","profilePhoto","profileImage"],"");
+
+  $("hodName").textContent=name||"—";
+  $("hodEmail").textContent=email||"—";
+  $("staffId").textContent=staff||"—";
+  $("programmeName").textContent=first(hodAssignment,["programmeName"],first(p,["name","programmeName","programName","title"],"—"));
+  $("programmeCode").textContent=first(hodAssignment,["programmeCode"],first(p,["code","programmeCode"],"—"));
+  $("assignmentStatus").textContent=first(hodAssignment,["status"],"Active");
+
+  const programme=first(hodAssignment,["programmeName"],"your assigned programme");
+  $("heroTitle").textContent=name+" — HOD";
+  $("heroSubtitle").textContent="Programme Management • "+programme;
+  $("accountBadge").textContent="HOD • "+(staff||"Staff");
+
+  if(photo){
+    $("hodPhoto").src=photo;
+  }else{
+    $("hodPhoto").src="data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="100%" height="100%" fill="#eef8f2"/><circle cx="60" cy="45" r="23" fill="#08783f"/><path d="M20 112c5-28 20-42 40-42s35 14 40 42" fill="#08783f"/></svg>`
+    );
+  }
+}
+
+function updateLevelFilter(rows){
+  const el=$("levelFilter");
+  const old=el.value;
+  const levels=[...new Set(rows.map(studentLevel).filter(Boolean))]
+    .sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
+  el.innerHTML='<option value="">All Levels</option>'+
+    levels.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  if(levels.some(v=>v===old)) el.value=old;
+}
+
+function renderStudents(){
+  const q=norm($("studentSearch").value);
+  const level=norm($("levelFilter").value);
+  const status=norm($("statusFilter").value);
+
+  let rows=students.filter(programmeMatchesStudent);
+  updateLevelFilter(rows);
+
+  rows=rows.filter(s=>{
+    const hay=[
+      studentName(s),studentId(s),admissionNo(s),studentEmail(s),
+      studentLevel(s),semesterName(s),sessionName(s)
+    ].map(norm).join(" ");
+    return (!q||hay.includes(q))
+      && (!level||norm(studentLevel(s))===level)
+      && (!status||norm(studentStatus(s))===status);
+  });
+
+  $("showingCount").textContent=rows.length+" Student"+(rows.length===1?"":"s");
+
+  if(!rows.length){
+    $("studentTable").innerHTML='<tr><td colspan="7" class="empty">No students found in this Programme.</td></tr>';
+    return;
+  }
+
+  $("studentTable").innerHTML=rows.map(s=>{
+    const statusValue=studentStatus(s)||"Active";
+    const statusClass=norm(statusValue)==="active"?"active":"inactive";
+    const photo=studentPhoto(s);
+    const img=photo
+      ? `<img class="student-photo" src="${esc(photo)}" alt="">`
+      : `<div class="student-photo"></div>`;
+
+    return `<tr>
+      <td><div class="student-cell">${img}<div>
+        <div class="student-name">${esc(studentName(s)||"—")}</div>
+        <div class="student-sub">${esc(studentEmail(s)||"")}</div>
+      </div></div></td>
+      <td>${esc(studentId(s)||"—")}</td>
+      <td>${esc(admissionNo(s)||"—")}</td>
+      <td>${esc(studentLevel(s)||"—")}</td>
+      <td>${esc(semesterName(s)||"—")}</td>
+      <td>${esc(sessionName(s)||"—")}</td>
+      <td><span class="badge ${statusClass}">${esc(statusValue)}</span></td>
+    </tr>`;
+  }).join("");
+}
+
+function renderStats(){
+  const programmeStudents=students.filter(programmeMatchesStudent);
+  const activeStudents=programmeStudents.filter(s=>norm(studentStatus(s))==="active");
+  const programmeCourses=courses.filter(programmeMatchesCourse);
+  const levels=new Set(programmeStudents.map(studentLevel).filter(Boolean));
+
+  $("studentCount").textContent=programmeStudents.length;
+  $("activeStudentCount").textContent=activeStudents.length;
+  $("courseCount").textContent=programmeCourses.length;
+  $("levelCount").textContent=levels.size;
+}
+
+function showApp(){
+  showLoading(false);
+  $("deniedArea").classList.add("hidden");
+  $("appArea").classList.remove("hidden");
+}
+
+function showDenied(message){
+  showLoading(false);
+  $("appArea").classList.add("hidden");
+  $("deniedArea").classList.remove("hidden");
+  $("deniedText").textContent=message;
+  showNotice(message,"error");
+}
+
+function startLiveData(){
+  if(studentsUnsub) studentsUnsub();
+  if(coursesUnsub) coursesUnsub();
+
+  studentsUnsub=onSnapshot(collection(db,"students"),snap=>{
+    students=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderStats();
+    renderStudents();
+  },err=>{
+    console.error(err);
+    showNotice("Could not load Programme students: "+err.message,"error");
+  });
+
+  coursesUnsub=onSnapshot(collection(db,"courses"),snap=>{
+    courses=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderStats();
+  },err=>{
+    console.error(err);
+    showNotice("Could not load Programme courses: "+err.message,"error");
+  });
+}
+
+async function findUserByUid(uid){
+  const byUid=await getDocs(query(collection(db,"users"),where("uid","==",uid)));
+  if(!byUid.empty) return {id:byUid.docs[0].id,data:byUid.docs[0].data()};
+  const byAuthUid=await getDocs(query(collection(db,"users"),where("authUid","==",uid)));
+  if(!byAuthUid.empty) return {id:byAuthUid.docs[0].id,data:byAuthUid.docs[0].data()};
+  return null;
+}
+
+async function boot(user){
+  showLoading(true);
+  hideNotice();
+
+  try{
+    if(!user){
+      window.location.href="login.html";
+      return;
+    }
+
+    currentUserRecord=await findUserByUid(user.uid);
+    if(!currentUserRecord){
+      showDenied("No HOD account record was found for this Firebase account.");
+      return;
+    }
+
+    const account=currentUserRecord.data||{};
+    const role=norm(account.role||account.staffRole||account.accountType);
+    const status=norm(account.status||account.accountStatus);
+    if(status==="deactivated"||status==="inactive"||status==="disabled"){
+      showDenied("This HOD account is currently inactive. Please contact the Administrator.");
+      return;
+    }
+    if(!(role==="hod" || role.includes("head of department") || norm(account.accountType)==="hod")){
+      showDenied("This account does not have HOD access.");
+      return;
+    }
+
+    hodAssignment=await findHodAssignmentBySelector(user.uid);
+    if(!hodAssignment){
+      showDenied("No active HOD assignment was found for this account. Please ask an Administrator to assign this HOD to a Programme.");
+      return;
+    }
+
+    lecturerRecord=await findLecturerForAssignment(hodAssignment);
+    programmeRecord=await loadProgramme(hodAssignment);
+
+    renderProfile();
+    showApp();
+    startLiveData();
+
+    showNotice("HOD account verified. Programme students and courses are loaded from Firebase in real time.","success");
+  }catch(err){
+    console.error(err);
+    showDenied("Unable to load the HOD profile. "+(err.message||"Please check Firebase configuration and permissions."));
+  }
+}
+
+$("studentSearch").addEventListener("input",renderStudents);
+$("levelFilter").addEventListener("change",renderStudents);
+$("statusFilter").addEventListener("change",renderStudents);
+$("logoutBtn").addEventListener("click",async()=>{try{await signOut(auth);window.location.href="login.html";}catch(err){console.error(err);showNotice("Could not log out: "+err.message,"error");}});
+
+onAuthStateChanged(auth,user=>boot(user));
+</script>
+</body>
+</html>
