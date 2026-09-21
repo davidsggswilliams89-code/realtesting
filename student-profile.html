@@ -1071,7 +1071,7 @@ function renderFees(payments){
 
 
 
-let examCountdownTimer=null;
+let semesterCountdownTimer=null;
 let examPrintReady=false;
 let examTimeReached=false;
 let examFeesPaid=false;
@@ -1125,7 +1125,7 @@ function setCountdownValues(x){
 }
 
 function setExamReady(){
-  if(examCountdownTimer)clearInterval(examCountdownTimer);
+  if(semesterCountdownTimer)clearInterval(semesterCountdownTimer);
   examTimeReached=true;
   examPrintReady=examFeesPaid;
   setCountdownValues({days:0,hours:0,minutes:0,seconds:0});
@@ -1133,7 +1133,7 @@ function setExamReady(){
 }
 
 function startSemesterCountdown(semesterEndDate){
-  if(examCountdownTimer)clearInterval(examCountdownTimer);
+  if(semesterCountdownTimer)clearInterval(semesterCountdownTimer);
 
   $("examCountdown").style.display="block";
   examTimeReached=false;
@@ -1157,9 +1157,9 @@ function startSemesterCountdown(semesterEndDate){
   };
 
   $("countdownLabel").textContent="ACTIVE SEMESTER ENDS IN";
-  $("countdownNote").textContent="Countdown is calculated from the active semester end date and your current calendar time.";
+  $("countdownNote").textContent="Countdown is calculated from the Active Semester end date and your current calendar time.";
   tick();
-  examCountdownTimer=setInterval(tick,1000);
+  semesterCountdownTimer=setInterval(tick,1000);
 }
 
 
@@ -1298,6 +1298,9 @@ async function loadData(){
 
   // Find the currently ACTIVE semester. Its Firestore document ID identifies
   // the semester, and its own endDate is the countdown target.
+  // ACTIVE SEMESTER SOURCE OF TRUTH:
+  // Read the semesters collection and use only the record whose status is Active.
+  // The countdown never reads an examination date.
   activeSemester=semesters.find(x=>norm(x.status)==="active")||null;
   activeSemesterUid=String(activeSemester?.id||"").trim();
 
