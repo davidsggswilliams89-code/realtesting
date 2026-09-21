@@ -121,7 +121,7 @@ footer{text-align:center;padding:24px 15px;color:var(--muted);font-size:12px}
 
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import {getFirestore,collection,addDoc,updateDoc,doc,onSnapshot,query,orderBy,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {getFirestore,collection,addDoc,updateDoc,doc,onSnapshot,getDocs,query,orderBy,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig={apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",authDomain:"ggchst-sms-new.firebaseapp.com",projectId:"ggchst-sms-new",storageBucket:"ggchst-sms-new.firebasestorage.app",messagingSenderId:"942770190211",appId:"1:942770190211:web:aa9a085a38aaa517b368b6"};
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
@@ -168,18 +168,48 @@ $h('table').addEventListener('click',async e=>{const edit=e.target.closest('[dat
 
 
 // ===== Firebase listeners for Assign HOD =====
+async function loadProgrammesH(){
+  const select=$h('programme');
+  select.disabled=true;
+  select.innerHTML='<option value="">Loading programmes...</option>';
+
+  try{
+    const snap=await getDocs(collection(db,'programmes'));
+    programmesH=snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(p=>programmeNameH(p));
+
+    console.log('GGCHST programmes loaded:',programmesH.length,programmesH);
+
+    if(!programmesH.length){
+      select.innerHTML='<option value="">No programmes found</option>';
+      select.disabled=true;
+      showH('No Programme records were found in the programmes collection. Please create the Programme first.','error');
+      renderH();
+      return;
+    }
+
+    fillPH();
+    renderH();
+  }catch(err){
+    console.error('Programme load error:',err);
+    select.disabled=false;
+    select.innerHTML='<option value="">Unable to load programmes</option>';
+    showH('Could not load programmes: '+(err.message||'Check Firestore rules and the programmes collection.'),'error');
+  }
+}
+
 onSnapshot(collection(db,'programmes'),snap=>{
-  programmesH=snap.docs.map(d=>({id:d.id,...d.data()}));
-  console.log('GGCHST programmes loaded:', programmesH.length, programmesH);
+  programmesH=snap.docs.map(d=>({id:d.id,...d.data()}))
+    .filter(p=>programmeNameH(p));
+  console.log('GGCHST programmes realtime update:',programmesH.length,programmesH);
   const current=$h('programme').value;
   fillPH(current);
   renderH();
 },err=>{
-  console.error(err);
-  $h('programme').disabled=false;
-  $h('programme').innerHTML='<option value="">Unable to load programmes</option>';
-  showH('Could not load programmes. '+(err.message||''),'error');
+  console.error('Programme realtime listener error:',err);
 });
+
+loadProgrammesH();
 
 onSnapshot(query(collection(db,'programmeHodAssignments'),orderBy('programmeName','asc')),snap=>{
   assignmentsH=snap.docs.map(d=>({id:d.id,...d.data()}));
