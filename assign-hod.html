@@ -138,8 +138,8 @@ const staffH=l=>l.staffId||l.staffID||l.employeeId||l.employeeID||'';
 const emailH=l=>l.email||l.emailAddress||l.lecturerEmail||'';
 const uidH=l=>l.firebaseUid||l.authUid||l.uid||l.userId||l.firebaseUserId||'';
 function showH(m,type='success'){const e=$h('message');e.textContent=m;e.className='message '+type;e.style.display='block';setTimeout(()=>e.style.display='none',4500)}
-function programmeNameH(p){return p.name||p.programmeName||p.programName||p.title||p.label||p.programme||''}
-function programmeCodeH(p){return p.code||p.programmeCode||p.programCode||''}
+function programmeNameH(p){return p.name||''}
+function programmeCodeH(p){return p.code||''}
 function fillPH(sel=''){
   const e=$h('programme');
   e.innerHTML='<option value="">Select programme</option>';
@@ -161,9 +161,9 @@ function renderH(){const term=normH($h('search').value);const list=assignmentsH.
 $h('programme').addEventListener('change',()=>{const existing=assignmentsH.find(a=>a.programmeId===$h('programme').value&&normH(a.status)!=='inactive');if(existing&&!editingH)showH('This Programme already has an active HOD. Saving another will replace the current assignment.','error')});
 $h('hod').addEventListener('change',updateHodInfo);
 $h('assignmentForm').addEventListener('submit',async e=>{e.preventDefault();const p=programmesH.find(x=>x.id===$h('programme').value),l=lecturersH.find(x=>x.id===$h('hod').value);if(!p||!l)return showH('Please select a Programme and HOD.','error');const duplicate=assignmentsH.find(a=>a.id!==editingH&&a.programmeId===p.id&&normH(a.status)!=='inactive');const b=$h('saveBtn');b.disabled=true;b.textContent='Saving...';try{const hodUid=uidH(l);
-      const data={programmeId:p.id,programmeName:programmeNameH(p),programmeCode:programmeCodeH(p),hodId:l.id,hodUid:hodUid,hodName:nameH(l),hodEmail:emailH(l),staffId:staffH(l),status:$h('status').value,updatedAt:serverTimestamp()};if(editingH){await updateDoc(doc(db,'programmeHodAssignments',editingH),data);showH('Programme HOD assignment updated successfully.')}else{if(duplicate)await updateDoc(doc(db,'programmeHodAssignments',duplicate.id),data);else await addDoc(collection(db,'programmeHodAssignments'),{...data,createdAt:serverTimestamp()});showH(duplicate?'Programme HOD reassigned successfully.':'HOD assigned to Programme successfully.')}resetH()}catch(err){console.error(err);showH('Could not save the HOD assignment. Check Firebase permissions.','error')}finally{b.disabled=false;b.textContent='Assign HOD'});
+      const data={programmeId:p.id,programmeName:programmeNameH(p),programmeCode:programmeCodeH(p),hodId:l.id,hodUid:hodUid,hodName:nameH(l),hodEmail:emailH(l),staffId:staffH(l),status:$h('status').value,updatedAt:serverTimestamp()};if(editingH){await updateDoc(doc(db,'programmeHodAssignments',editingH),data);showH('Programme HOD assignment updated successfully.')}else{if(duplicate)await updateDoc(doc(db,'programmeHodAssignments',duplicate.id),data);else await addDoc(collection(db,'programmeHodAssignments'),{...data,createdAt:serverTimestamp()});showH(duplicate?'Programme HOD reassigned successfully.':'HOD assigned to Programme successfully.')}resetH()}catch(err){console.error(err);showH('Could not save the HOD assignment. Check Firebase permissions.','error')}finally{b.disabled=false;b.textContent='Assign HOD'}});
 $h('cancelBtn').addEventListener('click',resetH);$h('search').addEventListener('input',renderH);
-$h('table').addEventListener('click',async e=>{const edit=e.target.closest('[data-h-edit]'),de=e.target.closest('[data-h-deactivate]');if(edit){const a=assignmentsH.find(x=>x.id===edit.dataset.hEdit);if(!a)return;editingH=a.id;$h('formTitle').textContent='Edit Programme HOD Assignment';$h('saveBtn').textContent='Update Assignment';$h('cancelBtn').style.display='inline-block';fillPH(a.programmeId);fillLH(a.hodId);$h('status').value=a.status||'Active';window.scrollTo({top:0,behavior:'smooth'})}if(de){const a=assignmentsH.find(x=>x.id===de.dataset.hDeactivate);if(!a)return;if(confirm(`Deactivate HOD assignment for ${a.programmeName||'this Programme'}?`))try{await updateDoc(doc(db,'programmeHodAssignments',a.id),{status:'Inactive',updatedAt:serverTimestamp()});showH('HOD assignment deactivated successfully.')}catch(err){console.error(err);showH('Could not deactivate assignment.','error')}});
+$h('table').addEventListener('click',async e=>{const edit=e.target.closest('[data-h-edit]'),de=e.target.closest('[data-h-deactivate]');if(edit){const a=assignmentsH.find(x=>x.id===edit.dataset.hEdit);if(!a)return;editingH=a.id;$h('formTitle').textContent='Edit Programme HOD Assignment';$h('saveBtn').textContent='Update Assignment';$h('cancelBtn').style.display='inline-block';fillPH(a.programmeId);fillLH(a.hodId);$h('status').value=a.status||'Active';window.scrollTo({top:0,behavior:'smooth'})}if(de){const a=assignmentsH.find(x=>x.id===de.dataset.hDeactivate);if(!a)return;if(confirm(`Deactivate HOD assignment for ${a.programmeName||'this Programme'}?`))try{await updateDoc(doc(db,'programmeHodAssignments',a.id),{status:'Inactive',updatedAt:serverTimestamp()});showH('HOD assignment deactivated successfully.')}catch(err){console.error(err);showH('Could not deactivate assignment.','error')}}});
 
 
 
@@ -183,7 +183,7 @@ async function loadProgrammesH(){
     if(!programmesH.length){
       select.innerHTML='<option value="">No programmes found</option>';
       select.disabled=true;
-      showH('No Programme records were found in the programmes collection. Please create the Programme first.','error');
+      showH("No Programme records were found in the Firestore 'programmes' collection. Please create a Programme in programme.html first.",'error');
       renderH();
       return;
     }
