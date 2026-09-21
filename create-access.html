@@ -68,14 +68,6 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 </style>
 </head>
 <body>
-<header>
- <div class="head">
-  <img class="school-logo" src="logo.png" alt="Green Garden College of Health Sciences & Technology logo">
-  <div class="header-title">Green Garden College of Health Sciences &amp; Technology, Gusau</div>
-  <a class="back" href="admin.html">← Back</a>
- </div>
-</header>
-
 <nav><div class="inner">
  <a href="admin.html">Dashboard</a>
  <a href="student.html">Students</a>
@@ -129,7 +121,7 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
  </div>
 
  <div id="hodForm" class="form-grid hidden" style="margin-top:14px">
-  <div class="full"><label>HOD / Lecturer *</label><select id="hodLecturer"><option value="">Loading lecturers...</option></select><div class="hint">Select the existing lecturer who will receive HOD access. The lecturer's Firebase UID is reused when an account already exists.</div></div>
+  <div class="full"><label>HOD / Lecturer *</label><select id="hodLecturer"><option value="">Loading lecturers...</option></select><div class="hint">Select the existing lecturer who will receive HOD access. The existing lecturer record is used for the HOD assignment.</div></div>
   <div><label>Staff ID</label><input id="hodStaffId" readonly></div>
   <div><label>Email / Login Email *</label><input id="hodEmail" type="email" readonly></div>
   <div><label>Assigned Programme *</label><select id="hodProgramme"><option value="">Select programme</option></select></div>
@@ -160,7 +152,7 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
   <div>
     <label>Email Address</label>
     <input id="loginEmail" type="email" placeholder="email address">
-    <div class="hint">Stored as part of the school record. No Firebase Authentication is used.</div>
+    <div class="hint">Stored as part of the school record. No school login is used.</div>
   </div>
   <div>
     <label>Account Status</label>
@@ -177,7 +169,7 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
 
 <section class="panel">
  <h2 class="small-title">Created Access Accounts</h2>
- <p class="hint">This table shows newly created access accounts only. Passwords are intentionally never displayed or stored here.</p>
+ <p class="hint">This table shows school access records created from this page.</p>
  <div class="table-wrap" style="margin-top:12px">
   <table><thead><tr><th>Category</th><th>Name</th><th>School ID</th><th>Email</th><th>Programme / Role</th><th>Level</th><th>Record ID</th><th>Status</th><th>Action</th></tr></thead>
   <tbody id="rows"><tr><td colspan="9" style="text-align:center;padding:25px;color:#667c73">Loading...</td></tr></tbody></table>
@@ -221,7 +213,6 @@ async function initializeCreateAccess(){
 
 const nameOf=x=>first(x,["name","fullName","studentName","lecturerName","displayName"]);
 const emailOf=x=>first(x,["email","emailAddress","studentEmail","lecturerEmail","authEmail"]);
-const uidOf=x=>first(x,["authUid","firebaseUid","studentUid","uid"]);
 const programmeOf=x=>first(x,["programmeName","programme","programName","program"]);
 const levelOf=x=>first(x,["levelName","level","academicLevelName","academicLevel"]);
 const schoolIdOf=x=>first(x,["studentId","matricNo","matricNumber","staffId","staffID","employeeId","schoolId"]);
@@ -238,12 +229,21 @@ function setCategory(c){
  $("hodForm").classList.toggle("hidden",c!=="hod");
  $("staffForm").classList.toggle("hidden",c!=="staff");
  $("formTitle").textContent=c==="student"?"New Student Access":c==="lecturer"?"New Lecturer Access":c==="hod"?"HOD Account Access":"New Staff Access";
- $("formDescription").textContent=c==="student"?"Create a brand-new student school record and school record. The student can complete the remaining profile after first login.":c==="lecturer"?"Create a brand-new lecturer school record and school record. The lecturer can complete the personal profile after first login.":c==="hod"?"Assign an existing lecturer as HOD for one Programme.":"Create a new staff login and school access role.";
+ $("formDescription").textContent=c==="student"?"Create a brand-new student school record.":c==="lecturer"?"Create a brand-new lecturer school record.":c==="hod"?"Assign an existing lecturer as HOD for one Programme.":"Create a new staff school record and role.";
  $("loginEmail").readOnly=false;
- $("loginEmailHint").textContent="This email becomes the Firebase Authentication email address.";
+ $("loginEmailHint").textContent="This email is stored with the school record.";
  syncGeneral(); msg("");
 }
 document.querySelectorAll(".category").forEach(b=>b.onclick=()=>setCategory(b.dataset.category));
+
+$("hodLecturer").addEventListener("change",()=>{
+  const l=lecturers.find(x=>x.id===$("hodLecturer").value);
+  $("hodStaffId").value=l?first(l,["staffId","staffID","employeeId","employeeID"]):"";
+  $("hodEmail").value=l?emailOf(l):"";
+  $("loginEmail").value=l?emailOf(l):"";
+  syncGeneral();
+});
+
 
 function syncGeneral(){
  let status="Active";
@@ -256,21 +256,11 @@ function syncGeneral(){
 }
 ["studentStatus","lecturerStatus","hodStatus","staffStatus","loginEmail"].forEach(id=>$(id).addEventListener("input",syncGeneral));
 
-$("hodLecturer").addEventListener("change",()=>{syncGeneral();const l=lecturers.find(x=>x.id===$("hodLecturer").value);const hasUid=!!uidOf(l||{});$("password").required=!hasUid;$("password2").required=!hasUid;$("password").placeholder=hasUid?"Existing Firebase account — password not needed":"Minimum 6 characters";$("password2").placeholder=hasUid?"Not required":"Repeat password";msg(hasUid?"This lecturer already has a Firebase account. The HOD role will be added to the existing UID.":"This lecturer has no Firebase UID yet. A new HOD login will be created.");});
-
 $("clearBtn").onclick=()=>{
  ["loginEmail","staffName","newStaffId","studentId","admissionNumber","studentName","lecturerName","staffId","lecturerRank"].forEach(id=>$(id).value="");
  ["studentProgramme","studentLevel","lecturerProgramme","hodLecturer","hodProgramme"].forEach(id=>$(id).value="");
  $("staffPermissions").value="profile"; $("hodPermissions").value="hod-profile,programme-management,students,courses,attendance,results,assignments,lecture-notes"; $("hodStaffId").value="";$("hodEmail").value=""; syncGeneral(); msg("");
 };
-
- const cfg=app.options;
- const sa=getApps().some(a=>a.name==="GGCHSTAccountCreator")?getApp("GGCHSTAccountCreator"):initializeApp(cfg,"GGCHSTAccountCreator");
-}
- const c=e?.code||"";
- const map={"auth/email-already-in-use":"This email already has a Firebase Authentication account.","auth/invalid-email":"Invalid email address.","auth/weak-password":"Password is too weak. Use at least 6 characters.","auth/operation-not-allowed":"Firebase Email/Password Authentication is not enabled.","auth/network-request-failed":"Network error. Check your internet connection."};
- return map[c]||e?.message||"Could not create the school record.";
-}
 
 async function duplicateEmail(email){
  const snap=await getDocs(collection(db,"users"));
