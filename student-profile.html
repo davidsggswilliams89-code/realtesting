@@ -456,7 +456,7 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
   <section class="card exam-slip" id="examSlip">
     <div class="exam-actions" id="examSlipControls">
       <div class="exam-countdown" id="examCountdown" aria-live="polite">
-        <div class="countdown-label" id="countdownLabel">EXAM SLIP PRINTING OPENS IN</div>
+        <div class="countdown-label" id="countdownLabel">ACTIVE SEMESTER ENDS IN</div>
         <div class="countdown-values">
           <span><b id="countDays">00</b><small>DAYS</small></span>
           <i>:</i>
@@ -466,7 +466,7 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
           <i>:</i>
           <span><b id="countSeconds">00</b><small>SEC</small></span>
         </div>
-        <div class="countdown-note" id="countdownNote">The Print Examination Slip button will become available when the countdown reaches zero.</div>
+        <div class="countdown-note" id="countdownNote">Countdown is based only on the active semester end date.</div>
       </div>
       <button type="button" class="print-btn print-locked" id="printExamSlip" disabled aria-disabled="true">🖨 Print Examination Slip</button>
     </div>
@@ -1264,15 +1264,8 @@ function renderExamSlip(records){
 
   if(!records.length){
     $("examSlipTable").innerHTML='<div class="empty">No examination timetable is currently available for this student.</div>';
-    $("countdownLabel").textContent="EXAM SLIP PRINTING DATE NOT AVAILABLE";
-    $("countdownNote").textContent="The examination timetable does not contain a valid first examination date yet.";
     return;
   }
-
-  const firstExam=records.map(r=>({record:r,date:getExamStartDate(r)}))
-    .filter(x=>x.date)
-    .sort((a,b)=>a.date-b.date)[0];
-  startExamCountdown(firstExam?firstExam.date:null);
 
   $("examSlipTable").innerHTML=`<table><thead><tr><th>S/N</th><th>Date</th><th>Time</th><th>Course Code</th><th>Course Title</th><th>Venue</th></tr></thead><tbody>${
     records.map((r,i)=>`<tr>
@@ -1303,9 +1296,8 @@ async function loadData(){
     rows("semesters")
   ]);
 
-  // IMPORTANT: The countdown reference starts from the Firestore UID of the
-  // currently ACTIVE semester. The examination timetable stores that same UID
-  // in semesterId. Do not use the student's semester text as the primary key.
+  // Find the currently ACTIVE semester. Its Firestore document ID identifies
+  // the semester, and its own endDate is the countdown target.
   activeSemester=semesters.find(x=>norm(x.status)==="active")||null;
   activeSemesterUid=String(activeSemester?.id||"").trim();
 
@@ -1317,9 +1309,9 @@ async function loadData(){
   const targetSemester=norm(val(student,["semester","currentSemester","activeSemester"]));
   const studentSession=norm(val(student,["academicSession","session"]));
 
-  // Examination timetable records are keyed to the semester document UID.
-  // First select the ACTIVE semester by its Firestore document ID, then use
-  // that ID as the sole primary reference for the countdown date/time.
+  // Examination timetable records are kept separate from the semester
+  // countdown. The timetable may use semesterId for displaying exam records,
+  // but it is NOT used to calculate the countdown.
   const activeSemesterExams=exams.filter(r=>{
     const examSemesterUid=String(val(r,["semesterId","semesterUid","semesterUID","termId"],"")||"").trim();
     return !!activeSemesterUid && examSemesterUid===activeSemesterUid;
@@ -1334,17 +1326,11 @@ async function loadData(){
     const semesterNameOK=!targetSemester||!rm||rm===targetSemester||rm.includes(targetSemester)||targetSemester.includes(rm);
     const sessionOK=!studentSession||!rs||rs===studentSession;
     return semesterNameOK&&sessionOK;
-  }).sort((a,b)=>{
-    const da=getExamStartDate(a)?.getTime()??Number.MAX_SAFE_INTEGER;
-    const db=getExamStartDate(b)?.getTime()??Number.MAX_SAFE_INTEGER;
-    return da-db;
   });
 
   // Countdown reference: the ACTIVE SEMESTER itself.
-  // We use the semester Firestore UID only to identify the active semester;
-  // the countdown then uses that semester's endDate. This means the timer is
-  // based on the actual calendar days remaining in the active semester,
-  // not on an examination record.
+  // The active semester document's endDate is the ONLY countdown target.
+  // Examination dates are not used here.
   const semesterEndDate=getSemesterEndDate(activeSemester);
   const noteRecords=notes.filter(matchCourse);
   const assignmentRecords=assignments.filter(matchCourse);
