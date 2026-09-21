@@ -1118,8 +1118,6 @@ function setCountdownValues(x){
   // The visible countdown is DAYS : HOURS : MINUTES : SECONDS.
   // Months and weeks stay at zero so the requested four-part countdown
   // reaches exactly 00:00:00:00 when the active semester ends.
-  $("countMonths").textContent="0";
-  $("countWeeks").textContent="0";
   $("countDays").textContent=String(Math.max(0,x.days||0)).padStart(2,"0");
   $("countHours").textContent=String(Math.max(0,x.hours||0)).padStart(2,"0");
   $("countMinutes").textContent=String(Math.max(0,x.minutes||0)).padStart(2,"0");
