@@ -128,7 +128,7 @@ main{max-width:1250px;margin:25px auto;padding:0 18px}.section{background:var(--
 <main>
 <section class="section">
   <div class="section-head">
-    <div><h2>1. Add Student Results</h2><div class="loading">Enter results for students registered for a selected course.</div></div>
+    <div><h2>1. Add Student Results</h2><div class="loading">Students are loaded from the student master records in the Firestore students collection and filtered by Programme, Level, Academic Session and Semester.</div></div>
     <span class="badge" id="entryCount">0 Students</span>
   </div>
 
@@ -143,7 +143,7 @@ main{max-width:1250px;margin:25px auto;padding:0 18px}.section{background:var(--
   <div class="table-wrap" style="margin-top:18px">
     <table>
       <thead><tr><th>Student</th><th>Student UID</th><th>Admission No.</th><th>CA / 40</th><th>Exam / 60</th><th>Total</th><th>Grade</th></tr></thead>
-      <tbody id="entryBody"><tr><td colspan="7" class="empty">Select a course to load students.</td></tr></tbody>
+      <tbody id="entryBody"><tr><td colspan="7" class="empty">Select Programme, Level, Session, Semester and Course to load students from the student master records.</td></tr></tbody>
     </table>
   </div>
   <div style="display:flex;justify-content:flex-end;margin-top:15px"><button class="btn primary" id="saveBtn">Save Results</button></div>
@@ -370,26 +370,104 @@ function updateCourses(){
 }
 
 function courseStudents(){
- const c=courses.find(x=>idOf(x)===$("entryCourse").value);
- if(!c)return [];
- const cp=val(c,["programmeId"]);
- const cl=levelName(c), cs=sessionName(c), cm=semesterName(c);
- const courseLevelId=val(c,["levelId","academicLevelId"],"");
- const courseLevelCode=norm(val(c,["levelCode","academicLevelCode"],""));
- return students.filter(s=>{
-   const sp=val(s,["programmeId"]);
-   const pOk=cp?sp===cp:norm(programmeName(s))===norm(programmeName(c));
-   const studentLevelId=String(val(s,["levelId","academicLevelId"],""));
-   const studentLevelCode=norm(val(s,["levelCode","academicLevelCode"],""));
-   const lOk=!cl ||
-     (courseLevelId && studentLevelId===String(courseLevelId)) ||
-     (courseLevelCode && studentLevelCode===courseLevelCode) ||
-     norm(levelName(s))===norm(cl);
-   const ss=sessionName(s), sm=semesterName(s);
-   const sOk=!cs||!ss||norm(ss)===norm(cs);
-   const mOk=!cm||!sm||norm(sm)===norm(cm);
-   return pOk&&lOk&&sOk&&mOk;
- });
+  const course=courses.find(x=>idOf(x)===$("entryCourse").value);
+  if(!course)return [];
+
+  // IMPORTANT:
+  // The student master records created by student.html are stored in the
+  // Firestore `students` collection. Their Firebase UID can be stored in
+  // studentUid, authUid, firebaseUid or uid.
+  //
+  // Do NOT require course.programmeId/session/semester fields to exist on
+  // the student record. student.html stores Programme, Level, Semester and
+  // Academic Session as the student's master-profile fields.
+
+  const selectedP=programmes.find(p=>idOf(p)===$("entryProgramme").value)||{};
+  const selectedL=selectedLevel();
+  const selectedS=selectedSession();
+  const selectedM=selectedSemester();
+
+  const pId=String(idOf(selectedP)||"");
+  const pName=norm(programmeName(selectedP));
+  const pCode=norm(programmeCode(selectedP));
+
+  const lId=String(idOf(selectedL)||"");
+  const lName=norm(val(selectedL,["name","levelName","title"],""));
+  const lCode=norm(val(selectedL,["code","levelCode"],""));
+
+  const sId=String(idOf(selectedS)||"");
+  const sName=norm(sessionName(selectedS));
+
+  const mId=String(idOf(selectedM)||"");
+  const mName=norm(semesterName(selectedM));
+
+  const courseProgrammeId=String(val(course,["programmeId","programId","programmeUid"],""));
+  const courseProgrammeName=norm(val(course,["programmeName","programme","courseOfStudy"],""));
+  const courseLevelId=String(val(course,["levelId","academicLevelId"],""));
+  const courseLevelName=norm(val(course,["level","levelName","academicLevel"],""));
+
+  // If the user did not explicitly select Programme/Level, use the course's
+  // own academic ownership as a fallback.
+  const effectivePId=pId||courseProgrammeId;
+  const effectivePName=pName||courseProgrammeName;
+  const effectiveLId=lId||courseLevelId;
+  const effectiveLName=lName||courseLevelName;
+
+  return students.filter(s=>{
+    // 1. Programme — student.html stores programme/programmeName/courseOfStudy
+    // as text, while newer records may also have programmeId.
+    const spId=String(val(s,["programmeId","programId","programmeUid"],""));
+    const spName=norm(val(s,["programme","programmeName","courseOfStudy","programName"],""));
+    const spCode=norm(val(s,["programmeCode","programCode"],""));
+
+    const pOk=!effectivePId && !effectivePName
+      ? true
+      : (spId && spId===effectivePId) ||
+        (!!effectivePName && spName===effectivePName) ||
+        (!!pCode && !!spCode && spCode===pCode);
+
+    // 2. Level — student.html stores level as text; support both old and
+    // newer levelId/levelCode records.
+    const slId=String(val(s,["levelId","academicLevelId"],""));
+    const slName=norm(val(s,["level","levelName","academicLevel"],""));
+    const slCode=norm(val(s,["levelCode","academicLevelCode"],""));
+
+    const lOk=!effectiveLId && !effectiveLName
+      ? true
+      : (slId && slId===effectiveLId) ||
+        (!!effectiveLName && slName===effectiveLName) ||
+        (!!lCode && !!slCode && slCode===lCode);
+
+    // 3. Academic Session — student.html stores academicSession/session.
+    const studentSession=norm(val(s,[
+      "academicSession","session","sessionName","academicSessionName"
+    ],""));
+
+    const sessionOK=!sId&&!sName
+      ? true
+      : (!!sName && studentSession===sName) ||
+        (!!sId && String(val(s,["academicSessionId","sessionId"],""))===sId);
+
+    // 4. Semester — student.html stores semester.
+    const studentSemester=norm(val(s,[
+      "semester","semesterName","term"
+    ],""));
+
+    const semesterOK=!mId&&!mName
+      ? true
+      : (!!mName && studentSemester===mName) ||
+        (!!mId && String(val(s,["semesterId"],""))===mId);
+
+    // Only active students should appear in the result-entry list.
+    const status=norm(val(s,["status","accountStatus"],"active"));
+    const activeStudent=!["inactive","withdrawn","suspended","graduated","deleted"].includes(status);
+
+    // A valid Firebase Student UID is required because results are saved
+    // against studentUid.
+    const studentUid=uidOf(s);
+
+    return activeStudent && !!studentUid && pOk && lOk && sessionOK && semesterOK;
+  });
 }
 
 function renderEntry(){
