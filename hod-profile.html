@@ -73,9 +73,6 @@ tr:last-child td{border-bottom:0}
 .loading{padding:25px;text-align:center;color:var(--muted)}
 .footer{text-align:center;color:var(--muted);font-size:11px;padding:22px 10px}
 .hidden{display:none!important}
-.course-code{font-weight:800;color:var(--dark)}
-.course-title{font-weight:700}
-.course-sub{font-size:10px;color:var(--muted);margin-top:2px}
 @media(max-width:900px){
   .profile-grid{grid-template-columns:1fr}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -107,7 +104,7 @@ tr:last-child td{border-bottom:0}
     </div>
     <div class="header-actions">
       <a class="header-btn soft" href="lecturer-profile.html">Lecturer</a>
-      <button class="header-btn green" id="logoutBtn" type="button">Logout</button>
+      <a class="header-btn green" href="admin.html">Back to Admin</a>
     </div>
   </div>
 </header>
@@ -119,13 +116,13 @@ tr:last-child td{border-bottom:0}
         <h2 id="heroTitle">HOD Profile</h2>
         <p id="heroSubtitle">Loading your assigned programme...</p>
       </div>
-      <div class="hero-badge" id="accountBadge">Checking account...</div>
+      <div class="hero-badge" id="accountBadge">Loading profile...</div>
     </div>
   </section>
 
   <div id="notice" class="notice"></div>
 
-  <div id="loadingArea" class="card loading">Checking your HOD account...</div>
+  <div id="loadingArea" class="card loading">Loading HOD profile...</div>
 
   <div id="appArea" class="hidden">
     <section class="profile-grid">
@@ -194,47 +191,14 @@ tr:last-child td{border-bottom:0}
             </table>
           </div>
         </section>
-
-        <section class="card" style="margin-top:18px">
-          <h3>Programme Courses</h3>
-          <div class="toolbar">
-            <input id="courseSearch" class="search" type="search"
-              placeholder="Search course code, title, level or semester...">
-            <select id="courseLevelFilter" class="filter">
-              <option value="">All Levels</option>
-            </select>
-            <select id="courseSemesterFilter" class="filter">
-              <option value="">All Semesters</option>
-            </select>
-            <span class="count" id="showingCourseCount">0 Courses</span>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Course Code</th>
-                  <th>Course Title</th>
-                  <th>Unit</th>
-                  <th>Level</th>
-                  <th>Semester</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="courseTable">
-                <tr><td colspan="6" class="empty">Loading Programme courses...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
       </section>
     </section>
   </div>
 
   <div id="deniedArea" class="card hidden">
-    <h3>HOD Access Not Found</h3>
+    <h3>HOD Profile Not Found</h3>
     <p id="deniedText" style="color:var(--muted);line-height:1.6;margin-bottom:16px">
-      Your account does not currently have an active HOD assignment.
+      No active HOD assignment is currently available.
     </p>
     <a class="header-btn green" href="lecturer-profile.html">Open Lecturer Portal</a>
   </div>
@@ -244,9 +208,6 @@ tr:last-child td{border-bottom:0}
 
 <script type="module">
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import {
-  getAuth, onAuthStateChanged, signOut
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
   getFirestore, collection, getDocs, query, where, onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -261,12 +222,10 @@ const firebaseConfig = {
 };
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
 
 const $ = id => document.getElementById(id);
 
-let currentAuthUser = null;
 let currentUserRecord = null;
 let hodAssignment = null;
 let lecturerRecord = null;
@@ -350,74 +309,54 @@ function showLoading(show){
   $("loadingArea").classList.toggle("hidden",!show);
 }
 
-function getUserRoles(record){
-  const raw = first(record,["roles","role","accountType","userRole"],[]);
-  if(Array.isArray(raw)) return raw.map(norm);
-  return String(raw||"").split(",").map(norm).filter(Boolean);
+function lecturerMatchesSelector(l, selector){
+  const q=norm(selector);
+  if(!q) return false;
+  return [
+    l.id, l.lecturerId, l.staffId, l.staffID, l.employeeId, l.employeeID,
+    l.email, l.emailAddress, l.lecturerEmail, l.firebaseUid, l.authUid, l.uid
+  ].map(norm).includes(q);
 }
 
-function authUidFromLecturer(l){
-  return first(l,["firebaseUid","authUid","uid","userId","firebaseUserId"],"");
-}
-
-async function getUserRecord(user){
-  const ref = collection(db,"users");
-
-  // UID is the primary identity.
-  const byUid = await getDocs(query(ref,where("uid","==",user.uid)));
-  if(!byUid.empty) return {id:byUid.docs[0].id,...byUid.docs[0].data()};
-
-  const byAuthUid = await getDocs(query(ref,where("authUid","==",user.uid)));
-  if(!byAuthUid.empty) return {id:byAuthUid.docs[0].id,...byAuthUid.docs[0].data()};
-
-  // Email fallback for older user records.
-  if(user.email){
-    const byEmail = await getDocs(query(ref,where("email","==",user.email)));
-    if(!byEmail.empty) return {id:byEmail.docs[0].id,...byEmail.docs[0].data()};
-  }
-  return null;
-}
-
-async function findLecturer(user){
+async function findLecturerForAssignment(assignment){
   const ref=collection(db,"lecturers");
-  let snap=await getDocs(query(ref,where("firebaseUid","==",user.uid)));
-  if(!snap.empty) return {id:snap.docs[0].id,...snap.docs[0].data()};
-
-  snap=await getDocs(query(ref,where("authUid","==",user.uid)));
-  if(!snap.empty) return {id:snap.docs[0].id,...snap.docs[0].data()};
-
-  snap=await getDocs(query(ref,where("uid","==",user.uid)));
-  if(!snap.empty) return {id:snap.docs[0].id,...snap.docs[0].data()};
-
-  if(user.email){
-    snap=await getDocs(query(ref,where("email","==",user.email)));
-    if(!snap.empty) return {id:snap.docs[0].id,...snap.docs[0].data()};
-  }
-  return null;
+  const snap=await getDocs(ref);
+  const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(!assignment) return null;
+  const hodId=norm(assignment.hodId);
+  const hodUid=norm(assignment.hodUid);
+  const hodEmail=norm(assignment.hodEmail);
+  return rows.find(l=>{
+    const ids=[l.id,l.lecturerId,l.staffId,l.staffID,l.employeeId,l.employeeID,l.firebaseUid,l.authUid,l.uid,l.email,l.emailAddress,l.lecturerEmail].map(norm);
+    return (hodId && ids.includes(hodId)) || (hodUid && ids.includes(hodUid)) || (hodEmail && ids.includes(hodEmail));
+  }) || null;
 }
 
-async function findHodAssignment(user, lecturer){
+async function findHodAssignmentBySelector(selector){
   const ref=collection(db,"programmeHodAssignments");
+  const snap=await getDocs(ref);
+  const rows=snap.docs.map(d=>({id:d.id,...d.data()}))
+    .filter(x=>norm(x.status)!=="inactive");
+  if(!rows.length) return null;
 
-  // New architecture: Firebase Auth UID.
-  let snap=await getDocs(query(ref,where("hodUid","==",user.uid)));
-  if(!snap.empty){
-    const rows=snap.docs.map(d=>({id:d.id,...d.data()}))
-      .filter(x=>norm(x.status)!=="inactive");
-    if(rows.length) return rows[0];
+  const q=norm(selector);
+  if(q){
+    const exact=rows.find(x=>[
+      x.id,x.hodId,x.hodUid,x.hodEmail,x.staffId,x.staffID,
+      x.hodName,x.programmeId,x.programmeCode,x.programmeName
+    ].map(norm).includes(q));
+    if(exact) return exact;
   }
 
-  // Compatibility: lecturer Firestore document ID.
-  if(lecturer?.id){
-    snap=await getDocs(query(ref,where("hodId","==",lecturer.id)));
-    if(!snap.empty){
-      const rows=snap.docs.map(d=>({id:d.id,...d.data()}))
-        .filter(x=>norm(x.status)!=="inactive");
-      if(rows.length) return rows[0];
-    }
+  // Optional local selection for standalone use.
+  const saved=norm(localStorage.getItem("hodId")||localStorage.getItem("lecturerId")||"");
+  if(saved){
+    const exact=rows.find(x=>[x.id,x.hodId,x.hodUid,x.hodEmail,x.staffId,x.staffID].map(norm).includes(saved));
+    if(exact) return exact;
   }
 
-  return null;
+  // If no selector is supplied, load the first active assignment so the page remains standalone.
+  return rows[0];
 }
 
 async function loadProgramme(assignment){
@@ -458,7 +397,7 @@ function renderProfile(){
   const l=lecturerRecord||{};
   const p=programmeRecord||{};
   const name=first(hodAssignment,["hodName"],first(l,["fullName","name","lecturerName","staffName","displayName"],"HOD"));
-  const email=first(hodAssignment,["hodEmail"],first(l,["email","emailAddress","lecturerEmail"],currentAuthUser?.email||""));
+  const email=first(hodAssignment,["hodEmail"],first(l,["email","emailAddress","lecturerEmail"],""));
   const staff=first(hodAssignment,["staffId"],first(l,["staffId","staffID","employeeId","employeeID"],"—"));
   const photo=first(l,["photoURL","photoUrl","photo","profilePhoto","profileImage"],"");
 
@@ -553,88 +492,6 @@ function renderStats(){
   $("levelCount").textContent=levels.size;
 }
 
-function courseCode(c){
-  return first(c,["courseCode","code","courseID","courseId"],"");
-}
-function courseTitle(c){
-  return first(c,["courseTitle","courseName","name","title"],"");
-}
-function courseUnit(c){
-  return first(c,["courseUnit","creditUnit","unit","units"],"");
-}
-function courseLevel(c){
-  return first(c,["levelName","level","academicLevel","levelId"],"");
-}
-function courseSemester(c){
-  return first(c,["semesterName","semester","term"],"");
-}
-
-function updateCourseFilters(rows){
-  const levelEl=$("courseLevelFilter");
-  const semesterEl=$("courseSemesterFilter");
-  const oldLevel=levelEl.value;
-  const oldSemester=semesterEl.value;
-
-  const levels=[...new Set(rows.map(courseLevel).filter(Boolean))]
-    .sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
-  const semesters=[...new Set(rows.map(courseSemester).filter(Boolean))]
-    .sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
-
-  levelEl.innerHTML='<option value="">All Levels</option>'+
-    levels.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
-  semesterEl.innerHTML='<option value="">All Semesters</option>'+
-    semesters.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
-
-  if(levels.some(v=>v===oldLevel)) levelEl.value=oldLevel;
-  if(semesters.some(v=>v===oldSemester)) semesterEl.value=oldSemester;
-}
-
-function renderCourses(){
-  const base=courses.filter(programmeMatchesCourse);
-  updateCourseFilters(base);
-
-  const q=norm($("courseSearch").value);
-  const level=norm($("courseLevelFilter").value);
-  const semester=norm($("courseSemesterFilter").value);
-
-  const rows=base.filter(c=>{
-    const hay=[
-      courseCode(c),courseTitle(c),courseLevel(c),courseSemester(c),
-      courseUnit(c)
-    ].map(norm).join(" ");
-
-    return (!q||hay.includes(q))
-      && (!level||norm(courseLevel(c))===level)
-      && (!semester||norm(courseSemester(c))===semester);
-  }).sort((a,b)=>
-    String(courseCode(a)).localeCompare(String(courseCode(b))) ||
-    String(courseLevel(a)).localeCompare(String(courseLevel(b)),undefined,{numeric:true})
-  );
-
-  $("showingCourseCount").textContent=rows.length+" Course"+(rows.length===1?"":"s");
-
-  if(!rows.length){
-    $("courseTable").innerHTML='<tr><td colspan="6" class="empty">No courses found for this Programme.</td></tr>';
-    return;
-  }
-
-  $("courseTable").innerHTML=rows.map(c=>{
-    const statusValue=courseStatus(c)||"Active";
-    const statusClass=norm(statusValue)==="active"?"active":"inactive";
-    return `<tr>
-      <td class="course-code">${esc(courseCode(c)||"—")}</td>
-      <td>
-        <div class="course-title">${esc(courseTitle(c)||"—")}</div>
-        <div class="course-sub">${esc(c.courseType||c.type||"Course")}</div>
-      </td>
-      <td>${esc(courseUnit(c)||"—")}</td>
-      <td>${esc(courseLevel(c)||"—")}</td>
-      <td>${esc(courseSemester(c)||"—")}</td>
-      <td><span class="badge ${statusClass}">${esc(statusValue)}</span></td>
-    </tr>`;
-  }).join("");
-}
-
 function showApp(){
   showLoading(false);
   $("deniedArea").classList.add("hidden");
@@ -665,68 +522,46 @@ function startLiveData(){
   coursesUnsub=onSnapshot(collection(db,"courses"),snap=>{
     courses=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderStats();
-    renderCourses();
   },err=>{
     console.error(err);
     showNotice("Could not load Programme courses: "+err.message,"error");
   });
 }
 
-async function boot(user){
-  currentAuthUser=user;
+async function boot(){
   showLoading(true);
   hideNotice();
 
   try{
-    currentUserRecord=await getUserRecord(user);
-    lecturerRecord=await findLecturer(user);
-    hodAssignment=await findHodAssignment(user,lecturerRecord);
+    const params=new URLSearchParams(window.location.search);
+    const selector=params.get("hodId") || params.get("lecturerId") || params.get("staffId") || params.get("email") || "";
+
+    hodAssignment=await findHodAssignmentBySelector(selector);
 
     if(!hodAssignment){
-      showDenied("No active HOD assignment was found for this account. Please ask an Administrator to assign this lecturer to a Programme using Assign HOD.");
+      showDenied("No active HOD assignment was found. Please assign an HOD to a Programme first using Assign HOD.");
       return;
     }
 
+    lecturerRecord=await findLecturerForAssignment(hodAssignment);
     programmeRecord=await loadProgramme(hodAssignment);
 
     renderProfile();
     showApp();
-    renderStats();
-    renderStudents();
-    renderCourses();
     startLiveData();
 
-    showNotice("HOD account connected successfully. Programme students are loaded from Firebase in real time.","success");
+    showNotice("HOD profile loaded successfully. Programme students and courses are loaded from Firebase in real time.","success");
   }catch(err){
     console.error(err);
-    showDenied("Unable to load the HOD profile. "+(err.message||"Please check Firebase configuration and permissions."));
+    showDenied("Unable to load the HOD profile. "+(err.message||"Please check Firebase configuration and Firestore permissions."));
   }
 }
 
 $("studentSearch").addEventListener("input",renderStudents);
 $("levelFilter").addEventListener("change",renderStudents);
 $("statusFilter").addEventListener("change",renderStudents);
-$("courseSearch").addEventListener("input",renderCourses);
-$("courseLevelFilter").addEventListener("change",renderCourses);
-$("courseSemesterFilter").addEventListener("change",renderCourses);
 
-$("logoutBtn").addEventListener("click",async()=>{
-  try{
-    await signOut(auth);
-    window.location.href="login.html";
-  }catch(err){
-    console.error(err);
-    showNotice("Could not log out: "+err.message,"error");
-  }
-});
-
-onAuthStateChanged(auth,user=>{
-  if(!user){
-    window.location.href="login.html";
-    return;
-  }
-  boot(user);
-});
+boot();
 </script>
 </body>
 </html>
