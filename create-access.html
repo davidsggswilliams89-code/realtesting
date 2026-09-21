@@ -133,15 +133,13 @@ th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}
  </div>
 
  <div id="hodForm" class="form-grid hidden" style="margin-top:14px">
-  <div><label>Existing Lecturer / HOD *</label><select id="hodLecturer"><option value="">Select lecturer</option></select><div class="hint">Select the existing lecturer who will be assigned as HOD.</div></div>
-  <div><label>Programme *</label><select id="hodProgramme"><option value="">Select programme</option></select></div>
-  <div><label>HOD Email</label><input id="hodEmail" type="email" placeholder="Lecturer email" readonly></div>
-  <div><label>HOD / Staff ID</label><input id="hodStaffId" placeholder="Existing staff ID" readonly></div>
+  <div><label>HOD Full Name *</label><input id="hodName" placeholder="HOD full name"></div>
+  <div><label>HOD Staff ID</label><input id="hodStaffId" placeholder="Assigned by Admin"></div>
+  <div><label>Programme *</label><select id="hodProgramme"><option value="">Select Programme</option></select><div class="hint">The selected Programme will be attached to this HOD account.</div></div>
   <div><label>Account Status</label><select id="hodStatus"><option>Active</option><option>Deactivated</option></select></div>
-  <div class="full"><label>Permissions</label><input id="hodPermissions" value="hod-dashboard,students,lecturers,courses,result-verification,timetable,reports"></div>
- </div>
+</div>
 
- <div id="staffForm" class="form-grid hidden" style="margin-top:14px">
+<div id="staffForm" class="form-grid hidden" style="margin-top:14px">
   <div><label>Full Name *</label><input id="staffName" placeholder="e.g. Amina Musa"></div>
   <div><label>Staff ID</label><input id="newStaffId" placeholder="Optional staff ID"></div>
   <div><label>Staff Category / Role *</label>
@@ -250,7 +248,7 @@ const schoolIdOf=x=>first(x,["studentId","matricNo","matricNumber","staffId","st
 const admissionOf=x=>first(x,["admissionNumber","admissionNo","admission"]);
 const roleOf=x=>first(x,["role","staffRole","accountType"],"Staff");
 
-let category="student", programmes=[], levels=[], lecturers=[];
+let category="student", programmes=[], levels=[];
 
 function setCategory(c){
  category=c;
@@ -266,13 +264,6 @@ function setCategory(c){
 }
 document.querySelectorAll(".category").forEach(b=>b.onclick=()=>setCategory(b.dataset.category));
 
-$("hodLecturer").addEventListener("change",()=>{
-  const l=lecturers.find(x=>x.id===$("hodLecturer").value);
-  $("hodEmail").value=l?emailOf(l):"";
-  $("hodStaffId").value=l?schoolIdOf(l):"";
-  if(l) $("loginEmail").value=emailOf(l);
-  syncGeneral();
-});
 
 function syncGeneral(){
  let status="Active";
@@ -335,15 +326,15 @@ $("createBtn").onclick=async()=>{
    if(!name||!email){msg("Enter staff name and login email.",true);return;}
  }
  if(category==="hod"){
-  const lecturerId=$("hodLecturer").value,programmeId=$("hodProgramme").value;
-  const lecturer=lecturers.find(x=>x.id===lecturerId),p=programmes.find(x=>x.id===programmeId);
-  if(!lecturer||!p){msg("Select the existing lecturer and Programme.",true);return;}
-  name=nameOf(lecturer);schoolId=schoolIdOf(lecturer);email=emailOf(lecturer);
-  role="HOD";accountType="HOD";status=$("hodStatus").value;programme=p.name||"";
-  permissions=$("hodPermissions").value.split(",").map(x=>x.trim()).filter(Boolean);
-  profileData={programmeId,programmeName:programme,programmeCode:first(p,["code","programmeCode"]),lecturerId,hodId:lecturerId,hodName:name,hodEmail:email,staffId:schoolId,status,accountStatus:status};
-  if(!name||!email){msg("The selected lecturer must have a name and email.",true);return;}
- }
+  const programmeId=$("hodProgramme").value;
+  const p=programmes.find(x=>x.id===programmeId);
+  name=$("hodName").value.trim();
+  schoolId=$("hodStaffId").value.trim();
+  status=$("hodStatus").value;
+  role="HOD"; accountType="HOD"; programme=p?.name||"";
+  if(!name||!email||!p){msg("Enter HOD name, email, and select a Programme.",true);return;}
+  profileData={programmeId,programmeName:programme,programmeCode:first(p,["code","programmeCode"]),hodName:name,hodEmail:email,staffId:schoolId,status,accountStatus:status};
+}
 
  const p1=$("password").value,p2=$("password2").value;
  if(!email||!/\S+@\S+\.\S+/.test(email)){msg("Enter a valid login email.",true);return;}
@@ -359,15 +350,23 @@ $("createBtn").onclick=async()=>{
    }else if(category==="lecturer"){
      const ref=await addDoc(collection(db,"lecturers"),{...profileData,authUid:uid,authEmail:email,createdAt:now,updatedAt:now}); profileId=ref.id;
    }else if(category==="hod"){
-      const lecturer=lecturers.find(x=>x.id===$("hodLecturer").value);
-      profileId=lecturer.id;
-      await updateDoc(doc(db,"lecturers",lecturer.id),{accountType:"HOD",role:"HOD",authUid:uid,authEmail:email,programmeId:profileData.programmeId,programmeName:profileData.programmeName,status,accountStatus:status,updatedAt:serverTimestamp()});
-      await addDoc(collection(db,"programmeHodAssignments"),{programmeId:profileData.programmeId,programmeName:profileData.programmeName,programmeCode:profileData.programmeCode,hodId:lecturer.id,hodName:name,hodEmail:email,staffId:schoolId,authUid:uid,status,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+      const hodRef=await addDoc(collection(db,"hods"),{
+        ...profileData,name,email,role:"HOD",accountType:"HOD",authUid:uid,uid,
+        createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+      });
+      profileId=hodRef.id;
+      await addDoc(collection(db,"programmeHodAssignments"),{
+        programmeId:profileData.programmeId,
+        programmeName:profileData.programmeName,
+        programmeCode:profileData.programmeCode,
+        hodId:profileId,hodName:name,hodEmail:email,staffId:schoolId,
+        authUid:uid,status,createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+      });
    }else{
      profileId="staff-"+Date.now();
      await addDoc(collection(db,"staff"),{name,fullName:name,staffId:schoolId,email,authEmail:email,authUid:uid,uid,role,accountType,status,permissions,profileCompleted:false,createdAt:now,updatedAt:now});
    }
-   const userRef=await addDoc(collection(db,"users"),{uid,authUid:uid,authEmail:email,email,name,accountType,role,status,permissions,schoolId,studentId:category==="student"?schoolId:"",admissionNumber:category==="student"?profileData.admissionNumber:"",lecturerId:(category==="lecturer"||category==="hod")?profileId:"",staffId:category==="lecturer"?schoolId:(category==="staff"?schoolId:""),programmeId:profileData.programmeId||"",programmeName:programme,levelId:profileData.levelId||"",levelName:level,profileId,profileCompleted:false,createdAt:now,updatedAt:now});
+   const userRef=await addDoc(collection(db,"users"),{uid,authUid:uid,authEmail:email,email,name,accountType,role,status,permissions,schoolId,studentId:category==="student"?schoolId:"",admissionNumber:category==="student"?profileData.admissionNumber:"",lecturerId:category==="lecturer"?profileId:"",staffId:category==="lecturer"?schoolId:(category==="staff"?schoolId:""),programmeId:profileData.programmeId||"",programmeName:programme,levelId:profileData.levelId||"",levelName:level,profileId,profileCompleted:false,createdAt:now,updatedAt:now});
    await addDoc(collection(db,"auditLogs"),{action:"create_access",module:"users",entityType:category,entityId:profileId,userRecordId:userRef.id,uid,email,name,role,accountType,timestamp:now,result:"success"});
    $("password").value="";$("password2").value="";
    msg(`Account created successfully for ${name}. Firebase UID: ${uid}`); toast("New access created successfully."); await loadAccounts();
@@ -376,13 +375,12 @@ $("createBtn").onclick=async()=>{
 };
 
 async function loadSourceData(){
-  const [ps,ls,lec]=await Promise.all([getDocs(collection(db,"programmes")),getDocs(collection(db,"academicLevels")),getDocs(collection(db,"lecturers"))]);
+  const [ps,ls]=await Promise.all([getDocs(collection(db,"programmes")),getDocs(collection(db,"academicLevels"))]);
   programmes=ps.docs.map(d=>({id:d.id,...d.data()})).filter(x=>String(x.status||"active").toLowerCase()!=="inactive").sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
   levels=ls.docs.map(d=>({id:d.id,...d.data()})).filter(x=>String(x.status||"active").toLowerCase()!=="inactive").sort((a,b)=>Number(a.displayOrder||0)-Number(b.displayOrder||0));
-  lecturers=lec.docs.map(d=>({id:d.id,...d.data()})).filter(x=>String(x.status||x.accountStatus||"active").toLowerCase()!=="deactivated").sort((a,b)=>nameOf(a).localeCompare(nameOf(b)));
   $("studentProgramme").innerHTML='<option value="">Select programme</option>';
   $("lecturerProgramme").innerHTML='<option value="">Select programme (optional)</option>';
-  $("hodProgramme").innerHTML='<option value="">Select programme</option>';
+  $("hodProgramme").innerHTML='<option value="">Select Programme</option>';
   programmes.forEach(x=>{
     const a=document.createElement("option");a.value=x.id;a.textContent=x.name||"Unnamed Programme";$("studentProgramme").appendChild(a);
     const b=document.createElement("option");b.value=x.id;b.textContent=x.name||"Unnamed Programme";$("lecturerProgramme").appendChild(b);
@@ -390,8 +388,6 @@ async function loadSourceData(){
   });
   $("studentLevel").innerHTML='<option value="">Select level</option>';
   levels.forEach(x=>{const o=document.createElement("option");o.value=x.id;o.textContent=x.name||x.code||"Level";$("studentLevel").appendChild(o)});
-  $("hodLecturer").innerHTML='<option value="">Select lecturer</option>';
-  lecturers.forEach(x=>{const o=document.createElement("option");o.value=x.id;o.textContent=nameOf(x)+(schoolIdOf(x)?" — "+schoolIdOf(x):"");$("hodLecturer").appendChild(o)});
 }
 
 async function loadAccounts(){
