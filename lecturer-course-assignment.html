@@ -72,7 +72,7 @@ import {
 import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig={
-  apiKey:"AIzaSyAoT3LGcdwA3FzHDrPEuhTNCnfiTklGXY",
+  apiKey:"AIzaSyAoT3LGcdw3A0fZHrPEuhTNCnfiTklGXY",
   authDomain:"ggchst-sms-new.firebaseapp.com",
   projectId:"ggchst-sms-new",
   storageBucket:"ggchst-sms-new.firebasestorage.app",
@@ -685,7 +685,17 @@ $("clearBtn").onclick=clearForm;
 $("search").oninput=renderAssignments;
 $("filterProgramme").onchange=renderAssignments;
 
+let accessResolved=false;
+const accessTimer=setTimeout(()=>{
+  if(!accessResolved){
+    setStatus("Firebase authentication is taking too long. Please refresh and make sure you are logged in.",true);
+  }
+},10000);
+
 onAuthStateChanged(auth,async user=>{
+  accessResolved=true;
+  clearTimeout(accessTimer);
+
   if(!user){
     setStatus("Please log in before using this page.",true);
     return;
@@ -695,7 +705,7 @@ onAuthStateChanged(auth,async user=>{
     const ok=await setupAccess(user);
     if(ok)await loadAll();
   }catch(err){
-    console.error(err);
+    console.error("Lecturer course assignment load error:",err);
     setStatus("Unable to load lecturer assignment data: "+(err.message||err),true);
   }
 });
