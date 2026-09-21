@@ -87,6 +87,24 @@ const active = x => {
 
 const nameOf = x => x?.name || x?.fullName || x?.programmeName ||
   x?.levelName || x?.title || "";
+
+const courseLabel = (x, programmeName="") => {
+  const candidates = [
+    x?.courseName,
+    x?.courseTitle,
+    x?.title,
+    x?.course_name,
+    x?.name
+  ].map(v=>String(v??"").trim()).filter(Boolean);
+
+  const p = norm(programmeName);
+  const valid = candidates.find(v => !p || norm(v)!==p);
+
+  return valid || candidates[0] || "";
+};
+
+const courseCodeOf = x =>
+  x?.courseCode || x?.course_code || x?.code || x?.courseID || "";
 const codeOf = x => x?.code || x?.programmeCode || x?.levelCode || "";
 const sessionName = x => x?.name || x?.sessionName || x?.session || x?.academicSession || "";
 const semesterName = x => x?.name || x?.semesterName || x?.semester || x?.term || "";
@@ -189,30 +207,72 @@ function getCourses(){
 
   if(!pid || !lid) return [];
 
-  const mappedIds = new Set(
-    mappings
-      .filter(m =>
-        active(m) &&
-        programmeMatches(m,pid) &&
-        levelMatches(m,lid) &&
-        semesterMatches(m,sid)
-      )
-      .map(m => m.courseId || m.courseUid)
-      .filter(Boolean)
-  );
+  const p = programmes.find(x=>x.id===pid);
+  const pName = nameOf(p);
 
-  let result = courses.filter(c => {
-    if(!active(c)) return false;
-    const mapped = mappedIds.has(c.id);
-    const direct = programmeMatches(c,pid) && levelMatches(c,lid) && semesterMatches(c,sid);
-    return mapped || direct;
+  // Curriculum mapping is the source of truth for which courses belong
+  // to the selected Programme + Level + Semester.
+  const mapped = mappings
+    .filter(m =>
+      active(m) &&
+      programmeMatches(m,pid) &&
+      levelMatches(m,lid) &&
+      semesterMatches(m,sid)
+    )
+    .map(m=>{
+      const cid = m.courseId || m.courseUid || m.courseID || "";
+      const base = courses.find(c=>c.id===cid) || {};
+
+      return {
+        ...base,
+        ...m,
+        id: cid || base.id || m.id,
+        courseId: cid || base.id || m.id,
+        courseCode: courseCodeOf(m) || courseCodeOf(base),
+        courseName: courseLabel(m,pName) || courseLabel(base,pName),
+        courseTitle: m.courseTitle || base.courseTitle || "",
+        programmeId: m.programmeId || base.programmeId || pid,
+        programmeName: m.programmeName || base.programmeName || pName,
+        levelId: m.levelId || base.levelId || lid,
+        level: m.level || m.levelName || base.level || base.levelName || "",
+        semesterId: m.semesterId || base.semesterId || sid,
+        semester: m.semester || m.semesterName || base.semester || base.semesterName || ""
+      };
+    });
+
+  const byId = new Map();
+  mapped.forEach(c=>{
+    const key = c.courseId || c.id;
+    if(key && !byId.has(key)) byId.set(key,c);
   });
 
-  return result.sort((a,b) =>
-    (courseCode(a) + courseName(a)).localeCompare(courseCode(b) + courseName(b))
+  // Compatibility fallback for installations where courses are stored
+  // directly with Programme + Level instead of curriculumMappings.
+  if(!byId.size){
+    courses
+      .filter(c =>
+        active(c) &&
+        programmeMatches(c,pid) &&
+        levelMatches(c,lid) &&
+        semesterMatches(c,sid)
+      )
+      .forEach(c=>{
+        const key = c.id;
+        if(key && !byId.has(key)){
+          byId.set(key,{
+            ...c,
+            courseCode:courseCodeOf(c),
+            courseName:courseLabel(c,pName)
+          });
+        }
+      });
+  }
+
+  return [...byId.values()].filter(c=>courseLabel(c,pName)).sort((a,b)=>
+    (courseCodeOf(a)+" "+courseLabel(a,pName))
+      .localeCompare(courseCodeOf(b)+" "+courseLabel(b,pName))
   );
 }
-
 function getLecturers(){
   const courseId = $("classCourse").value;
   const pid = $("classProgramme").value;
@@ -249,6 +309,24 @@ function getLecturers(){
   return lecturers
     .filter(l => active(l) && assignedIds.has(l.id))
     .sort((a,b) => personName(a).localeCompare(personName(b)));
+}
+
+function fillCourseSelect(items, selected=""){
+  const el = $("classCourse");
+  if(!el) return;
+
+  const programme = selectedProgramme();
+  const pName = nameOf(programme);
+
+  el.innerHTML =
+    `<option value="">Select course</option>` +
+    items.map(c=>{
+      const code = courseCodeOf(c);
+      const label = courseLabel(c,pName);
+      return `<option value="${esc(c.id)}">${esc(label)}${code ? " — " + esc(code) : ""}</option>`;
+    }).join("");
+
+  if(selected && items.some(x=>x.id===selected)) el.value=selected;
 }
 
 function renderForm(){
@@ -292,7 +370,7 @@ function renderForm(){
   );
 
   const cs = getCourses();
-  fillSelect("classCourse", cs, "Select course", old.course);
+  fillCourseSelect(cs, old.course);
 
   const ls = getLecturers();
   fillSelect("classLecturer", ls, "Select lecturer", old.lecturer);
