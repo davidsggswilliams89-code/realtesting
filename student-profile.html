@@ -1078,81 +1078,89 @@ let examFeesPaid=false;
 let activeSemester=null;
 let activeSemesterUid="";
 
-function getExamStartDate(record){
-  const rawDate=val(record,["date","examDate","scheduledDate"],"");
-  const rawStart=val(record,["startTime","time","examTime"],"00:00");
-  if(!rawDate)return null;
+function getSemesterEndDate(semester){
+  const raw=val(semester,["endDate","end_date","semesterEndDate","end"],"");
+  if(!raw)return null;
 
-  const dateText=String(rawDate).trim();
-  const timeText=String(rawStart).trim();
-  let d=null;
-
-  // ISO date/time or a browser-parseable date.
-  if(/^\d{4}-\d{2}-\d{2}$/.test(dateText)){
-    const m=timeText.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
-    let hh=m?Number(m[1]):0;
-    const mm=m?Number(m[2]):0;
-    const ap=m&&m[3]?m[3].toLowerCase():"";
-    if(ap==="pm"&&hh<12)hh+=12;
-    if(ap==="am"&&hh===12)hh=0;
-    d=new Date(`${dateText}T${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:00`);
-  }else{
-    const candidate=new Date(`${dateText} ${timeText}`);
-    if(!Number.isNaN(candidate.getTime()))d=candidate;
-    else{
-      const candidate2=new Date(dateText);
-      if(!Number.isNaN(candidate2.getTime()))d=candidate2;
-    }
+  // Firestore Timestamp / Date object support.
+  if(typeof raw?.toDate==="function"){
+    const d=raw.toDate();
+    if(!Number.isNaN(d.getTime()))return d;
   }
-  return d&&!Number.isNaN(d.getTime())?d:null;
+  if(raw instanceof Date && !Number.isNaN(raw.getTime()))return raw;
+
+  const text=String(raw).trim();
+  if(!text)return null;
+
+  // A date-only semester end is treated as the end of that calendar day,
+  // using the student's/browser local calendar.
+  if(/^\d{4}-\d{2}-\d{2}$/.test(text)){
+    const [y,m,d]=text.split("-").map(Number);
+    const localEnd=new Date(y,m-1,d,23,59,59,999);
+    return Number.isNaN(localEnd.getTime())?null:localEnd;
+  }
+
+  const parsed=new Date(text);
+  return Number.isNaN(parsed.getTime())?null:parsed;
 }
 
-function splitCountdown(ms){
+function splitSemesterCountdown(ms){
   const totalSeconds=Math.max(0,Math.floor(ms/1000));
-  const days=Math.floor(totalSeconds/86400);
-  const hours=Math.floor((totalSeconds%86400)/3600);
-  const minutes=Math.floor((totalSeconds%3600)/60);
-  const seconds=totalSeconds%60;
-  return {days,hours,minutes,seconds};
+  return {
+    days:Math.floor(totalSeconds/86400),
+    hours:Math.floor((totalSeconds%86400)/3600),
+    minutes:Math.floor((totalSeconds%3600)/60),
+    seconds:totalSeconds%60
+  };
 }
 
 function setCountdownValues(x){
-  // The existing UI has MONTHS / WEEKS / DAYS / HOURS / MIN / SEC.
-  // The actual countdown is driven by the exact exam due date/time.
-  // Months and weeks are kept at zero so the final four fields always
-  // reach exactly 00:00:00:00 at the due time.
+  // The visible countdown is DAYS : HOURS : MINUTES : SECONDS.
+  // Months and weeks stay at zero so the requested four-part countdown
+  // reaches exactly 00:00:00:00 when the active semester ends.
   $("countMonths").textContent="0";
   $("countWeeks").textContent="0";
-  $("countDays").textContent=String(x.days).padStart(2,"0");
-  $("countHours").textContent=String(x.hours).padStart(2,"0");
-  $("countMinutes").textContent=String(x.minutes).padStart(2,"0");
-  $("countSeconds").textContent=String(x.seconds).padStart(2,"0");
+  $("countDays").textContent=String(Math.max(0,x.days||0)).padStart(2,"0");
+  $("countHours").textContent=String(Math.max(0,x.hours||0)).padStart(2,"0");
+  $("countMinutes").textContent=String(Math.max(0,x.minutes||0)).padStart(2,"0");
+  $("countSeconds").textContent=String(Math.max(0,x.seconds||0)).padStart(2,"0");
 }
 
 function setExamReady(){
   if(examCountdownTimer)clearInterval(examCountdownTimer);
   examTimeReached=true;
   examPrintReady=examFeesPaid;
+  setCountdownValues({days:0,hours:0,minutes:0,seconds:0});
   applyExamPrintAccess();
 }
 
-function startExamCountdown(firstExamDate){
+function startSemesterCountdown(semesterEndDate){
+  if(examCountdownTimer)clearInterval(examCountdownTimer);
+
   $("examCountdown").style.display="block";
   examTimeReached=false;
   examPrintReady=false;
-  if(!firstExamDate){
-    $("countdownLabel").textContent="EXAM SLIP PRINTING DATE NOT AVAILABLE";
-    $("countdownNote").textContent="The examination timetable does not contain a valid first examination date yet.";
+
+  if(!semesterEndDate){
+    setCountdownValues({days:0,hours:0,minutes:0,seconds:0});
+    $("countdownLabel").textContent="ACTIVE SEMESTER END DATE NOT AVAILABLE";
+    $("countdownNote").textContent="The active semester does not contain a valid end date.";
+    applyExamPrintAccess();
     return;
   }
 
   const tick=()=>{
-    const diff=firstExamDate.getTime()-Date.now();
-    if(diff<=0){setExamReady();return;}
-    setCountdownValues(splitCountdown(diff));
+    const diff=semesterEndDate.getTime()-Date.now();
+    if(diff<=0){
+      setExamReady();
+      return;
+    }
+    setCountdownValues(splitSemesterCountdown(diff));
   };
+
+  $("countdownLabel").textContent="ACTIVE SEMESTER ENDS IN";
+  $("countdownNote").textContent="Countdown is calculated from the active semester end date and your current calendar time.";
   tick();
-  if(examCountdownTimer)clearInterval(examCountdownTimer);
   examCountdownTimer=setInterval(tick,1000);
 }
 
@@ -1334,14 +1342,12 @@ async function loadData(){
     return da-db;
   });
 
-  // Countdown reference: ONLY the earliest valid examination belonging to
-  // the ACTIVE SEMESTER UID. It is intentionally independent of course
-  // filtering so the countdown can start even if a course registration has
-  // not yet been matched on the profile page.
-  const countdownExam=activeSemesterExams
-    .map(r=>({record:r,date:getExamStartDate(r)}))
-    .filter(x=>x.date)
-    .sort((a,b)=>a.date-b.date)[0]||null;
+  // Countdown reference: the ACTIVE SEMESTER itself.
+  // We use the semester Firestore UID only to identify the active semester;
+  // the countdown then uses that semester's endDate. This means the timer is
+  // based on the actual calendar days remaining in the active semester,
+  // not on an examination record.
+  const semesterEndDate=getSemesterEndDate(activeSemester);
   const noteRecords=notes.filter(matchCourse);
   const assignmentRecords=assignments.filter(matchCourse);
 
@@ -1374,9 +1380,10 @@ async function loadData(){
   examFeesPaid=isPaymentFullyPaid(studentPayments);
   renderExamStudent();
 
-  // Start the countdown directly from the active-semester examination date.
-  // renderExamSlip() is still responsible for the student's printable slip.
-  startExamCountdown(countdownExam?.date||null);
+  // Start the countdown from the ACTIVE SEMESTER END DATE.
+  // The semester UID has already been resolved above; its endDate is the
+  // authoritative calendar target for this countdown.
+  startSemesterCountdown(semesterEndDate);
   renderExamSlip(examRecords);
   if(examTimeReached)applyExamPrintAccess();
 }
