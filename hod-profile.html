@@ -791,70 +791,10 @@ async function findHod(user){
  const all=await rows("programmeHodAssignments");
  const requested=urlHodUid();
  let a=null;
-
- // Existing programme assignment, if one has already been created.
- if(requested){
-   a=all.find(x=>[x.hodUid,x.hodId,x.staffId,x.hodEmail].map(norm).includes(norm(requested))&&active(x));
- }
- if(!a && user){
-   a=all.find(x=>candidateMatches(x,user)&&active(x));
- }
-
- // NEW HOD ACCOUNTS: the HOD does not need to exist in lecturers.
- // Read the authenticated HOD's own account/profile from Firestore.
- if(!a && user){
-   try{
-     const userRows=await rows("users");
-     const uid=norm(user.uid);
-     const email=norm(user.email);
-
-     const u=userRows.find(x=>{
-       const ids=[x.uid,x.authUid,x.firebaseUid].map(norm).filter(Boolean);
-       const emails=[x.email,x.authEmail].map(norm).filter(Boolean);
-       return ids.includes(uid)||emails.includes(email);
-     });
-
-     if(u){
-       const role=norm(first(u,["accountType","role","staffRole"],""));
-       const isHod=role==="hod" || role.includes("head of programme") || role.includes("head of department");
-
-       if(isHod){
-         a={
-           id:"",
-           hodUid:user.uid,
-           hodId:clean(first(u,["hodId","hodID","profileId"],"")),
-           staffId:clean(first(u,["staffId","staffID","employeeId","employeeID"],"")),
-           hodName:clean(first(u,["fullName","name","displayName"],user.displayName||"HOD")),
-           hodEmail:clean(first(u,["email","authEmail"],user.email||"")),
-           programmeId:clean(first(u,["programmeId","programId","programmeUid"],"")),
-           programmeName:clean(first(u,["programmeName","programme","courseOfStudy"],"")),
-           programmeCode:clean(first(u,["programmeCode","programCode"],"")),
-           status:first(u,["status"],"Active")||"Active"
-         };
-       }
-     }
-   }catch(e){
-     console.warn("Could not load HOD user account:",e);
-   }
- }
-
- // If the account itself has not yet been mirrored into users, still allow
- // a newly authenticated HOD to open My Details and create his own profile.
- if(!a && user){
-   a={
-     id:"",
-     hodUid:user.uid,
-     hodId:"",
-     staffId:"",
-     hodName:user.displayName||"HOD",
-     hodEmail:user.email||"",
-     programmeId:"",
-     programmeName:"",
-     programmeCode:"",
-     status:"Active"
-   };
- }
-
+ if(requested)a=all.find(x=>[x.hodUid,x.hodId,x.staffId,x.hodEmail].map(norm).includes(norm(requested))&&active(x));
+ if(!a && user)a=all.find(x=>candidateMatches(x,user)&&active(x));
+ if(!a){try{const saved=localStorage.getItem("hodUid")||localStorage.getItem("lecturerId");if(saved)a=all.find(x=>[x.hodUid,x.hodId,x.staffId].map(norm).includes(norm(saved))&&active(x));}catch(e){}}
+ if(!a && !user && !requested){a=null;}
  return a;
 }
 
@@ -873,11 +813,11 @@ function lecturerMatchesAssignment(l,a){
  return aids.some(x=>ids.includes(x))||norm(lecturerEmail(l))===norm(a?.lecturerEmail);
 }
 
-function profileName(){return clean(first(hodProfile,["fullName","name","hodName"],first(hodLecturer,["fullName","name","lecturerName"],first(hodAssignment,["hodName","name"],"HOD"))))}
-function profileHodId(){return clean(first(hodProfile,["hodId","hodID","profileId"],first(hodAssignment,["hodId"],"—")))}
-function profileStaffId(){return clean(first(hodProfile,["staffId","staffID","employeeId"],first(hodLecturer,["staffId","staffID","employeeId","employeeID","lecturerId"],first(hodAssignment,["staffId"],"—"))))}
-function profileRank(){return clean(first(hodProfile,["rank","academicRank","staffRank"],first(hodLecturer,["rank","academicRank","staffRank"],"—")))}
-function profileQualification(){return clean(first(hodProfile,["qualification","qualifications"],first(hodLecturer,["qualification","qualifications"],"—")))}
+function profileName(){return clean(first(hodProfile,["fullName","name","hodName"],first(hodAssignment,["hodName","name"],"HOD")))}
+function profileHodId(){return clean(first(hodProfile,["hodId","hodID"],first(hodAssignment,["hodId"],"—")))}
+function profileStaffId(){return clean(first(hodProfile,["staffId","staffID","employeeId","employeeID"],first(hodAssignment,["staffId"],"—")))}
+function profileRank(){return clean(first(hodProfile,["rank","academicRank","staffRank"],"—"))}
+function profileQualification(){return clean(first(hodProfile,["qualification","qualifications"],"—"))}
 function profileSpecialization(){return clean(first(hodProfile,["specialization","specialisation"],first(hodLecturer,["specialization","specialisation"],"—")))}
 function profileEmail(){return clean(first(hodProfile,["email","emailAddress"],first(hodLecturer,["email","lecturerEmail","emailAddress"],first(hodAssignment,["hodEmail"],""))))}
 function profilePhone(){return clean(first(hodProfile,["phone","phoneNumber","mobile"],first(hodLecturer,["phone","phoneNumber","mobile"],"")))}
@@ -893,37 +833,62 @@ async function loadHodProfile(user){
 
   const uid=norm(user.uid);
   const email=norm(user.email);
+  let profile=null;
 
+  // First use the exact login record saved by login.html.
   try{
-    // NEW HOD ACCOUNT:
-    // First load the profile created under hods/{Firebase UID}.
-    const hodSnap=await getDocs(collection(db,"hods"));
-    const hodRows=hodSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const saved=sessionStorage.getItem("shtmsUser");
+    if(saved){
+      const s=JSON.parse(saved);
+      if(norm(s.uid)===uid){
+        profile={
+          uid:user.uid,
+          authUid:user.uid,
+          hodUid:user.uid,
+          fullName:s.name||"",
+          name:s.name||"",
+          email:s.email||user.email||"",
+          hodEmail:s.email||user.email||"",
+          hodId:s.profileId||"",
+          staffId:s.staffId||"",
+          programmeId:s.programmeId||"",
+          programmeName:s.programmeName||"",
+          role:s.role||"HOD",
+          accountType:s.accountType||"HOD"
+        };
+      }
+    }
+  }catch(e){console.warn("Could not read HOD login session:",e)}
 
-    let profile=hodRows.find(x=>{
+  // Then load the real standalone HOD document using the Firebase UID.
+  try{
+    const snap=await getDocs(collection(db,"hods"));
+    const matches=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const dbProfile=matches.find(x=>{
       const ids=[x.authUid,x.uid,x.firebaseUid,x.hodUid].map(norm).filter(Boolean);
       const emails=[x.email,x.authEmail,x.hodEmail].map(norm).filter(Boolean);
       return ids.includes(uid)||emails.includes(email)||norm(x.id)===uid;
-    })||null;
-
-    // If MY DETAILS has not been saved yet, use the newly-created users
-    // account record so the UID/account details can still be displayed.
-    if(!profile){
-      const userSnap=await getDocs(collection(db,"users"));
-      const userRows=userSnap.docs.map(d=>({id:d.id,...d.data()}));
-
-      profile=userRows.find(x=>{
-        const ids=[x.uid,x.authUid,x.firebaseUid].map(norm).filter(Boolean);
-        const emails=[x.email,x.authEmail].map(norm).filter(Boolean);
-        return ids.includes(uid)||emails.includes(email)||norm(x.id)===uid;
-      })||null;
-    }
-
-    hodProfile=profile;
+    });
+    if(dbProfile)profile={...(profile||{}),...dbProfile};
   }catch(e){
-    console.error("Could not load HOD profile by Firebase UID:",e);
-    hodProfile=null;
+    console.warn("Could not read standalone HOD profile:",e);
   }
+
+  // Finally use the users record if the HOD document is not readable yet.
+  try{
+    const snap=await getDocs(collection(db,"users"));
+    const matches=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const u=matches.find(x=>{
+      const ids=[x.uid,x.authUid,x.firebaseUid].map(norm).filter(Boolean);
+      const emails=[x.email,x.authEmail].map(norm).filter(Boolean);
+      return ids.includes(uid)||emails.includes(email);
+    });
+    if(u)profile={...(profile||{}),...u};
+  }catch(e){
+    console.warn("Could not read HOD users record:",e);
+  }
+
+  hodProfile=profile;
 }
 
 function openProfileModal(){
@@ -1156,8 +1121,6 @@ $("hodProfileForm").addEventListener("submit",async e=>{
    };
    if(pendingPhoto)payload.profilePhoto=pendingPhoto;
    else if(profilePhoto())payload.profilePhoto=profilePhoto();
-   // A new HOD gets a brand-new profile document keyed by Firebase UID.
-   // No lecturer record is required.
    await setDoc(doc(db,"hods",user.uid),payload,{merge:true});
    if(hodAssignment?.id){
      await updateDoc(doc(db,"programmeHodAssignments",hodAssignment.id),{
@@ -1194,19 +1157,105 @@ function startListeners(){if(listenersStarted)return;listenersStarted=true;
 }
 async function init(user){
  try{
+  // Load the authenticated HOD identity first.
   hodAssignment=await findHod(user);
+
+  // Even a brand-new HOD without an assignment must be able to open
+  // My Details and create/update the standalone HOD profile.
   if(!hodAssignment){
-    $("hodName").textContent="HOD profile not available";
-    return;
+    hodAssignment={
+      id:"",
+      hodUid:user.uid,
+      hodId:"",
+      staffId:"",
+      hodName:user.displayName||"HOD",
+      hodEmail:user.email||"",
+      programmeId:"",
+      programmeName:"",
+      programmeCode:"",
+      status:"Active"
+    };
   }
-  try{localStorage.setItem("hodUid",first(hodAssignment,["hodUid","hodId","staffId"],user.uid)||user.uid)}catch(e){}
-  const [ls,ps,ss,sem,lv,cs,as,rs,tt]=await Promise.all([rows("lecturers"),rows("programmes"),rows("academicSessions"),rows("semesters"),rows("academicLevels"),rows("courses"),rows("lecturerCourseAssignments"),rows("results"),rows("timetables")]);
-  lecturers=ls;programme=ps.find(p=>p.id===hodAssignment.programmeId)||ps.find(p=>norm(first(p,["name","programmeName"],""))===norm(hodAssignment.programmeName))||{id:hodAssignment.programmeId||"",name:hodAssignment.programmeName||"",code:hodAssignment.programmeCode||""};activeSession=ss.find(active)||ss.find(x=>norm(x.status)!=="closed")||null;semesters=sem;levels=lv;courses=cs;assignments=as;results=rs;timetables=tt;
-  hodLecturer=lecturers.find(l=>lecturerMatchesAssignment(l,hodAssignment))||null;
+
+  try{
+    localStorage.setItem("hodUid",first(hodAssignment,["hodUid","hodId","staffId"],user.uid)||user.uid);
+  }catch(e){}
+
+  // Load the profile immediately from the Firebase UID.
   await loadHodProfile(user);
-  students=(await rows("students")).filter(s=>programmeMatches(s));
-  refreshAll();startListeners();
- }catch(e){console.error(e);$("hodName").textContent="Unable to load HOD profile";alert("HOD portal could not load the Firebase data: "+(e.message||e))}
+
+  // Use the profile/account data to establish the Programme before loading
+  // the rest of the dashboard.
+  const profileProgrammeId=clean(first(hodProfile,["programmeId","programId","programmeUid"],""));
+  const profileProgrammeName=clean(first(hodProfile,["programmeName","programme","courseOfStudy"],""));
+
+  hodAssignment={
+    ...hodAssignment,
+    hodUid:first(hodAssignment,["hodUid"],first(hodProfile,["authUid","uid","firebaseUid","hodUid"],user.uid)),
+    hodId:first(hodAssignment,["hodId"],first(hodProfile,["hodId","hodID","profileId"],"")),
+    staffId:first(hodAssignment,["staffId"],first(hodProfile,["staffId","staffID","employeeId","employeeID"],"")),
+    hodName:first(hodAssignment,["hodName"],first(hodProfile,["fullName","name","hodName"],user.displayName||"HOD")),
+    hodEmail:first(hodAssignment,["hodEmail"],first(hodProfile,["email","authEmail","hodEmail"],user.email||"")),
+    programmeId:first(hodAssignment,["programmeId"],profileProgrammeId),
+    programmeName:first(hodAssignment,["programmeName"],profileProgrammeName),
+    programmeCode:first(hodAssignment,["programmeCode","programCode"],first(hodProfile,["programmeCode","programCode"],""))
+  };
+
+  // Render the HOD profile now. It no longer waits for lecturers,
+  // courses, results, timetable, or other dashboard collections.
+  renderProfile();
+
+  // Load the remaining dashboard data separately.
+  const [ps,ss,sem,lv,cs,as,rs,tt]=await Promise.all([
+    rows("programmes"),
+    rows("academicSessions"),
+    rows("semesters"),
+    rows("academicLevels"),
+    rows("courses"),
+    rows("lecturerCourseAssignments"),
+    rows("results"),
+    rows("timetables")
+  ]);
+
+  let ls=[];
+  try{ls=await rows("lecturers")}catch(e){console.warn("Lecturers unavailable:",e)}
+
+  lecturers=ls;
+
+  programme=ps.find(p=>p.id===hodAssignment.programmeId)
+    ||ps.find(p=>norm(first(p,["name","programmeName"],""))===norm(hodAssignment.programmeName))
+    ||{
+      id:hodAssignment.programmeId||"",
+      name:hodAssignment.programmeName||"",
+      code:hodAssignment.programmeCode||""
+    };
+
+  activeSession=ss.find(active)||ss.find(x=>norm(x.status)!=="closed")||null;
+  semesters=sem;
+  levels=lv;
+  courses=cs;
+  assignments=as;
+  results=rs;
+  timetables=tt;
+
+  hodLecturer=null; // Standalone HOD: do not depend on lecturer records.
+
+  try{
+    students=(await rows("students")).filter(s=>programmeMatches(s));
+  }catch(e){
+    console.warn("Students unavailable:",e);
+    students=[];
+  }
+
+  refreshAll();
+  startListeners();
+ }catch(e){
+  console.error(e);
+  // Keep the HOD profile visible even if a secondary dashboard collection
+  // is unavailable.
+  renderProfile();
+  console.warn("HOD dashboard secondary data could not load:",e);
+ }
 }
 
 onAuthStateChanged(auth,user=>{
