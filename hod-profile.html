@@ -685,12 +685,30 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
   <div class="calendar" id="calendar"><div class="empty">Loading timetable...</div></div>
 </div></section>
 
-<section id="reports" class="view"><div class="metric-shell"><div class="metric-grid">
-  <div class="card"><div class="small">Results Submitted</div><div class="stat" id="reportSubmitted">0</div></div>
-  <div class="card"><div class="small">Approval Rate</div><div class="stat" id="reportApproval">0%</div></div>
-  <div class="card"><div class="small">Courses Assigned</div><div class="stat" id="reportAssigned">0</div></div>
-  <div class="card"><div class="small">Students Registered</div><div class="stat" id="reportStudents">0</div></div>
-</div></div><div class="section panel"><h2>Programme Summary</h2><div class="table-wrap"><table><thead><tr><th>Level</th><th>Students</th><th>Courses</th><th>Pending Results</th><th>Approved Results</th></tr></thead><tbody id="reportRows"><tr><td colspan="5" class="empty">Loading report...</td></tr></tbody></table></div></div></section>
+<section id="reports" class="view">
+  <div class="panel">
+    <div class="toolbar" style="flex-wrap:wrap">
+      <div><h2 style="margin:0">Programme Reports</h2><div class="small">Academic and programme-level summaries for your assigned Programme.</div></div>
+      <span style="flex:1"></span>
+      <select id="reportSession"><option value="">All sessions</option></select>
+    </div>
+    <div id="reportProgrammeLabel" class="small" style="margin:8px 0 14px;color:var(--brand-dark);font-weight:700"></div>
+  </div>
+  <div class="metric-shell"><div class="metric-grid">
+    <div class="card"><div class="small">Results Submitted</div><div class="stat" id="reportSubmitted">0</div><div class="mini">Course result submissions</div></div>
+    <div class="card"><div class="small">Approval Rate</div><div class="stat" id="reportApproval">0%</div><div class="mini">Approved course submissions</div></div>
+    <div class="card"><div class="small">Courses Assigned</div><div class="stat" id="reportAssigned">0</div><div class="mini">Courses in this Programme</div></div>
+    <div class="card"><div class="small">Students Registered</div><div class="stat" id="reportStudents">0</div><div class="mini">Students in this Programme</div></div>
+  </div></div>
+  <div class="section panel">
+    <h2>Programme Summary by Level</h2>
+    <div class="table-wrap"><table><thead><tr><th>Level</th><th>Students</th><th>Courses</th><th>Pending Results</th><th>Approved Results</th></tr></thead><tbody id="reportRows"><tr><td colspan="5" class="empty">Loading report...</td></tr></tbody></table></div>
+  </div>
+  <div class="section panel">
+    <h2>Result Status Summary</h2>
+    <div class="table-wrap"><table><thead><tr><th>Status</th><th>Course Submissions</th></tr></thead><tbody id="reportStatusRows"><tr><td colspan="2" class="empty">Loading report...</td></tr></tbody></table></div>
+  </div>
+</section>
 
 <div class="modal" id="profileModal" aria-hidden="true">
   <div class="modalbox wide">
@@ -1027,17 +1045,33 @@ function renderTimetable(){
  $("calendar").innerHTML=days.map(day=>{const rs=arr.filter(x=>norm(first(x,["day"],""))===norm(day));return `<div class="timetable-day"><h3>${day}</h3>${rs.map(x=>`<div class="timetable-slot"><b>${esc(first(x,["startTime"],""))} – ${esc(first(x,["endTime"],""))}</b><div><strong>${esc(first(x,["courseCode","code"],""))}</strong> • ${esc(first(x,["courseName","name","title"],""))}</div><div>Level: ${esc(first(x,["levelName","level"],"—"))} • ${esc(first(x,["semesterName","semester","term"],"—"))}</div><div>${esc(first(x,["lecturerName","lecturer"],"—"))}</div><div class="muted-line">Venue: ${esc(first(x,["venue","venueName"],"—"))}${first(x,["examDate","date"],"")?` • ${esc(first(x,["examDate","date"],""))}`:""}</div></div>`).join("")||'<div class="mini" style="margin-top:12px">No class</div>'}</div>`}).join("");
 }
 function renderReports(){
- const rs=results.filter(programmeMatches), submittedGroups=new Set(rs.map(resultGroupKey));$("reportSubmitted").textContent=String(submittedGroups.size);
- const approved=[...submittedGroups].filter(k=>rs.some(r=>resultGroupKey(r)===k&&norm(resultStatus(r))==="approved")).length;$("reportApproval").textContent=submittedGroups.size?Math.round(approved/submittedGroups.size*100)+"%":"0%";
- $("reportAssigned").textContent=String(currentProgrammeCourses().length);$("reportStudents").textContent=String(students.length);
+ const rf=norm($("reportSession")?.value||"");
+ const rs=results.filter(r=>programmeMatches(r)&&(!rf||norm(first(r,["academicSessionId","academicSession","sessionId","session"],""))===rf));
+ const submittedGroups=new Set(rs.map(resultGroupKey));
+ $("reportSubmitted").textContent=String(submittedGroups.size);
+ const approved=[...submittedGroups].filter(k=>rs.some(r=>resultGroupKey(r)===k&&norm(resultStatus(r))==="approved")).length;
+ $("reportApproval").textContent=submittedGroups.size?Math.round(approved/submittedGroups.size*100)+"%":"0%";
+ $("reportAssigned").textContent=String(currentProgrammeCourses().length);
+ $("reportStudents").textContent=String(students.length);
+ $("reportProgrammeLabel").textContent=hodProfile?.programmeName?`Programme: ${hodProfile.programmeName}`:"Programme: —";
+ const sessionOptions=[...new Map(results.filter(programmeMatches).map(r=>{const v=first(r,["academicSessionId","academicSession","sessionId","session"],"");return [norm(v),v]}).filter(x=>x[1]))];
+ if($("reportSession")){const current=$("reportSession").value;$("reportSession").innerHTML='<option value="">All sessions</option>'+sessionOptions.map(x=>`<option value="${esc(x[0])}">${esc(x[1])}</option>`).join("");if(sessionOptions.some(x=>x[0]===current))$("reportSession").value=current;}
  const levelsList=[...new Set(students.map(studentLevel).concat(courses.filter(programmeMatches).map(courseLevelName)).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
- $("reportRows").innerHTML=levelsList.map(l=>{const st=students.filter(s=>norm(studentLevel(s))===norm(l)).length,co=courses.filter(c=>programmeMatches(c)&&norm(courseLevelName(c))===norm(l)).length,rg=rs.filter(r=>norm(first(r,["levelName","level"],""))===norm(l));return `<tr><td>${esc(l)}</td><td>${st}</td><td>${co}</td><td>${new Set(rg.filter(r=>norm(resultStatus(r))==="pending").map(resultGroupKey)).size}</td><td>${new Set(rg.filter(r=>norm(resultStatus(r))==="approved").map(resultGroupKey)).size}</td></tr>`}).join("")||`<tr><td colspan="5" class="empty">No Programme report data available.</td></tr>`;
+ $("reportRows").innerHTML=levelsList.map(l=>{
+   const st=students.filter(s=>norm(studentLevel(s))===norm(l)).length;
+   const co=courses.filter(c=>programmeMatches(c)&&norm(courseLevelName(c))===norm(l)).length;
+   const rg=rs.filter(r=>norm(first(r,["levelName","level"],""))===norm(l));
+   return `<tr><td>${esc(l)}</td><td>${st}</td><td>${co}</td><td>${new Set(rg.filter(r=>norm(resultStatus(r))==="pending").map(resultGroupKey)).size}</td><td>${new Set(rg.filter(r=>norm(resultStatus(r))==="approved").map(resultGroupKey)).size}</td></tr>`
+ }).join("")||`<tr><td colspan="5" class="empty">No Programme report data available.</td></tr>`;
+ const statusCounts={"Pending Review":0,"Verified":0,"Requires Correction":0,"Submitted to Registrar":0};
+ for(const k of submittedGroups){const g=rs.filter(r=>resultGroupKey(r)===k);const st=norm(resultStatus(g[0]||{}));if(st.includes("submitted to registrar"))statusCounts["Submitted to Registrar"]++;else if(st.includes("approved")||st.includes("verified"))statusCounts["Verified"]++;else if(st.includes("reject")||st.includes("correction")||st.includes("returned"))statusCounts["Requires Correction"]++;else statusCounts["Pending Review"]++;}
+ $("reportStatusRows").innerHTML=Object.entries(statusCounts).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("");
 }
 function refreshAll(){populateLevels();renderProfile();renderStudents();renderLecturers();renderCourses();renderResults();renderTimetable();renderReports();}
 function show(v){document.querySelectorAll(".view").forEach(x=>x.classList.add("hidden"));const el=$(v);if(el)el.classList.remove("hidden");document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("active",a.dataset.view===v));const titles={dashboard:"HOD Dashboard",students:"Programme Students",lecturers:"Lecturer Profiles",courses:"Courses & Lecturer Assignments",results:"Result Verification",timetable:"Programme Timetable",reports:"Programme Reports"};$("pageTitle").textContent=titles[v]||"HOD Dashboard"}
 document.querySelectorAll(".nav a[data-view]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();show(a.dataset.view)}));
 ["ttSession","ttSemester","ttLevel"].forEach(id=>{const el=$(id);if(el)el.addEventListener("change",()=>{if(id==="ttSession")populateTimetableFilters();renderTimetable()});});document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.go)));
-$("studentSearch").addEventListener("input",renderStudents);$("studentLevel").addEventListener("change",renderStudents);$("courseSearch").addEventListener("input",renderCourses);$("courseLevel").addEventListener("change",renderCourses);$("courseLecturer").addEventListener("change",renderCourses);$("resultSearch").addEventListener("input",renderResults);$("resultCourse").addEventListener("change",renderResults);$("resultLecturer").addEventListener("change",renderResults);$("resultStatus").addEventListener("change",renderResults);$("resultSession").addEventListener("change",renderResults);$("ttLevel").addEventListener("change",renderTimetable);
+$("studentSearch").addEventListener("input",renderStudents);$("studentLevel").addEventListener("change",renderStudents);$("courseSearch").addEventListener("input",renderCourses);$("courseLevel").addEventListener("change",renderCourses);$("courseLecturer").addEventListener("change",renderCourses);$("reportSession")?.addEventListener("change",renderReports);$("resultSearch").addEventListener("input",renderResults);$("resultCourse").addEventListener("change",renderResults);$("resultLecturer").addEventListener("change",renderResults);$("resultStatus").addEventListener("change",renderResults);$("resultSession").addEventListener("change",renderResults);$("ttLevel").addEventListener("change",renderTimetable);
 $("resultRows").addEventListener("click",async e=>{const toggle=e.target.closest("[data-toggle-result]");if(toggle){const card=document.querySelector(`[data-submission="${toggle.dataset.toggleResult}"]`);if(card)card.classList.toggle("open");toggle.textContent=card?.classList.contains("open")?"Hide":"View";return}const action=e.target.closest("[data-result-action]");if(!action)return;const group=Number(action.dataset.resultGroup);const type=action.dataset.resultAction;if(type==="approve")await updateResultGroup(group,"Approved");else if(type==="reject")await updateResultGroup(group,"Rejected");else if(type==="forward")await updateResultGroup(group,"Submitted to Registrar");});
 $("logoutBtn").addEventListener("click",async()=>{try{await signOut(auth)}catch(e){}location.href="login.html"});
 
