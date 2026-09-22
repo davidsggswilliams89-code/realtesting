@@ -748,7 +748,9 @@ const firebaseConfig={
  messagingSenderId:"942770190211",
  appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
 };
-const app=getApps().find(a=>a.name==="GGCHST_HOD_PROFILE")||initializeApp(firebaseConfig,"GGCHST_HOD_PROFILE");
+// Use the DEFAULT Firebase app so the HOD portal shares the same
+// Firebase Authentication session created by login.html.
+const app=getApps().find(a=>a.name==="[DEFAULT]")||initializeApp(firebaseConfig);
 const db=getFirestore(app);const auth=getAuth(app);const $=id=>document.getElementById(id);
 const norm=v=>String(v??"").trim().toLowerCase();
 const clean=v=>String(v??"").trim();
@@ -1118,7 +1120,14 @@ async function init(user){
  }catch(e){console.error(e);$("hodName").textContent="Unable to load HOD profile";alert("HOD portal could not load the Firebase data: "+(e.message||e))}
 }
 
-onAuthStateChanged(auth,user=>{init(user)});
+onAuthStateChanged(auth,user=>{
+  if(!user){
+    $("hodName").textContent="Login session not found";
+    $("hodTopProgramme").textContent="Please log in again";
+    return;
+  }
+  init(user);
+});
 </script>
 
 <script>
