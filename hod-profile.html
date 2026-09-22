@@ -791,10 +791,80 @@ async function findHod(user){
  const all=await rows("programmeHodAssignments");
  const requested=urlHodUid();
  let a=null;
- if(requested)a=all.find(x=>[x.hodUid,x.hodId,x.staffId,x.hodEmail].map(norm).includes(norm(requested))&&active(x));
- if(!a && user)a=all.find(x=>candidateMatches(x,user)&&active(x));
- if(!a){try{const saved=localStorage.getItem("hodUid")||localStorage.getItem("lecturerId");if(saved)a=all.find(x=>[x.hodUid,x.hodId,x.staffId].map(norm).includes(norm(saved))&&active(x));}catch(e){}}
- if(!a && !user && !requested){a=null;}
+
+ // First use the programme assignment, when it exists.
+ if(requested){
+   a=all.find(x=>[x.hodUid,x.hodId,x.staffId,x.hodEmail].map(norm).includes(norm(requested))&&active(x));
+ }
+ if(!a && user){
+   a=all.find(x=>candidateMatches(x,user)&&active(x));
+ }
+
+ // If the assignment collection does not contain this HOD, use the
+ // HOD's own profile/account record. This prevents a valid HOD account
+ // from getting stuck on "Loading HOD profile...".
+ if(!a && user){
+   try{
+     const [hodRows,userRows]=await Promise.all([
+       rows("hods"),
+       rows("users")
+     ]);
+
+     const uid=norm(user.uid);
+     const email=norm(user.email);
+
+     const hp=hodRows.find(x=>{
+       const ids=[x.authUid,x.uid,x.firebaseUid,x.hodUid].map(norm).filter(Boolean);
+       const emails=[x.email,x.authEmail,x.hodEmail].map(norm).filter(Boolean);
+       return ids.includes(uid)||emails.includes(email);
+     });
+
+     const ur=userRows.find(x=>{
+       const ids=[x.uid,x.authUid,x.firebaseUid].map(norm).filter(Boolean);
+       const emails=[x.email,x.authEmail].map(norm).filter(Boolean);
+       return ids.includes(uid)||emails.includes(email);
+     });
+
+     const source=hp||ur;
+     if(source){
+       const role=norm(first(source,["accountType","role","staffRole"],""));
+       const programmeId=clean(first(source,["programmeId","programId","programmeUid"],""));
+       const programmeName=clean(first(source,["programmeName","programme","courseOfStudy"],""));
+       const programmeCode=clean(first(source,["programmeCode","programCode"],""));
+
+       // Only use the account/profile fallback when it is clearly an HOD
+       // or contains an explicit Programme assignment.
+       if(role==="hod" || role.includes("head of programme") ||
+          role.includes("head of department") || programmeId || programmeName){
+         a={
+           id:hp?.id||ur?.id||"",
+           hodUid:clean(first(source,["hodUid","authUid","uid","firebaseUid"],user.uid)),
+           hodId:clean(first(source,["hodId","hodID"],"")),
+           staffId:clean(first(source,["staffId","staffID","employeeId","employeeID"],"")),
+           hodName:clean(first(source,["fullName","name","hodName"],user.displayName||"HOD")),
+           hodEmail:clean(first(source,["email","authEmail","hodEmail"],user.email||"")),
+           programmeId,
+           programmeName,
+           programmeCode,
+           status:first(source,["status"],"Active")||"Active"
+         };
+       }
+     }
+   }catch(e){
+     console.warn("Could not use HOD account/profile fallback:",e);
+   }
+ }
+
+ // Finally, preserve the existing local-session fallback.
+ if(!a){
+   try{
+     const saved=localStorage.getItem("hodUid")||localStorage.getItem("lecturerId");
+     if(saved){
+       a=all.find(x=>[x.hodUid,x.hodId,x.staffId].map(norm).includes(norm(saved))&&active(x));
+     }
+   }catch(e){}
+ }
+
  return a;
 }
 
