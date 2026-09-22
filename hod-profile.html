@@ -788,13 +788,34 @@ function candidateMatches(a,user){
  return [user?.uid,user?.email,user?.staffId,user?.hodId,user?.name].map(norm).filter(Boolean).some(v=>vals.includes(v));
 }
 async function findHod(user){
- const all=await rows("programmeHodAssignments");
- const requested=urlHodUid();
+ // The authenticated Firebase UID is the primary identity.
+ // Never select the first HOD, lecturer, or old localStorage record.
+ if(!user?.uid)return null;
+ const uid=norm(user.uid);
+ const email=norm(user.email);
  let a=null;
- if(requested)a=all.find(x=>[x.hodUid,x.hodId,x.staffId,x.hodEmail].map(norm).includes(norm(requested))&&active(x));
- if(!a && user)a=all.find(x=>candidateMatches(x,user)&&active(x));
- if(!a){try{const saved=localStorage.getItem("hodUid")||localStorage.getItem("lecturerId");if(saved)a=all.find(x=>[x.hodUid,x.hodId,x.staffId].map(norm).includes(norm(saved))&&active(x));}catch(e){}}
- if(!a && !user && !requested){a=null;}
+ try{
+   const [hs,us,as]=await Promise.all([rows("hods"),rows("users"),rows("programmeHodAssignments")]);
+   const h=hs.find(x=>{
+     const ids=[x.uid,x.authUid,x.firebaseUid,x.hodUid].map(norm).filter(Boolean);
+     const emails=[x.email,x.authEmail,x.hodEmail].map(norm).filter(Boolean);
+     return ids.includes(uid)||emails.includes(email)||norm(x.id)===uid;
+   });
+   const u=us.find(x=>{
+     const ids=[x.uid,x.authUid,x.firebaseUid].map(norm).filter(Boolean);
+     const emails=[x.email,x.authEmail].map(norm).filter(Boolean);
+     return ids.includes(uid)||emails.includes(email);
+   });
+   const aa=as.find(x=>{
+     const ids=[x.authUid,x.hodUid,x.hodId,x.staffId].map(norm).filter(Boolean);
+     const emails=[x.hodEmail].map(norm).filter(Boolean);
+     return (ids.includes(uid)||emails.includes(email))&&active(x);
+   });
+   // Prefer the standalone HOD record, then the users account, then the programme assignment.
+   if(h)a={...aa,...u,...h,id:h.id};
+   else if(u)a={...aa,...u,id:aa?.id||u.id};
+   else if(aa)a=aa;
+ }catch(e){console.warn("Could not resolve HOD by Firebase UID:",e)}
  return a;
 }
 
@@ -814,7 +835,7 @@ function lecturerMatchesAssignment(l,a){
 }
 
 function profileName(){return clean(first(hodProfile,["fullName","name","hodName"],first(hodAssignment,["hodName","name"],"HOD")))}
-function profileHodId(){return clean(first(hodProfile,["hodId","hodID"],first(hodAssignment,["hodId"],"—")))}
+function profileHodId(){return clean(first(hodProfile,["hodId","hodID","profileId"],first(hodAssignment,["hodId","profileId"],"—")))}
 function profileStaffId(){return clean(first(hodProfile,["staffId","staffID","employeeId","employeeID"],first(hodAssignment,["staffId"],"—")))}
 function profileRank(){return clean(first(hodProfile,["rank","academicRank","staffRank"],"—"))}
 function profileQualification(){return clean(first(hodProfile,["qualification","qualifications"],"—"))}
@@ -1121,7 +1142,23 @@ $("hodProfileForm").addEventListener("submit",async e=>{
    };
    if(pendingPhoto)payload.profilePhoto=pendingPhoto;
    else if(profilePhoto())payload.profilePhoto=profilePhoto();
+   // Save the standalone HOD profile under the authenticated UID.
    await setDoc(doc(db,"hods",user.uid),payload,{merge:true});
+
+   // Keep the users account record synchronized with the same Firebase UID.
+   if(hodProfile?.id && !String(hodProfile.id).includes("/") && hodProfile.id!==user.uid){
+     await updateDoc(doc(db,"users",hodProfile.id),{
+       name:payload.fullName,
+       email:payload.email,
+       authEmail:payload.email,
+       programmeId:payload.programmeId,
+       programmeName:payload.programmeName,
+       staffId:payload.staffId,
+       profileId:hodProfile.profileId||hodProfile.id,
+       profileCompleted:payload.profileCompleted,
+       updatedAt:serverTimestamp()
+     });
+   }
    if(hodAssignment?.id){
      await updateDoc(doc(db,"programmeHodAssignments",hodAssignment.id),{
        hodName:payload.fullName,
@@ -1191,7 +1228,7 @@ async function init(user){
 
   hodAssignment={
     ...hodAssignment,
-    hodUid:first(hodAssignment,["hodUid"],first(hodProfile,["authUid","uid","firebaseUid","hodUid"],user.uid)),
+    hodUid:user.uid,
     hodId:first(hodAssignment,["hodId"],first(hodProfile,["hodId","hodID","profileId"],"")),
     staffId:first(hodAssignment,["staffId"],first(hodProfile,["staffId","staffID","employeeId","employeeID"],"")),
     hodName:first(hodAssignment,["hodName"],first(hodProfile,["fullName","name","hodName"],user.displayName||"HOD")),
