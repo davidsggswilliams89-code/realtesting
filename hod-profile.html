@@ -673,7 +673,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
   <div class="submission-list" id="resultRows"><div class="empty">Loading result submissions...</div></div>
 </div></section>
 
-<section id="timetable" class="view"><div class="panel"><div class="toolbar"><div><h2 style="margin:0">Programme Timetable</h2><div class="small">Live timetable for your assigned Programme.</div></div><span style="flex:1"></span><select id="ttLevel"><option value="">All levels</option></select></div><div class="calendar" id="calendar"><div class="empty">Loading timetable...</div></div></div></section>
+<section id="timetable" class="view"><div class="panel">
+  <div class="toolbar" style="flex-wrap:wrap">
+    <div><h2 style="margin:0">Programme Timetable</h2><div class="small">Live timetable for your assigned Programme.</div></div>
+    <span style="flex:1"></span>
+    <select id="ttSession"><option value="">All sessions</option></select>
+    <select id="ttSemester"><option value="">All semesters</option></select>
+    <select id="ttLevel"><option value="">All levels</option></select>
+  </div>
+  <div class="small" id="ttProgrammeLabel" style="margin:8px 0 12px;color:var(--brand-dark);font-weight:700"></div>
+  <div class="calendar" id="calendar"><div class="empty">Loading timetable...</div></div>
+</div></section>
 
 <section id="reports" class="view"><div class="metric-shell"><div class="metric-grid">
   <div class="card"><div class="small">Results Submitted</div><div class="stat" id="reportSubmitted">0</div></div>
@@ -939,8 +949,19 @@ function renderProfile(){
  updateProfileCompletion();
 }
 function populateLevels(){
- const vals=[...new Set(students.map(studentLevel).concat(courses.map(courseLevelName)).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
- [$("studentLevel"),$("courseLevel"),$("ttLevel")].forEach((el,i)=>{if(!el)return;const old=el.value;const firstOpt=i===0?"All levels":"All levels";el.innerHTML=`<option value="">${firstOpt}</option>`+vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");if(vals.includes(old))el.value=old});
+ const vals=[...new Set(students.map(studentLevel).concat(courses.map(courseLevelName)).concat(timetables.map(t=>first(t,["levelName","level"],""))).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
+ [$('studentLevel'),$('courseLevel'),$('ttLevel')].forEach(el=>{if(!el)return;const old=el.value;el.innerHTML='<option value="">All levels</option>'+vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');if(vals.includes(old))el.value=old});
+ populateTimetableFilters();
+}
+function populateTimetableFilters(){
+ const sessionEl=$("ttSession"),semesterEl=$("ttSemester");if(!sessionEl||!semesterEl)return;
+ const oldS=sessionEl.value,oldM=semesterEl.value;
+ const sessionMap=new Map();timetables.filter(t=>programmeMatches(t)).forEach(t=>{const id=clean(first(t,["sessionId","academicSessionId"],"")),name=clean(first(t,["sessionName","academicSession","session"],""));if(id||name)sessionMap.set(id||norm(name),{id,name:name||id})});
+ sessionEl.innerHTML='<option value="">All sessions</option>'+[...sessionMap.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>`<option value="${esc(x.id||x.name)}">${esc(x.name||x.id)}</option>`).join('');if([...sessionEl.options].some(o=>o.value===oldS))sessionEl.value=oldS;
+ const selectedS=sessionEl.value,selectedSessionName=norm(sessionMap.get(selectedS)?.name||"");
+ const semMap=new Map();timetables.filter(t=>programmeMatches(t)&&(!selectedS||clean(first(t,["sessionId","academicSessionId"],""))===selectedS||norm(first(t,["sessionName","academicSession","session"],""))===selectedSessionName)).forEach(t=>{const id=clean(first(t,["semesterId"],"")),name=clean(first(t,["semesterName","semester","term"],""));if(id||name)semMap.set(id||norm(name),{id,name:name||id})});
+ semesterEl.innerHTML='<option value="">All semesters</option>'+[...semMap.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>`<option value="${esc(x.id||x.name)}">${esc(x.name||x.id)}</option>`).join('');if([...semesterEl.options].some(o=>o.value===oldM))semesterEl.value=oldM;
+ const pName=first(programme||{},["name","programmeName"],hodAssignment?.programmeName||"");$("ttProgrammeLabel").textContent=pName?`Programme: ${pName}`:"";
 }
 function renderStudents(){
  const q=norm($("studentSearch").value),lv=norm($("studentLevel").value);
@@ -1001,9 +1022,9 @@ async function updateResultGroup(group,status){
  const g=window.__resultGroups?.[group]||[];if(!g.length)return;
  try{for(const r of g){if(r.id)await updateDoc(doc(db,"results",r.id),{status,verifiedByHodUid:first(hodAssignment,["hodUid"],""),verifiedByHodId:first(hodAssignment,["hodId","staffId"],""),verifiedAt:serverTimestamp(),updatedAt:serverTimestamp()});}results=results.map(r=>g.some(x=>x.id===r.id)?{...r,status}:r);renderResults();renderReports();alert(status==="Approved"?"Results approved successfully.":status==="Rejected"?"Results returned to the lecturer.":"Results submitted to the Registrar for review.")}catch(e){alert("Unable to update the result submission: "+(e.message||e))}}
 function renderTimetable(){
- const lv=norm($("ttLevel").value),days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
- const arr=timetables.filter(t=>programmeMatches(t)&&active(t)&&(!lv||norm(first(t,["levelName","level"],""))===lv)).sort((a,b)=>(days.indexOf(first(a,["day"],""))-days.indexOf(first(b,["day"],"")))||String(first(a,["startTime"],"")).localeCompare(String(first(b,["startTime"],""))));
- $("calendar").innerHTML=days.map(day=>{const rs=arr.filter(x=>norm(first(x,["day"],""))===norm(day));return `<div class="timetable-day"><h3>${day}</h3>${rs.map(x=>`<div class="timetable-slot"><b>${esc(first(x,["startTime"],""))} – ${esc(first(x,["endTime"],""))}</b><div>${esc(first(x,["courseCode","code"],""))} • Level ${esc(first(x,["levelName","level"],"—"))}</div><div>${esc(first(x,["lecturerName"],"—"))}</div><div class="muted-line">${esc(first(x,["venue","venueName"],"—"))}</div></div>`).join("")||'<div class="mini" style="margin-top:12px">No class</div>'}</div>`}).join("");
+ const lv=norm($("ttLevel").value),sid=clean($("ttSession")?.value||""),mid=clean($("ttSemester")?.value||""),days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+ const arr=timetables.filter(t=>{if(!programmeMatches(t)||!active(t))return false;const tsid=clean(first(t,["sessionId","academicSessionId"],"")),tsname=norm(first(t,["sessionName","academicSession","session"],"")),tmid=clean(first(t,["semesterId"],"")),tmname=norm(first(t,["semesterName","semester","term"],""));return (!lv||norm(first(t,["levelName","level"],""))===lv)&&(!sid||tsid===sid||tsname===norm(sid))&&(!mid||tmid===mid||tmname===norm(mid));}).sort((a,b)=>{const da=days.findIndex(d=>norm(d)===norm(first(a,["day"],""))),db=days.findIndex(d=>norm(d)===norm(first(b,["day"],"")));return (da-db)||String(first(a,["startTime"],"")).localeCompare(String(first(b,["startTime"],"")));});
+ $("calendar").innerHTML=days.map(day=>{const rs=arr.filter(x=>norm(first(x,["day"],""))===norm(day));return `<div class="timetable-day"><h3>${day}</h3>${rs.map(x=>`<div class="timetable-slot"><b>${esc(first(x,["startTime"],""))} – ${esc(first(x,["endTime"],""))}</b><div><strong>${esc(first(x,["courseCode","code"],""))}</strong> • ${esc(first(x,["courseName","name","title"],""))}</div><div>Level: ${esc(first(x,["levelName","level"],"—"))} • ${esc(first(x,["semesterName","semester","term"],"—"))}</div><div>${esc(first(x,["lecturerName","lecturer"],"—"))}</div><div class="muted-line">Venue: ${esc(first(x,["venue","venueName"],"—"))}${first(x,["examDate","date"],"")?` • ${esc(first(x,["examDate","date"],""))}`:""}</div></div>`).join("")||'<div class="mini" style="margin-top:12px">No class</div>'}</div>`}).join("");
 }
 function renderReports(){
  const rs=results.filter(programmeMatches), submittedGroups=new Set(rs.map(resultGroupKey));$("reportSubmitted").textContent=String(submittedGroups.size);
@@ -1014,7 +1035,8 @@ function renderReports(){
 }
 function refreshAll(){populateLevels();renderProfile();renderStudents();renderLecturers();renderCourses();renderResults();renderTimetable();renderReports();}
 function show(v){document.querySelectorAll(".view").forEach(x=>x.classList.add("hidden"));const el=$(v);if(el)el.classList.remove("hidden");document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("active",a.dataset.view===v));const titles={dashboard:"HOD Dashboard",students:"Programme Students",lecturers:"Lecturer Profiles",courses:"Courses & Lecturer Assignments",results:"Result Verification",timetable:"Programme Timetable",reports:"Programme Reports"};$("pageTitle").textContent=titles[v]||"HOD Dashboard"}
-document.querySelectorAll(".nav a[data-view]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();show(a.dataset.view)}));document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.go)));
+document.querySelectorAll(".nav a[data-view]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();show(a.dataset.view)}));
+["ttSession","ttSemester","ttLevel"].forEach(id=>{const el=$(id);if(el)el.addEventListener("change",()=>{if(id==="ttSession")populateTimetableFilters();renderTimetable()});});document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.go)));
 $("studentSearch").addEventListener("input",renderStudents);$("studentLevel").addEventListener("change",renderStudents);$("courseSearch").addEventListener("input",renderCourses);$("courseLevel").addEventListener("change",renderCourses);$("courseLecturer").addEventListener("change",renderCourses);$("resultSearch").addEventListener("input",renderResults);$("resultCourse").addEventListener("change",renderResults);$("resultLecturer").addEventListener("change",renderResults);$("resultStatus").addEventListener("change",renderResults);$("resultSession").addEventListener("change",renderResults);$("ttLevel").addEventListener("change",renderTimetable);
 $("resultRows").addEventListener("click",async e=>{const toggle=e.target.closest("[data-toggle-result]");if(toggle){const card=document.querySelector(`[data-submission="${toggle.dataset.toggleResult}"]`);if(card)card.classList.toggle("open");toggle.textContent=card?.classList.contains("open")?"Hide":"View";return}const action=e.target.closest("[data-result-action]");if(!action)return;const group=Number(action.dataset.resultGroup);const type=action.dataset.resultAction;if(type==="approve")await updateResultGroup(group,"Approved");else if(type==="reject")await updateResultGroup(group,"Rejected");else if(type==="forward")await updateResultGroup(group,"Submitted to Registrar");});
 $("logoutBtn").addEventListener("click",async()=>{try{await signOut(auth)}catch(e){}location.href="login.html"});
