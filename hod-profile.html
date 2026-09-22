@@ -874,7 +874,7 @@ function lecturerMatchesAssignment(l,a){
 }
 
 function profileName(){return clean(first(hodProfile,["fullName","name","hodName"],first(hodLecturer,["fullName","name","lecturerName"],first(hodAssignment,["hodName","name"],"HOD"))))}
-function profileHodId(){return clean(first(hodProfile,["hodId","hodID"],first(hodAssignment,["hodId"],"—")))}
+function profileHodId(){return clean(first(hodProfile,["hodId","hodID","profileId"],first(hodAssignment,["hodId"],"—")))}
 function profileStaffId(){return clean(first(hodProfile,["staffId","staffID","employeeId"],first(hodLecturer,["staffId","staffID","employeeId","employeeID","lecturerId"],first(hodAssignment,["staffId"],"—"))))}
 function profileRank(){return clean(first(hodProfile,["rank","academicRank","staffRank"],first(hodLecturer,["rank","academicRank","staffRank"],"—")))}
 function profileQualification(){return clean(first(hodProfile,["qualification","qualifications"],first(hodLecturer,["qualification","qualifications"],"—")))}
@@ -890,14 +890,38 @@ function initials(name){return name.split(/\s+/).map(x=>x[0]).filter(Boolean).sl
 
 async function loadHodProfile(user){
   if(!user){hodProfile=null;return}
+
+  const uid=norm(user.uid);
+  const email=norm(user.email);
+
   try{
-    const snap=await getDocs(collection(db,"hods"));
-    const matches=snap.docs.map(d=>({id:d.id,...d.data()}));
-    hodProfile=matches.find(x=>norm(first(x,["authUid","uid","firebaseUid"],""))===norm(user.uid))
-      || matches.find(x=>norm(first(x,["hodUid"],""))===norm(first(hodAssignment,["hodUid"],"")))
-      || null;
+    // NEW HOD ACCOUNT:
+    // First load the profile created under hods/{Firebase UID}.
+    const hodSnap=await getDocs(collection(db,"hods"));
+    const hodRows=hodSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+    let profile=hodRows.find(x=>{
+      const ids=[x.authUid,x.uid,x.firebaseUid,x.hodUid].map(norm).filter(Boolean);
+      const emails=[x.email,x.authEmail,x.hodEmail].map(norm).filter(Boolean);
+      return ids.includes(uid)||emails.includes(email)||norm(x.id)===uid;
+    })||null;
+
+    // If MY DETAILS has not been saved yet, use the newly-created users
+    // account record so the UID/account details can still be displayed.
+    if(!profile){
+      const userSnap=await getDocs(collection(db,"users"));
+      const userRows=userSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+      profile=userRows.find(x=>{
+        const ids=[x.uid,x.authUid,x.firebaseUid].map(norm).filter(Boolean);
+        const emails=[x.email,x.authEmail].map(norm).filter(Boolean);
+        return ids.includes(uid)||emails.includes(email)||norm(x.id)===uid;
+      })||null;
+    }
+
+    hodProfile=profile;
   }catch(e){
-    console.warn("Could not load hods profile:",e);
+    console.error("Could not load HOD profile by Firebase UID:",e);
     hodProfile=null;
   }
 }
