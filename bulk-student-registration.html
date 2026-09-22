@@ -11,7 +11,7 @@ main{max-width:1200px;margin:20px auto;padding:0 14px}.hero,.panel{background:#f
 .identity{background:var(--soft);border:1px solid #bbf7d0;border-radius:10px;padding:12px;font-size:12px;color:#166534}.identity strong{display:block;font-size:14px;margin-bottom:4px}
 .steps,.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:13px}.step,.stat{border:1px solid var(--line);border-radius:10px;padding:10px}.step b{display:block;color:var(--dark);font-size:12px}.step span,.stat span{font-size:10px;color:var(--muted)}.stat b{display:block;font-size:20px;color:var(--dark)}
 textarea{width:100%;min-height:220px;resize:vertical;padding:12px;border:1px solid #cfded7;border-radius:10px;font:12px/1.5 Consolas,monospace}input,select{width:100%;padding:10px;border:1px solid #cfded7;border-radius:9px;background:#fff;font:inherit}label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.actions,.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.toolbar input{flex:1;min-width:180px}button{border:0;border-radius:9px;padding:10px 14px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.secondary,.file-label{background:#e8f0ed;color:var(--text)}.file-label{display:inline-block;border-radius:9px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer}.file-label input{display:none}
+.actions,.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.toolbar input{flex:1;min-width:180px}button{border:0;border-radius:9px;padding:10px 14px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.utility-btn{background:var(--brand)!important;color:#fff!important;opacity:1!important;pointer-events:auto!important}.secondary,.file-label{background:#e8f0ed;color:var(--text)}.file-label{display:inline-block;border-radius:9px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer}.file-label input{display:none}
 .message{min-height:20px;margin-top:10px;font-size:12px;font-weight:700}.ok{color:var(--good)}.bad{color:var(--danger)}.hidden{display:none!important}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:1050px}th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:11px}th{background:#f1f7f4;color:#526b61;font-size:10px;text-transform:uppercase}.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--soft);font-size:10px;font-weight:800}.good{background:#dcfce7;color:#166534}.bad{background:#fee2e2;color:#991b1b}.progress{height:10px;background:#e7eee9;border-radius:99px;overflow:hidden;margin-top:10px}.progress i{display:block;height:100%;width:0;background:var(--brand)}pre{white-space:pre-wrap;background:#102c20;color:#e7fff0;border-radius:10px;padding:12px;font-size:11px;line-height:1.5}.toast{position:fixed;right:16px;bottom:16px;background:var(--dark);color:#fff;padding:11px 14px;border-radius:9px;display:none;z-index:50;font-size:12px}
 @media(max-width:700px){.head{height:58px;grid-template-columns:44px 1fr 62px}.school-logo{width:40px;height:40px}.header-title{font-size:13px}.form-grid{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){main{padding:0 10px;margin-top:14px}.hero,.panel{padding:14px}.form-grid,.steps{grid-template-columns:1fr}}
@@ -26,7 +26,7 @@ textarea{width:100%;min-height:220px;resize:vertical;padding:12px;border:1px sol
 <label style="margin-top:13px">Bulk Student Data</label><textarea id="bulkInput" placeholder="Full Name | Student ID | Admission Number | Email | Password | Programme | Level | Status
 Musa Garba | GGCHST/2026/001 | ADM/001 | musa@example.com | Musa@123 | Medical Laboratory Technician | Level 100 | Active"></textarea>
 <div class="hint">Header row is optional. Column order is fixed: Full Name | Student ID | Admission Number | Email | Password | Programme | Level | Status. Status may be omitted.</div>
-<div class="actions"><button id="parseBtn" type="button">PARSE &amp; PREVIEW</button><button id="sampleBtn" type="button">Load Sample</button><button id="clearBtn" type="button" class="secondary">Clear</button></div><div id="sourceMsg" class="message"></div></section>
+<div class="actions"><button id="parseBtn" type="button">PARSE &amp; PREVIEW</button><button id="sampleBtn" type="button" class="utility-btn">Load Sample</button><button id="clearBtn" type="button" class="utility-btn">Clear</button></div><div id="sourceMsg" class="message"></div></section>
 
 <section class="panel hidden" id="previewPanel"><div class="identity"><strong>Preview &amp; Validation</strong><span>No accounts are created until you press CREATE VALID STUDENTS.</span></div>
 <div class="stats"><div class="stat"><b id="total">0</b><span>Total</span></div><div class="stat"><b id="valid">0</b><span>Valid</span></div><div class="stat"><b id="invalid">0</b><span>Invalid</span></div><div class="stat"><b id="ready">0</b><span>Ready</span></div></div>
@@ -42,6 +42,22 @@ Musa Garba | GGCHST/2026/001 | ADM/001 | musa@example.com | Musa@123 | Medical L
 Aisha Bello | GGCHST/2026/002 | ADM/002 | aisha@example.com | Aisha@123 | Community Health | Level 200 | Active</pre><div class="hint"><b>Security:</b> passwords are used only to create Firebase Authentication accounts and are never written to Firestore.</div></section>
 </main><div id="toast" class="toast"></div>
 
+<script>
+(function(){
+  var sample=document.getElementById("sampleBtn"), clear=document.getElementById("clearBtn"), input=document.getElementById("bulkInput"), sep=document.getElementById("separator"), msg=document.getElementById("sourceMsg");
+  if(sample){sample.disabled=false;sample.removeAttribute("disabled");sample.onclick=function(){
+    if(sep) sep.value="|";
+    if(input) input.value="Full Name | Student ID | Admission Number | Email | Password | Programme | Level | Status\nMusa Garba | GGCHST/2026/001 | ADM/001 | musa@example.com | musa@example.com | Medical Laboratory Technician | Level 100 | Active";
+    if(msg){msg.textContent="Sample loaded. Click PARSE & PREVIEW.";msg.className="message ok";}
+  };}
+  if(clear){clear.disabled=false;clear.removeAttribute("disabled");clear.onclick=function(){
+    if(input) input.value="";
+    var p=document.getElementById("previewPanel"), pr=document.getElementById("progressPanel"), r=document.getElementById("resultPanel");
+    if(p)p.classList.add("hidden"); if(pr)pr.classList.add("hidden"); if(r)r.classList.add("hidden");
+    if(msg){msg.textContent="";msg.className="message";}
+  };}
+})();
+</script>
 <script type="module">
 import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import{getFirestore,collection,getDocs,addDoc}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
