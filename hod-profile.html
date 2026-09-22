@@ -579,6 +579,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
   margin-top:2px!important;
 }
 </style>
+
+<style id="screenshot-exact-profile-style">
+body{background:#f4f8f5!important}.school-header{padding:0!important;border-bottom:0!important;box-shadow:none!important}.school-header-inner{min-height:58px;padding:0 26px!important}.school-brand{width:100%;justify-content:flex-start!important}.school-brand img,.school-location,.school-portal-title,.school-logout{display:none!important}.school-name{font-size:24px!important;font-weight:400!important;color:#5c5c5c!important;line-height:58px!important}.screenshot-nav{height:116px;background:#0b3f27;display:flex;align-items:flex-start;gap:10px;padding:18px 22px;overflow-x:auto;border-top:3px solid #d8e5dc;white-space:nowrap}.screenshot-nav a{display:inline-flex;align-items:center;gap:9px;height:80px;padding:0 28px;border-radius:18px;color:#f5faf7;text-decoration:none;font-size:24px;font-weight:500;flex:0 0 auto}.screenshot-nav a span{font-size:22px}.screenshot-nav a:hover,.screenshot-nav a.active{background:#1b5a3d}.main{padding:0!important}#views{width:100%!important;max-width:none!important;padding:24px 24px 40px!important;margin:0!important}#dashboard{margin:0!important}.screenshot-profile-card{width:100%;background:#fff;border:2px solid #dce8e1;border-radius:34px;overflow:hidden;box-shadow:0 1px 5px rgba(20,60,40,.05)}.screenshot-profile-top{min-height:240px;padding:32px 34px;display:flex;align-items:center;gap:38px;background:linear-gradient(135deg,#f0faf5 0%,#fff 72%);border-bottom:2px solid #dce8e1}.screenshot-photo-wrap{width:210px;flex:0 0 210px;display:flex;justify-content:center}.screenshot-photo,.screenshot-photo-placeholder{width:178px;height:178px;border-radius:50%;border:7px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.14);object-fit:cover}.screenshot-photo-placeholder{display:grid;place-items:center;background:#dff1e6;color:#16834b;font-size:55px;font-weight:800}.screenshot-profile-intro{min-width:0}.screenshot-profile-intro h2{margin:0 0 7px;color:#087443;font-size:42px;line-height:1.1;font-weight:800}.screenshot-role{font-size:27px;color:#66756d;line-height:1.25;margin-bottom:10px}.screenshot-linked{font-size:23px;color:#66756d;line-height:1.25}.screenshot-profile-body{padding:28px 28px 30px}.screenshot-info-card{min-height:122px;margin-bottom:22px;padding:25px 27px;border:2px solid #dfe9e2;border-radius:25px;background:#fff;display:flex;flex-direction:column;justify-content:center}.screenshot-info-card b{font-size:22px;color:#65736c;letter-spacing:.4px;margin-bottom:8px}.screenshot-info-card span{font-size:29px;color:#172b21;font-weight:800;word-break:break-word}.screenshot-info-card .screenshot-status{color:#16834b}.screenshot-edit-btn{margin-top:4px;border:0;border-radius:15px;background:#168b50;color:#fff;padding:17px 29px;font-size:22px;font-weight:800;cursor:pointer}.screenshot-edit-btn:hover{background:#0d6337}.screenshot-hidden-fields{display:none!important}@media(max-width:760px){.school-header-inner{min-height:58px;padding:0 24px!important}.school-name{font-size:24px!important;line-height:58px!important;white-space:nowrap}.screenshot-nav{height:116px;padding:18px 22px;gap:10px}.screenshot-nav a{height:80px;padding:0 28px;font-size:24px}#views{padding:24px 23px 35px!important}.screenshot-profile-top{min-height:240px;padding:31px 28px;gap:32px}.screenshot-photo-wrap{width:210px;flex-basis:210px}.screenshot-photo,.screenshot-photo-placeholder{width:178px;height:178px}.screenshot-profile-intro h2{font-size:41px}.screenshot-role{font-size:27px}.screenshot-linked{font-size:22px}.screenshot-profile-body{padding:28px 28px 30px}}@media(max-width:620px){.screenshot-profile-top{padding:26px 22px;gap:20px}.screenshot-photo-wrap{width:145px;flex-basis:145px}.screenshot-photo,.screenshot-photo-placeholder{width:125px;height:125px}.screenshot-profile-intro h2{font-size:31px}.screenshot-role{font-size:21px}.screenshot-linked{font-size:17px}.screenshot-profile-body{padding:22px 20px 24px}.screenshot-info-card{min-height:100px;padding:20px 22px;margin-bottom:18px;border-radius:21px}.screenshot-info-card b{font-size:18px}.screenshot-info-card span{font-size:23px}.screenshot-edit-btn{font-size:19px}}
+</style>
 </head>
 <body>
 
@@ -602,43 +606,45 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
   </div>
 </header>
 
+<nav class="screenshot-nav" aria-label="HOD Portal navigation">
+  <a href="#dashboard" data-view="dashboard" data-nav="dashboard"><span>▦</span> Dashboard</a>
+  <a href="#dashboard" class="active" data-view="dashboard" data-nav="profile"><span>👤</span> HOD Profile</a>
+  <a href="#students" data-view="students"><span>👥</span> Students</a>
+  <a href="#lecturers" data-view="lecturers"><span>◉</span> Lecturers</a>
+  <a href="#courses" data-view="courses"><span>▤</span> Courses</a>
+  <a href="#results" data-view="results"><span>✓</span> Result Verification</a>
+  <a href="#timetable" data-view="timetable"><span>▣</span> Timetable</a>
+  <a href="#reports" data-view="reports"><span>▥</span> Reports</a>
+</nav>
+
 <div class="app">
 <main class="main">
 <div id="views">
 <section id="dashboard" class="view">
-  <div class="panel hod-student-style-profile" style="margin-bottom:16px">
-    <div class="hod-profile-card">
-      <div class="hod-profile-heading">HOD Profile</div>
-
-      <div class="hod-programme-banner" id="hodTopProgramme">Loading Programme...</div>
-
-      <div class="hod-centered-photo">
-        <div id="hodPhotoPlaceholder" class="hod-photo-placeholder hod-photo-large">H</div>
-        <img id="hodPhoto" class="hod-photo hod-photo-large" alt="HOD profile photo" style="display:none">
+  <div class="screenshot-profile-card">
+    <div class="screenshot-profile-top">
+      <div class="screenshot-photo-wrap">
+        <div id="hodPhotoPlaceholder" class="screenshot-photo-placeholder">H</div>
+        <img id="hodPhoto" class="screenshot-photo" alt="HOD profile photo" style="display:none">
       </div>
-
-      <h2 id="hodName" class="hod-profile-name">Loading HOD profile...</h2>
-
-      <div id="hodIdentity" class="hod-profile-identity">HOD ID: — • Staff ID: —</div>
-
-      <div id="hodRoleLine" class="hod-profile-role">Head of Programme</div>
-
-      <div class="hod-info-pills">
-        <div class="hod-info-pill" id="hodRankPill">Rank: —</div>
-        <div class="hod-info-pill" id="hodQualificationPill">Qualification: —</div>
+      <div class="screenshot-profile-intro">
+        <h2 id="hodName">Loading HOD profile...</h2>
+        <div id="hodRoleLine" class="screenshot-role">Head of Programme</div>
+        <div class="screenshot-linked">Standalone HOD account • Firebase UID linked</div>
       </div>
-
-      <div class="hod-info-pills hod-session-pills">
-        <div class="hod-info-pill" id="hodSessionPill">Academic Session: —</div>
-        <div class="hod-info-pill" id="hodStatusPill">Status: ACTIVE</div>
+    </div>
+    <div class="screenshot-profile-body">
+      <div class="screenshot-info-card"><b>HOD ID</b><span id="hodIdentity">—</span></div>
+      <div class="screenshot-info-card"><b>PROGRAMME</b><span id="hodTopProgramme">Loading Programme...</span></div>
+      <div class="screenshot-info-card"><b>ACADEMIC SESSION</b><span id="hodSessionPill">Academic Session: —</span></div>
+      <div class="screenshot-info-card"><b>STATUS</b><span id="hodStatusPill" class="screenshot-status">Status: ACTIVE</span></div>
+      <div class="screenshot-info-card"><b>LOGIN EMAIL</b><span id="screenshotLoginEmail">—</span></div>
+      <div class="screenshot-info-card"><b>FIREBASE UID</b><span id="screenshotFirebaseUid">—</span></div>
+      <div class="screenshot-hidden-fields" aria-hidden="true">
+        <span id="hodRankPill">—</span><span id="hodQualificationPill">—</span>
+        <span id="hodProfileUpdated">—</span><span id="profileCompletion">Profile information incomplete</span>
       </div>
-
-      <div class="hod-profile-updated" id="hodProfileUpdated">Profile details last updated: —</div>
-
-      <button class="hod-my-details-btn" id="updateInfoBtn" type="button">MY DETAILS</button>
-
-      <div class="profile-note hod-profile-note">Your Programme, HOD role, academic session and account status are controlled by the school administrator. Personal profile information can be completed here.</div>
-      <div id="profileCompletion" class="profile-incomplete hod-completion">Profile information incomplete</div>
+      <button class="screenshot-edit-btn" id="updateInfoBtn" type="button">Edit My Details</button>
     </div>
   </div>
 
@@ -807,7 +813,7 @@ const resultStatus=r=>clean(first(r,["status","resultStatus","approvalStatus"],"
 
 let hodAssignment=null,hodLecturer=null,hodProfile=null,programme=null,activeSession=null;
 let students=[],lecturers=[],courses=[],assignments=[],results=[],timetables=[],semesters=[],levels=[];
-let listenersStarted=false;
+let listenersStarted=false,currentAuthUser=null;
 
 function urlHodUid(){const p=new URLSearchParams(location.search);return clean(p.get("hodUid")||p.get("uid")||p.get("hodId")||p.get("staffId"));}
 function candidateMatches(a,user){
@@ -949,12 +955,16 @@ function renderProfile(){
 
  $("hodTopProgramme").textContent=pName;
  $("hodName").textContent=name;
- $("hodIdentity").textContent=`HOD ID: ${id} • Staff ID: ${staffId}`;
+ $("hodIdentity").textContent=id||"—";
  $("hodRoleLine").textContent=role;
  $("hodRankPill").textContent=rank;
  $("hodQualificationPill").textContent=qualification;
- $("hodSessionPill").textContent=`Academic Session: ${session}`;
- $("hodStatusPill").textContent=`Status: ${status}`;
+ $("hodSessionPill").textContent=session||"—";
+ $("hodStatusPill").textContent=status||"ACTIVE";
+ const loginEmail=profileEmail()||clean(currentAuthUser?.email||"");
+ const firebaseUid=clean(currentAuthUser?.uid||hodProfile?.authUid||hodProfile?.uid||"");
+ $("screenshotLoginEmail").textContent=loginEmail||"—";
+ $("screenshotFirebaseUid").textContent=firebaseUid||"—";
  $("hodProfileUpdated").textContent=`Profile details last updated: ${formatProfileUpdated(first(hodProfile,["detailsUpdatedAt","updatedAt"],""))}`;
  $("lecturerProgrammeBadge").textContent=pName;
 
@@ -1068,7 +1078,8 @@ function renderReports(){
  $("reportStatusRows").innerHTML=Object.entries(statusCounts).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("");
 }
 function refreshAll(){populateLevels();renderProfile();renderStudents();renderLecturers();renderCourses();renderResults();renderTimetable();renderReports();}
-function show(v){document.querySelectorAll(".view").forEach(x=>x.classList.add("hidden"));const el=$(v);if(el)el.classList.remove("hidden");document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("active",a.dataset.view===v));const titles={dashboard:"HOD Dashboard",students:"Programme Students",lecturers:"Lecturer Profiles",courses:"Courses & Lecturer Assignments",results:"Result Verification",timetable:"Programme Timetable",reports:"Programme Reports"};$("pageTitle").textContent=titles[v]||"HOD Dashboard"}
+function show(v){document.querySelectorAll(".view").forEach(x=>x.classList.add("hidden"));const el=$(v);if(el)el.classList.remove("hidden");document.querySelectorAll(".screenshot-nav a").forEach(a=>a.classList.toggle("active",a.dataset.nav===((v==="dashboard")?"profile":v)));document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("active",a.dataset.view===v));const titles={dashboard:"HOD Dashboard",students:"Programme Students",lecturers:"Lecturer Profiles",courses:"Courses & Lecturer Assignments",results:"Result Verification",timetable:"Programme Timetable",reports:"Programme Reports"};const pt=$("pageTitle");if(pt)pt.textContent=titles[v]||"HOD Dashboard"}
+document.querySelectorAll(".screenshot-nav a[data-view]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();show(a.dataset.view)}));
 document.querySelectorAll(".nav a[data-view]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();show(a.dataset.view)}));
 ["ttSession","ttSemester","ttLevel"].forEach(id=>{const el=$(id);if(el)el.addEventListener("change",()=>{if(id==="ttSession")populateTimetableFilters();renderTimetable()});});document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.go)));
 $("studentSearch").addEventListener("input",renderStudents);$("studentLevel").addEventListener("change",renderStudents);$("courseSearch").addEventListener("input",renderCourses);$("courseLevel").addEventListener("change",renderCourses);$("courseLecturer").addEventListener("change",renderCourses);$("reportSession")?.addEventListener("change",renderReports);$("resultSearch").addEventListener("input",renderResults);$("resultCourse").addEventListener("change",renderResults);$("resultLecturer").addEventListener("change",renderResults);$("resultStatus").addEventListener("change",renderResults);$("resultSession").addEventListener("change",renderResults);$("ttLevel").addEventListener("change",renderTimetable);
@@ -1177,7 +1188,7 @@ async function init(user){
  }catch(e){console.error(e);$("hodName").textContent="Unable to load HOD profile";alert("HOD portal could not load the Firebase data: "+(e.message||e))}
 }
 
-onAuthStateChanged(auth,user=>{init(user)});
+onAuthStateChanged(auth,user=>{currentAuthUser=user;init(user)});
 </script>
 
 <script>
