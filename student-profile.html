@@ -599,7 +599,7 @@ a.file-link{color:var(--green);font-weight:800;text-decoration:none}
 <script type="module">
 import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import{getAuth,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import{getFirestore,collection,getDocs,doc,updateDoc}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import{getFirestore,collection,getDocs,doc,getDoc,updateDoc}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
@@ -674,18 +674,45 @@ async function rows(name){
   }
 }
 async function findStudent(user){
+  const uid=String(user?.uid||"").trim();
+  const email=norm(user?.email);
+
+  // PRIMARY LINK: the users record created by Create Access/Bulk Registration
+  // stores the exact students document ID in profileId. This prevents the
+  // student portal from accidentally loading another student's record.
+  try{
+    const userRows=await rows("users");
+    const userRecord=userRows.find(x=>String(x.uid||x.authUid||x.firebaseUid||"").trim()===uid)
+      || userRows.find(x=>norm(x.email||x.authEmail)===email);
+
+    const profileId=String(userRecord?.profileId||"").trim();
+    if(profileId){
+      const snap=await getDoc(doc(db,"students",profileId));
+      if(snap.exists()) return {id:snap.id,...snap.data()};
+    }
+
+    // Secondary UID match for older student records.
+    const list=await rows("students");
+    const byUid=list.find(s=>[s.studentUid,s.authUid,s.firebaseUid,s.uid].some(x=>String(x||"").trim()===uid));
+    if(byUid)return byUid;
+
+    const byEmail=list.find(s=>norm(s.email||s.authEmail)===email);
+    if(byEmail)return byEmail;
+  }catch(err){
+    console.warn("Primary student profile link failed; using direct student lookup:",err);
+  }
+
+  // Final fallback for existing records that pre-date the profileId link.
   const list=await rows("students");
-  const uid=user.uid;
-  const email=norm(user.email);
   return list.find(s=>[s.studentUid,s.authUid,s.firebaseUid,s.uid].some(x=>String(x||"").trim()===uid))
-      || list.find(s=>norm(s.email)===email);
+      || list.find(s=>norm(s.email||s.authEmail)===email);
 }
 async function findCourses(s){
   const [maps,courses,programmes,levels]=await Promise.all([
     rows("curriculumMappings"),rows("courses"),rows("programmes"),rows("academicLevels")
   ]);
-  const programme=val(s,["programme","courseOfStudy"]);
-  const level=val(s,["level"]);
+  const programme=val(s,["programme","programmeName","courseOfStudy","programName","program"]);
+  const level=val(s,["level","levelName","academicLevel","academicLevelName","levelCode"]);
   const semester=val(s,["semester"]);
   const p=programmes.find(x=>norm(val(x,["name","programmeName","title"]))===norm(programme)||norm(x.code)===norm(programme));
   const l=levels.find(x=>norm(val(x,["name","levelName","title"]))===norm(level)||norm(x.code)===norm(level));
@@ -712,7 +739,7 @@ function matchStudent(r){
     r.admissionNo,r.studentUid,r.authUid,r.firebaseUid,r.uid,r.studentDocId
   ].map(norm);
   const me=[
-    student.id,student.studentId,student.admissionNo,student.registrationNumber,
+    student.id,student.studentId,student.admissionNo,student.admissionNumber,student.registrationNumber,
     student.studentUid,student.authUid,student.firebaseUid,student.uid
   ].map(norm);
   return ids.some(x=>x&&me.includes(x));
@@ -868,9 +895,9 @@ async function saveMyDetails(e){
 function renderProfile(){
   const name=val(student,["fullName","studentName","name"],"Student");
   const sid=val(student,["studentId","studentID","matricNo"],"—");
-  const adm=val(student,["admissionNo"],"—");
-  const programme=val(student,["programme","courseOfStudy"],"—");
-  const level=val(student,["level"],"—");
+  const adm=val(student,["admissionNo","admissionNumber","admission"],"—");
+  const programme=val(student,["programme","programmeName","courseOfStudy","programName","program"],"—");
+  const level=val(student,["level","levelName","academicLevel","academicLevelName","levelCode"],"—");
   const session=val(student,["academicSession","session"],"—");
   const status=val(student,["status"],"Active");
 
@@ -1071,7 +1098,7 @@ function renderFees(payments){
 
 
 
-let semesterCountdownTimer=null;
+let examCountdownTimer=null;
 let examPrintReady=false;
 let examTimeReached=false;
 let examFeesPaid=false;
@@ -1125,7 +1152,7 @@ function setCountdownValues(x){
 }
 
 function setExamReady(){
-  if(semesterCountdownTimer)clearInterval(semesterCountdownTimer);
+  if(examCountdownTimer)clearInterval(examCountdownTimer);
   examTimeReached=true;
   examPrintReady=examFeesPaid;
   setCountdownValues({days:0,hours:0,minutes:0,seconds:0});
@@ -1133,7 +1160,7 @@ function setExamReady(){
 }
 
 function startSemesterCountdown(semesterEndDate){
-  if(semesterCountdownTimer)clearInterval(semesterCountdownTimer);
+  if(examCountdownTimer)clearInterval(examCountdownTimer);
 
   $("examCountdown").style.display="block";
   examTimeReached=false;
@@ -1157,9 +1184,9 @@ function startSemesterCountdown(semesterEndDate){
   };
 
   $("countdownLabel").textContent="ACTIVE SEMESTER ENDS IN";
-  $("countdownNote").textContent="Countdown is calculated from the Active Semester end date and your current calendar time.";
+  $("countdownNote").textContent="Countdown is calculated from the active semester end date and your current calendar time.";
   tick();
-  semesterCountdownTimer=setInterval(tick,1000);
+  examCountdownTimer=setInterval(tick,1000);
 }
 
 
@@ -1298,9 +1325,6 @@ async function loadData(){
 
   // Find the currently ACTIVE semester. Its Firestore document ID identifies
   // the semester, and its own endDate is the countdown target.
-  // ACTIVE SEMESTER SOURCE OF TRUTH:
-  // Read the semesters collection and use only the record whose status is Active.
-  // The countdown never reads an examination date.
   activeSemester=semesters.find(x=>norm(x.status)==="active")||null;
   activeSemesterUid=String(activeSemester?.id||"").trim();
 
@@ -1338,8 +1362,8 @@ async function loadData(){
   const noteRecords=notes.filter(matchCourse);
   const assignmentRecords=assignments.filter(matchCourse);
 
-  const targetProgram=norm(val(student,["programme","courseOfStudy"]));
-  const targetLevel=norm(val(student,["level"]));
+  const targetProgram=norm(val(student,["programme","programmeName","courseOfStudy","programName","program"]));
+  const targetLevel=norm(val(student,["level","levelName","academicLevel","academicLevelName","levelCode"]));
   const targetSession=norm(val(student,["academicSession","session"]));
 
   const combinedAnnouncements=[...announcements,...notices].filter((r,i,a)=>{
@@ -1377,7 +1401,7 @@ async function loadData(){
 async function start(user){
   student=await findStudent(user);
   if(!student){
-    showMessage("Your Firebase account is logged in, but no matching student record was found in the Admin students collection.","error");
+    showMessage("Your Firebase account is logged in, but no student record is linked to this Firebase UID/profileId. Ask the administrator to check the student's users and students records.","error");
     $("studentName").textContent="Student record not found";
     $("identity").textContent=user.email||"";
     $("status").textContent="NOT LINKED";
