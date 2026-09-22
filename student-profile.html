@@ -689,9 +689,9 @@ async function findStudent(user){
   const uid=String(user?.uid||"").trim();
   const email=norm(user?.email);
 
-  // PRIMARY LINK: the users record created by Create Access/Bulk Registration
-  // stores the exact students document ID in profileId. This prevents the
-  // student portal from accidentally loading another student's record.
+  // PRIMARY LINK: Firebase UID -> users.profileId -> exact students document.
+  // We also keep the users record so programme/level can be recovered if an
+  // older student document does not contain the mirrored display fields.
   try{
     const userRows=await rows("users");
     const userRecord=userRows.find(x=>String(x.uid||x.authUid||x.firebaseUid||"").trim()===uid)
@@ -700,24 +700,69 @@ async function findStudent(user){
     const profileId=String(userRecord?.profileId||"").trim();
     if(profileId){
       const snap=await getDoc(doc(db,"students",profileId));
-      if(snap.exists()) return {id:snap.id,...snap.data()};
+      if(snap.exists()) return {...userProfileFallback(userRecord),id:snap.id,...snap.data(),_userRecord:userRecord};
     }
 
-    // Secondary UID match for older student records.
     const list=await rows("students");
     const byUid=list.find(s=>[s.studentUid,s.authUid,s.firebaseUid,s.uid].some(x=>String(x||"").trim()===uid));
-    if(byUid)return byUid;
+    if(byUid)return {...userProfileFallback(userRecord),...byUid,_userRecord:userRecord};
 
     const byEmail=list.find(s=>norm(s.email||s.authEmail)===email);
-    if(byEmail)return byEmail;
+    if(byEmail)return {...userProfileFallback(userRecord),...byEmail,_userRecord:userRecord};
   }catch(err){
     console.warn("Primary student profile link failed; using direct student lookup:",err);
   }
 
-  // Final fallback for existing records that pre-date the profileId link.
   const list=await rows("students");
-  return list.find(s=>[s.studentUid,s.authUid,s.firebaseUid,s.uid].some(x=>String(x||"").trim()===uid))
+  const found=list.find(s=>[s.studentUid,s.authUid,s.firebaseUid,s.uid].some(x=>String(x||"").trim()===uid))
       || list.find(s=>norm(s.email||s.authEmail)===email);
+  return found||null;
+}
+
+function userProfileFallback(u){
+  if(!u)return {};
+  return {
+    fullName:u.name||u.fullName||"",
+    name:u.name||u.fullName||"",
+    email:u.email||u.authEmail||"",
+    studentId:u.studentId||u.schoolId||"",
+    admissionNumber:u.admissionNumber||"",
+    admissionNo:u.admissionNumber||"",
+    programmeId:u.programmeId||"",
+    programmeName:u.programmeName||u.programme||"",
+    programme:u.programmeName||u.programme||"",
+    levelId:u.levelId||"",
+    levelName:u.levelName||u.level||"",
+    level:u.levelName||u.level||"",
+    status:u.status||u.accountStatus||"Active"
+  };
+}
+
+async function resolveProgrammeAndLevel(s){
+  let programme=val(s,["programmeName","programme","courseOfStudy","programName","program"],"");
+  let level=val(s,["levelName","level","academicLevel","academicLevelName","levelCode"],"");
+  try{
+    const [programmes,levels]=await Promise.all([rows("programmes"),rows("academicLevels")]);
+    if(!programme){
+      const pid=val(s,["programmeId","programId"],"");
+      if(pid){
+        const p=programmes.find(x=>String(x.id)===String(pid));
+        if(p)programme=val(p,["name","programmeName","title","code"],"");
+      }
+    }
+    if(!programme && s._userRecord) programme=val(s._userRecord,["programmeName","programme"],"");
+    if(!level){
+      const lid=val(s,["levelId","academicLevelId"],"");
+      if(lid){
+        const l=levels.find(x=>String(x.id)===String(lid));
+        if(l)level=val(l,["name","levelName","title","code"],"");
+      }
+    }
+    if(!level && s._userRecord) level=val(s._userRecord,["levelName","level"],"");
+  }catch(err){
+    console.warn("Programme/level lookup failed:",err);
+  }
+  return {programme:programme||"—",level:level||"—"};
 }
 async function findCourses(s){
   const [maps,courses,programmes,levels]=await Promise.all([
@@ -997,7 +1042,7 @@ async function saveMyDetails(e){
     }
 
     student={...student,...data};
-    renderProfile();renderProfileUpdateDate();
+    await renderProfile();renderProfileUpdateDate();
     showDetailsStatus("Your student details have been saved successfully. The same record is now available to the Admin Student List/Edit page.","ok");
     btn.disabled=false;btn.textContent="Save My Details";
     setTimeout(closeDetails,1200);
@@ -1008,19 +1053,24 @@ async function saveMyDetails(e){
   }
 }
 
-function renderProfile(){
+async function renderProfile(){
   const name=val(student,["fullName","studentName","name"],"Student");
   const sid=val(student,["studentId","studentID","matricNo"],"—");
-  const adm=val(student,["admissionNo","admissionNumber","admission"],"—");
-  const programme=val(student,["programme","programmeName","courseOfStudy","programName","program"],"—");
-  const level=val(student,["level","levelName","academicLevel","academicLevelName","levelCode"],"—");
   const session=val(student,["academicSession","session"],"—");
-  const status=val(student,["status"],"Active");
+  const status=val(student,["status","accountStatus"],"Active");
+  const resolved=await resolveProgrammeAndLevel(student||{});
+
+  // Keep the resolved values on the same in-memory student object so every
+  // section of the profile uses the same Programme/Level values.
+  student.programme=resolved.programme;
+  student.programmeName=resolved.programme;
+  student.level=resolved.level;
+  student.levelName=resolved.level;
 
   $("studentName").textContent=name;
   $("identity").textContent=sid;
-  $("programme").textContent=programme;
-  $("level").textContent=level;
+  $("programme").textContent=resolved.programme;
+  $("level").textContent=resolved.level;
   $("session").textContent=session;
   $("status").textContent=String(status).toUpperCase();
   $("status").style.color=norm(status)==="active"?"#138344":"#8a3b12";
