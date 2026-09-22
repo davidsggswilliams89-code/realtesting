@@ -792,7 +792,7 @@ async function findHod(user){
  const requested=urlHodUid();
  let a=null;
 
- // First use the programme assignment, when it exists.
+ // Existing programme assignment, if one has already been created.
  if(requested){
    a=all.find(x=>[x.hodUid,x.hodId,x.staffId,x.hodEmail].map(norm).includes(norm(requested))&&active(x));
  }
@@ -800,69 +800,59 @@ async function findHod(user){
    a=all.find(x=>candidateMatches(x,user)&&active(x));
  }
 
- // If the assignment collection does not contain this HOD, use the
- // HOD's own profile/account record. This prevents a valid HOD account
- // from getting stuck on "Loading HOD profile...".
+ // NEW HOD ACCOUNTS: the HOD does not need to exist in lecturers.
+ // Read the authenticated HOD's own account/profile from Firestore.
  if(!a && user){
    try{
-     const [hodRows,userRows]=await Promise.all([
-       rows("hods"),
-       rows("users")
-     ]);
-
+     const userRows=await rows("users");
      const uid=norm(user.uid);
      const email=norm(user.email);
 
-     const hp=hodRows.find(x=>{
-       const ids=[x.authUid,x.uid,x.firebaseUid,x.hodUid].map(norm).filter(Boolean);
-       const emails=[x.email,x.authEmail,x.hodEmail].map(norm).filter(Boolean);
-       return ids.includes(uid)||emails.includes(email);
-     });
-
-     const ur=userRows.find(x=>{
+     const u=userRows.find(x=>{
        const ids=[x.uid,x.authUid,x.firebaseUid].map(norm).filter(Boolean);
        const emails=[x.email,x.authEmail].map(norm).filter(Boolean);
        return ids.includes(uid)||emails.includes(email);
      });
 
-     const source=hp||ur;
-     if(source){
-       const role=norm(first(source,["accountType","role","staffRole"],""));
-       const programmeId=clean(first(source,["programmeId","programId","programmeUid"],""));
-       const programmeName=clean(first(source,["programmeName","programme","courseOfStudy"],""));
-       const programmeCode=clean(first(source,["programmeCode","programCode"],""));
+     if(u){
+       const role=norm(first(u,["accountType","role","staffRole"],""));
+       const isHod=role==="hod" || role.includes("head of programme") || role.includes("head of department");
 
-       // Only use the account/profile fallback when it is clearly an HOD
-       // or contains an explicit Programme assignment.
-       if(role==="hod" || role.includes("head of programme") ||
-          role.includes("head of department") || programmeId || programmeName){
+       if(isHod){
          a={
-           id:hp?.id||ur?.id||"",
-           hodUid:clean(first(source,["hodUid","authUid","uid","firebaseUid"],user.uid)),
-           hodId:clean(first(source,["hodId","hodID"],"")),
-           staffId:clean(first(source,["staffId","staffID","employeeId","employeeID"],"")),
-           hodName:clean(first(source,["fullName","name","hodName"],user.displayName||"HOD")),
-           hodEmail:clean(first(source,["email","authEmail","hodEmail"],user.email||"")),
-           programmeId,
-           programmeName,
-           programmeCode,
-           status:first(source,["status"],"Active")||"Active"
+           id:"",
+           hodUid:user.uid,
+           hodId:clean(first(u,["hodId","hodID","profileId"],"")),
+           staffId:clean(first(u,["staffId","staffID","employeeId","employeeID"],"")),
+           hodName:clean(first(u,["fullName","name","displayName"],user.displayName||"HOD")),
+           hodEmail:clean(first(u,["email","authEmail"],user.email||"")),
+           programmeId:clean(first(u,["programmeId","programId","programmeUid"],"")),
+           programmeName:clean(first(u,["programmeName","programme","courseOfStudy"],"")),
+           programmeCode:clean(first(u,["programmeCode","programCode"],"")),
+           status:first(u,["status"],"Active")||"Active"
          };
        }
      }
    }catch(e){
-     console.warn("Could not use HOD account/profile fallback:",e);
+     console.warn("Could not load HOD user account:",e);
    }
  }
 
- // Finally, preserve the existing local-session fallback.
- if(!a){
-   try{
-     const saved=localStorage.getItem("hodUid")||localStorage.getItem("lecturerId");
-     if(saved){
-       a=all.find(x=>[x.hodUid,x.hodId,x.staffId].map(norm).includes(norm(saved))&&active(x));
-     }
-   }catch(e){}
+ // If the account itself has not yet been mirrored into users, still allow
+ // a newly authenticated HOD to open My Details and create his own profile.
+ if(!a && user){
+   a={
+     id:"",
+     hodUid:user.uid,
+     hodId:"",
+     staffId:"",
+     hodName:user.displayName||"HOD",
+     hodEmail:user.email||"",
+     programmeId:"",
+     programmeName:"",
+     programmeCode:"",
+     status:"Active"
+   };
  }
 
  return a;
@@ -1142,6 +1132,8 @@ $("hodProfileForm").addEventListener("submit",async e=>{
    };
    if(pendingPhoto)payload.profilePhoto=pendingPhoto;
    else if(profilePhoto())payload.profilePhoto=profilePhoto();
+   // A new HOD gets a brand-new profile document keyed by Firebase UID.
+   // No lecturer record is required.
    await setDoc(doc(db,"hods",user.uid),payload,{merge:true});
    if(hodAssignment?.id){
      await updateDoc(doc(db,"programmeHodAssignments",hodAssignment.id),{
@@ -1179,8 +1171,11 @@ function startListeners(){if(listenersStarted)return;listenersStarted=true;
 async function init(user){
  try{
   hodAssignment=await findHod(user);
-  if(!hodAssignment){$("hodName").textContent="HOD assignment not found";return}
-  try{localStorage.setItem("hodUid",first(hodAssignment,["hodUid","hodId","staffId"],""))}catch(e){}
+  if(!hodAssignment){
+    $("hodName").textContent="HOD profile not available";
+    return;
+  }
+  try{localStorage.setItem("hodUid",first(hodAssignment,["hodUid","hodId","staffId"],user.uid)||user.uid)}catch(e){}
   const [ls,ps,ss,sem,lv,cs,as,rs,tt]=await Promise.all([rows("lecturers"),rows("programmes"),rows("academicSessions"),rows("semesters"),rows("academicLevels"),rows("courses"),rows("lecturerCourseAssignments"),rows("results"),rows("timetables")]);
   lecturers=ls;programme=ps.find(p=>p.id===hodAssignment.programmeId)||ps.find(p=>norm(first(p,["name","programmeName"],""))===norm(hodAssignment.programmeName))||{id:hodAssignment.programmeId||"",name:hodAssignment.programmeName||"",code:hodAssignment.programmeCode||""};activeSession=ss.find(active)||ss.find(x=>norm(x.status)!=="closed")||null;semesters=sem;levels=lv;courses=cs;assignments=as;results=rs;timetables=tt;
   hodLecturer=lecturers.find(l=>lecturerMatchesAssignment(l,hodAssignment))||null;
