@@ -22,12 +22,12 @@ main{max-width:1200px;margin:20px auto;padding:0 14px}.hero,.panel{background:#f
 </head>
 <body>
 <header><div class="head"><img class="school-logo" src="logo.png" alt="Green Garden College of Health Sciences & Technology logo"><div class="header-title">Green Garden College of Health Sciences &amp; Technology, Gusau</div><a class="back" href="admin.html">← Back</a></div></header>
-<nav><div class="inner"><a href="admin.html">Dashboard</a><a href="student.html">Students</a><a href="assignment-management.html">Assignments</a><a href="admin-finance.html">Finance</a><a href="admin-users.html">Users</a></div></nav>
+<nav><div class="inner"><a href="admin.html">Dashboard</a><a href="student.html">Students</a><a href="create-access.html">Create Access</a><a href="hod-management.html">HOD Management</a><a href="assignment-management.html">Assignments</a><a href="admin-finance.html">Finance</a><a href="admin-users.html">Users</a></div></nav>
 <main>
 <section class="panel" id="adminSession" style="background:#ecfdf3;border-color:#bbf7d0"><div class="identity"><strong>🔐 Bulk Student Registration</strong><span id="adminSessionText">Ready. This page uses the same Student fields and Firestore structure as Create Access.</span></div></section>
 <section class="hero"><h1>BULK STUDENT REGISTRATION</h1><p>Register many students at once using the same Student record structure used by <b>create-access.html</b>. Firebase Authentication creates the login, while Firestore stores the student school record and linked user record.</p><div class="steps"><div class="step"><b>01 Prepare</b><span>Paste pipe, CSV or TSV rows.</span></div><div class="step"><b>02 Preview</b><span>Check Programme and Level.</span></div><div class="step"><b>03 Create</b><span>Create Auth + student + user.</span></div><div class="step"><b>04 Export</b><span>Download successful credentials.</span></div></div></section>
 <section class="panel">
-<div class="identity"><strong>Fields — exactly matched to Create Access</strong><span>Full Name, Student ID / Matric No., Admission Number, Programme, Academic Level, Account Status, login Email and Password. Programme and Academic Level are read from the same <b>programmes</b> and <b>academicLevels</b> collections used by Create Access.</span></div>
+<div class="identity"><strong>Fields — exactly matched to Create Access</strong><span>Full Name, Student ID / Matric No., Admission Number, Programme, Academic Level, Account Status, login Email and Password. Programme is taken from the selected <b>programmes</b> document <b>name</b> field, exactly like Create Access. Academic Level is taken from the selected <b>academicLevels</b> document.</span></div>
 <div class="form-grid" style="margin-top:13px"><div><label>Default Account Status</label><select id="defaultStatus"><option>Active</option><option>Deactivated</option></select></div><div><label>Separator</label><select id="separator"><option value="|">Pipe |</option><option value=",">Comma ,</option><option value="\t">Tab</option></select></div><div><label>Import CSV / TSV / XLSX</label><label class="file-label">📄 Choose File<input id="fileInput" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls"></label></div></div>
 <label style="margin-top:13px">Bulk Student Data</label><textarea id="bulkInput" placeholder="Full Name | Student ID | Admission Number | Email | Password | Programme | Level | Status
 Musa Garba | GGCHST/2026/001 | ADM/001 | musa@example.com | Musa@123 | Medical Laboratory Technician | Level 1 | Active"></textarea>
@@ -39,8 +39,8 @@ Musa Garba | GGCHST/2026/001 | ADM/001 | musa@example.com | Musa@123 | Medical L
 <section class="panel hidden" id="resultPanel"><div class="identity"><strong>Creation Results</strong><span>Passwords are never stored in Firestore. Successful credentials remain only in this browser session until exported.</span></div><div class="actions"><button id="downloadCredentials" type="button">DOWNLOAD SUCCESSFUL CREDENTIALS</button><button id="downloadErrors" type="button" class="secondary">DOWNLOAD ERROR REPORT</button></div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Admission</th><th>Programme</th><th>Level</th><th>UID</th><th>Result</th></tr></thead><tbody id="resultRows"></tbody></table></div></section>
 <section class="panel"><h2 style="margin:0;color:var(--dark);font-size:17px">Recommended Format</h2><pre>Full Name | Student ID | Admission Number | Email | Password | Programme | Level | Status
 Musa Garba | GGCHST/2026/001 | ADM/001 | Musa@2026 | Musa@123 | Medical Laboratory Technician | Level 1 | Active
-Aisha Bello | GGCHST/2026/002 | ADM/002 | aisha@example.com | Aisha@123 | Community Health Extension Worker (CHEW) | Level 2 | Active</pre><div class="hint"><b>Important:</b> This file uses the same Student structure as Create Access. It writes the same student fields used by Create Access: <b>studentId, admissionNumber, fullName/name, email, programmeId/programme/programmeName/programmeCode/programmeType, levelId/level/levelName, status/accountStatus, accountLinked, profileCompleted, authUid/studentUid/firebaseUid/authEmail</b>, and the same linked <b>users</b> record fields.</div></section>
-</main><div style="max-width:1200px;margin:-4px auto 18px;padding:0 14px;color:#667c73;font-size:10px;text-align:center">Bulk registration structure synchronized with Create Access.</div><div id="toast" class="toast"></div>
+Aisha Bello | GGCHST/2026/002 | ADM/002 | aisha@example.com | Aisha@123 | Community Health Extension Worker (CHEW) | Level 2 | Active</pre><div class="hint"><b>Important:</b> This file does not create a different student structure. It writes the same student fields used by Create Access: <b>studentId, admissionNumber, fullName/name, email, programmeId/programmeName/programme, levelId/levelName/level, status/accountStatus, accountLinked, profileCompleted, authUid/studentUid/firebaseUid/authEmail</b>, and the same linked <b>users</b> record fields.</div></section>
+</main><div id="toast" class="toast"></div>
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {getFirestore,collection,getDocs,addDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -81,7 +81,7 @@ function validate(arr){
    if(sid){
      if(studentIds.has(sid))r.errors.push("Duplicate Student ID in this upload");
      else studentIds.set(sid,r.row);
-     if(students.some(x=>norm(x.studentId||x.matricNo||x.matricNumber)===sid))r.errors.push("Student ID already exists in students");
+     if(students.some(x=>norm(x.studentId||x.studentID||x.matricNo||x.schoolId)===sid))r.errors.push("Student ID already exists in students");
    }
    const ad=norm(r.admissionNumber);
    if(ad){
@@ -102,73 +102,72 @@ $("sampleBtn").onclick=()=>{$("separator").value="|";$("bulkInput").value=`Full 
 $("clearBtn").onclick=()=>{$("bulkInput").value="";rows=[];results=[];credentials=[];$("previewPanel").classList.add("hidden");$("progressPanel").classList.add("hidden");$("resultPanel").classList.add("hidden");$("sourceMsg").textContent=""};
 $("fileInput").onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const ext=f.name.toLowerCase().split(".").pop();if(ext==="xlsx"||ext==="xls"){if(!window.XLSX)await new Promise((resolve,reject)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});const w=XLSX.read(await f.arrayBuffer(),{type:"array"});$("separator").value=",";$("bulkInput").value=XLSX.utils.sheet_to_csv(w.Sheets[w.SheetNames[0]])}else{$("separator").value=ext==="tsv"?"\t":",";$("bulkInput").value=await f.text()}msg("sourceMsg",`${f.name} loaded. Click PARSE & PREVIEW.`)}catch(err){msg("sourceMsg","Could not read file: "+err.message,"bad")}};
 
-async function createSecondary(email,password){
-  const sa=getApps().some(a=>a.name==="GGCHSTAccountCreator")
-    ?getApp("GGCHSTAccountCreator")
-    :initializeApp(app.options,"GGCHSTAccountCreator");
-  const auth=getAuth(sa);
-  const c=await createUserWithEmailAndPassword(auth,email,password);
-  return{uid:c.user.uid,auth};
-}
+async function createSecondary(email,password){const sa=getApps().some(a=>a.name==="GGCHSTAccountCreator")?getApp("GGCHSTAccountCreator"):initializeApp(app.options,"GGCHSTAccountCreator");const auth=getAuth(sa);const c=await createUserWithEmailAndPassword(auth,email,password);return{uid:c.user.uid,auth};}
 function authError(e){return({"auth/email-already-in-use":"Email already has a Firebase Authentication account.","auth/invalid-email":"Invalid login email.","auth/weak-password":"Password is too weak. Use at least 6 characters.","auth/operation-not-allowed":"Firebase Email/Password Authentication is not enabled.","auth/network-request-failed":"Network error. Check your internet connection."}[e?.code]||e?.message||"Account creation failed.")}
 async function createStudent(r){
  const created=await createSecondary(r.email,r.password);const uid=created.uid;const auth=created.auth;const now=new Date().toISOString();
  try{
   // This object is intentionally the same student profile structure used by create-access.html.
   const profileData={
-    studentId:r.studentId,
-    admissionNumber:r.admissionNumber,
-    fullName:r.name,
-    name:r.name,
-    email:r.email,
+  studentId:r.studentId,
+  admissionNumber:r.admissionNumber,
+  fullName:r.name,
+  name:r.name,
+  email:r.email,
 
-    // Programme is read from the `name` field of the selected document
-    // in the Firestore `programmes` collection shown in your screenshot.
-    programmeId:r.programme.id,
-    programme:r.programme.name||"",
-    programmeName:r.programme.name||"",
-    programmeCode:r.programme.code||r.programme.programmeCode||"",
-    programmeType:r.programme.programmeType||"",
+  // EXACT Create Access programme fields
+  programmeId:r.programme.id,
+  programmeName:r.programme.name||"",
 
-    levelId:r.level.id,
-    level:r.level.name||r.level.code||"",
-    levelName:r.level.name||r.level.code||"",
+  // Compatibility aliases used by Student Profile
+  programme:r.programme.name||"",
 
-    status:r.status,
-    accountStatus:r.status,
-    accountLinked:false,
-    profileCompleted:false
-  };
+  // EXACT Create Access level fields
+  levelId:r.level.id,
+  levelName:r.level.name||r.level.code||"",
+
+  // Compatibility alias used by Student Profile
+  level:r.level.name||r.level.code||"",
+
+  status:r.status,
+  accountStatus:r.status,
+  accountLinked:false,
+  profileCompleted:false
+};
   const studentRef=await addDoc(collection(db,"students"),{...profileData,authUid:uid,studentUid:uid,firebaseUid:uid,authEmail:r.email,createdAt:now,updatedAt:now});
   await addDoc(collection(db,"users"),{
-    uid,
-    authUid:uid,
-    authEmail:r.email,
-    email:r.email,
-    name:r.name,
-    accountType:"Student",
-    role:"Student",
-    status:r.status,
-    accountStatus:r.status,
-    permissions:["student-dashboard","profile","my-courses","timetable","assignments","results","attendance","my-payment"],
-    schoolId:r.studentId,
-    studentId:r.studentId,
-    admissionNumber:r.admissionNumber,
-    lecturerId:"",
-    staffId:"",
-    programmeId:r.programme.id,
-    programme:r.programme.name||"",
-    programmeName:r.programme.name||"",
-    programmeCode:r.programme.code||r.programme.programmeCode||"",
-    programmeType:r.programme.programmeType||"",
-    levelId:r.level.id,
-    level:r.level.name||r.level.code||"",
-    levelName:r.level.name||r.level.code||"",
-    profileId:studentRef.id,
-    profileCompleted:false,
-    createdAt:now,
-    updatedAt:now
-  });
+  uid,
+  authUid:uid,
+  authEmail:r.email,
+  email:r.email,
+  name:r.name,
+  accountType:"Student",
+  role:"Student",
+  status:r.status,
+  permissions:["student-dashboard","profile","my-courses","timetable","assignments","results","attendance","my-payment"],
+  schoolId:r.studentId,
+  studentId:r.studentId,
+  admissionNumber:r.admissionNumber,
+  lecturerId:"",
+  staffId:"",
+
+  // EXACT Create Access programme fields
+  programmeId:r.programme.id,
+  programmeName:r.programme.name||"",
+  programme:r.programme.name||"",
+
+  // EXACT Create Access level fields
+  levelId:r.level.id,
+  levelName:r.level.name||r.level.code||"",
+  level:r.level.name||r.level.code||"",
+
+  // Critical link used by Student Profile:
+  // users.profileId -> students/{profileId}
+  profileId:studentRef.id,
+  profileCompleted:false,
+  createdAt:now,
+  updatedAt:now
+});
   await addDoc(collection(db,"auditLogs"),{action:"bulk_create_access",module:"users",entityType:"student",entityId:studentRef.id,uid,email:r.email,name:r.name,role:"Student",accountType:"Student",timestamp:now,result:"success"});
   await signOut(auth);return uid;
  }catch(e){
