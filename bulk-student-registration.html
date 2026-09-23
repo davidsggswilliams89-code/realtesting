@@ -60,21 +60,71 @@ async function loadSourceData(){
  users=us.docs.map(d=>d.data());students=ss.docs.map(d=>d.data());
  msg("sourceMsg",`Ready. ${programmes.length} active programme(s) and ${levels.length} active level(s) loaded from the same collections used by Create Access.`);
 }
-const findP=v=>{const n=norm(v);return programmes.find(x=>norm(x.name)===n||norm(x.code)===n||norm(x.id)===n)};
+const findP=v=>{
+  const n=norm(v);
+  if(!n)return null;
+
+  // Create Access uses the Firestore document ID as programmeId.
+  // Bulk registration accepts either that ID, the programme code, or the
+  // exact programme name shown in the programmes collection.
+  let p=programmes.find(x=>norm(x.id)===n);
+  if(p)return p;
+
+  p=programmes.find(x=>norm(x.code)===n);
+  if(p)return p;
+
+  p=programmes.find(x=>norm(x.name)===n || norm(x.programmeName)===n || norm(x.title)===n);
+  if(p)return p;
+
+  // Tolerate harmless differences in spacing/punctuation/case.
+  const key=s=>norm(s).replace(/[^a-z0-9]+/g,"");
+  const k=key(v);
+  if(!k)return null;
+  const matches=programmes.filter(x=>[x.name,x.programmeName,x.title,x.code,x.id].some(y=>key(y)===k));
+  return matches.length===1?matches[0]:null;
+};
 const findL=v=>{const n=norm(v);return levels.find(x=>norm(x.name)===n||norm(x.code)===n||norm(x.id)===n)};
 function splitRow(s,sep){if(sep!==",")return s.split(sep).map(clean);let out=[],v="",quoted=false;for(let i=0;i<s.length;i++){const c=s[i];if(c==='"'){if(quoted&&s[i+1]==='"'){v+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){out.push(clean(v));v=""}else v+=c}out.push(clean(v));return out}
 function parseRows(){
  const sep=$("separator").value;const text=$("bulkInput").value.replace(/\r/g,"");const lines=text.split("\n").map(clean).filter(Boolean);if(!lines.length)return[];
  const parsed=lines.map(line=>splitRow(line,sep));const firstRow=parsed[0].map(norm);if(firstRow.includes("email")&&firstRow.includes("password"))parsed.shift();
- return parsed.map((x,i)=>({row:i+1,name:clean(x[0]),studentId:clean(x[1]),admissionNumber:clean(x[2]),email:clean(x[3]),password:clean(x[4]),programmeInput:clean(x[5]),levelInput:clean(x[6]),status:clean(x[7])||$("defaultStatus").value,programme:null,level:null,errors:[]}));
+ return parsed.map((x,i)=>({
+  row:i+1,
+  name:clean(x[0]),
+  studentId:clean(x[1]),
+  admissionNumber:clean(x[2]),
+  email:clean(x[3]),
+  password:clean(x[4]),
+  programmeInput:clean(x[5]),
+  levelInput:clean(x[6]),
+  status:clean(x[7])||$("defaultStatus").value,
+  programme:null,
+  programmeId:"",
+  programmeName:"",
+  level:null,
+  levelId:"",
+  levelName:"",
+  errors:[]
+}));
 }
 function validate(arr){
  const emails=new Map(),admissions=new Map(),studentIds=new Map();
- arr.forEach(r=>{r.errors=[];r.programme=findP(r.programmeInput);r.level=findL(r.levelInput);
+ arr.forEach(r=>{
+  r.errors=[];
+  r.programme=findP(r.programmeInput);
+  r.level=findL(r.levelInput);
+
+  // These are the canonical values that will be written to Firestore and
+  // displayed in Creation Results.
+  r.programmeId=r.programme?.id||"";
+  r.programmeName=r.programme?.name||r.programme?.programmeName||r.programme?.title||"";
+  r.levelId=r.level?.id||"";
+  r.levelName=r.level?.name||r.level?.levelName||r.level?.title||r.level?.code||"";
+
   if(!r.name)r.errors.push("Full Name missing");
   if(!r.email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.email))r.errors.push("Invalid email");
   if(!r.password||r.password.length<6)r.errors.push("Password must be at least 6 characters");
-  if(!r.programme)r.errors.push("Programme not found in Create Access programme list");
+  if(!r.programme)r.errors.push("Programme not found in programmes collection");
   if(!r.level)r.errors.push("Level not found in Create Access level list");
   const e=norm(r.email);if(e){if(emails.has(e))r.errors.push("Duplicate email in this upload");else emails.set(e,r.row);if(users.some(x=>norm(x.email||x.authEmail)===e))r.errors.push("Email already exists in users");}
   const sid=norm(r.studentId);
@@ -93,7 +143,7 @@ function validate(arr){
 }
 function render(){
  const q=norm($("search").value);const view=rows.filter(r=>!q||[r.name,r.studentId,r.admissionNumber,r.email,r.programmeInput,r.levelInput].some(x=>norm(x).includes(q)));
- $("previewRows").innerHTML=view.length?view.map(r=>`<tr><td>${r.row}</td><td>${esc(r.name)}</td><td>${esc(r.studentId||"—")}</td><td>${esc(r.admissionNumber||"—")}</td><td>${esc(r.email)}</td><td>${esc(r.programme?.name||r.programmeInput||"—")}</td><td>${esc(r.level?.name||r.levelInput||"—")}</td><td>${esc(r.status)}</td><td><span class="badge ${r.errors.length?"bad":"good"}">${r.errors.length?esc(r.errors.join("; ")):"VALID"}</span></td></tr>`).join(""):`<tr><td colspan="9" style="text-align:center;padding:25px">No rows.</td></tr>`;
+ $("previewRows").innerHTML=view.length?view.map(r=>`<tr><td>${r.row}</td><td>${esc(r.name)}</td><td>${esc(r.studentId||"—")}</td><td>${esc(r.admissionNumber||"—")}</td><td>${esc(r.email)}</td><td>${esc(r.programmeName||r.programmeInput||"—")}</td><td>${esc(r.levelName||r.levelInput||"—")}</td><td>${esc(r.status)}</td><td><span class="badge ${r.errors.length?"bad":"good"}">${r.errors.length?esc(r.errors.join("; ")):"VALID"}</span></td></tr>`).join(""):`<tr><td colspan="9" style="text-align:center;padding:25px">No rows.</td></tr>`;
  const valid=rows.filter(r=>!r.errors.length).length;$("total").textContent=rows.length;$("valid").textContent=valid;$("invalid").textContent=rows.length-valid;$("ready").textContent=valid;$("createBtn").disabled=!valid;
 }
 $("search").oninput=render;
@@ -116,18 +166,18 @@ async function createStudent(r){
   email:r.email,
 
   // EXACT Create Access programme fields
-  programmeId:r.programme.id,
-  programmeName:r.programme.name||"",
+  programmeId:r.programmeId,
+  programmeName:r.programmeName,
 
   // Compatibility aliases used by Student Profile
-  programme:r.programme.name||"",
+  programme:r.programmeName,
 
   // EXACT Create Access level fields
-  levelId:r.level.id,
-  levelName:r.level.name||r.level.code||"",
+  levelId:r.levelId,
+  levelName:r.levelName,
 
   // Compatibility alias used by Student Profile
-  level:r.level.name||r.level.code||"",
+  level:r.levelName,
 
   status:r.status,
   accountStatus:r.status,
@@ -152,14 +202,14 @@ async function createStudent(r){
   staffId:"",
 
   // EXACT Create Access programme fields
-  programmeId:r.programme.id,
-  programmeName:r.programme.name||"",
-  programme:r.programme.name||"",
+  programmeId:r.programmeId,
+  programmeName:r.programmeName,
+  programme:r.programmeName,
 
   // EXACT Create Access level fields
-  levelId:r.level.id,
-  levelName:r.level.name||r.level.code||"",
-  level:r.level.name||r.level.code||"",
+  levelId:r.levelId,
+  levelName:r.levelName,
+  level:r.levelName,
 
   // Critical link used by Student Profile:
   // users.profileId -> students/{profileId}
@@ -180,10 +230,10 @@ $("createBtn").onclick=async()=>{
  const validRows=rows.filter(r=>!r.errors.length);if(!validRows.length){msg("previewMsg","There are no valid students ready to create.","bad");return}
  if(!confirm(`Create ${validRows.length} student account(s) now?`))return;
  $("createBtn").disabled=true;$("progressPanel").classList.remove("hidden");$("resultPanel").classList.add("hidden");results=[];credentials=[];let created=0,failed=0;
- for(let i=0;i<validRows.length;i++){const r=validRows[i];$("progressText").textContent=`Creating ${i+1} of ${validRows.length}: ${r.name}`;$("bar").style.width=((i+1)/validRows.length*100)+"%";$("current").textContent=r.name;try{const uid=await createStudent(r);created++;results.push({...r,uid,result:"Created",error:""});credentials.push({name:r.name,email:r.email,password:r.password,studentId:r.studentId,admissionNumber:r.admissionNumber,programme:r.programme.name,level:r.level.name,status:r.status,uid})}catch(e){failed++;results.push({...r,uid:"",result:"Failed",error:authError(e)})}$("created").textContent=created;$("failed").textContent=failed;$("remaining").textContent=validRows.length-i-1}
+ for(let i=0;i<validRows.length;i++){const r=validRows[i];$("progressText").textContent=`Creating ${i+1} of ${validRows.length}: ${r.name}`;$("bar").style.width=((i+1)/validRows.length*100)+"%";$("current").textContent=r.name;try{const uid=await createStudent(r);created++;results.push({...r,uid,result:"Created",error:""});credentials.push({name:r.name,email:r.email,password:r.password,studentId:r.studentId,admissionNumber:r.admissionNumber,programme:r.programmeName,level:r.levelName,status:r.status,uid})}catch(e){failed++;results.push({...r,uid:"",result:"Failed",error:authError(e)})}$("created").textContent=created;$("failed").textContent=failed;$("remaining").textContent=validRows.length-i-1}
  renderResults();$("resultPanel").classList.remove("hidden");toast(`Finished: ${created} created, ${failed} failed.`);$("createBtn").disabled=true;
 };
-function renderResults(){$("resultRows").innerHTML=results.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.name)}</td><td>${esc(r.email)}</td><td>${esc(r.admissionNumber||"—")}</td><td>${esc(r.programme?.name||"—")}</td><td>${esc(r.level?.name||"—")}</td><td>${r.uid?esc(r.uid):"—"}</td><td><span class="badge ${r.result==="Created"?"good":"bad"}">${r.result==="Created"?"CREATED":esc(r.error)}</span></td></tr>`).join("")}
+function renderResults(){$("resultRows").innerHTML=results.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.name)}</td><td>${esc(r.email)}</td><td>${esc(r.admissionNumber||"—")}</td><td>${esc(r.programmeName||r.programmeInput||"—")}</td><td>${esc(r.levelName||r.levelInput||"—")}</td><td>${r.uid?esc(r.uid):"—"}</td><td><span class="badge ${r.result==="Created"?"good":"bad"}">${r.result==="Created"?"CREATED":esc(r.error)}</span></td></tr>`).join("")}
 function download(name,data){const blob=new Blob([data],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(a.href)}
 function csv(arr,keys){return [keys.join(","),...arr.map(x=>keys.map(k=>`"${String(x[k]??"").replace(/"/g,'""')}"`).join(","))].join("\n")}
 $("downloadCredentials").onclick=()=>credentials.length&&download("successful-student-login-credentials.csv",csv(credentials,["name","email","password","studentId","admissionNumber","programme","level","status","uid"]));
