@@ -124,7 +124,7 @@ textarea{width:100%;min-height:210px;resize:vertical;padding:12px;border:1px sol
  <textarea id="bulkInput" placeholder="Full Name | Student ID | Admission Number | Email | Password | Programme | Level | Status
 Musa Garba | GGCHST/2026/001 | ADM/001 | musa@example.com | Musa@123 | Medical Laboratory Technician | Level 1 | Active"></textarea>
  <div class="bulk-note">Programme and Academic Level are matched against the same <b>programmes</b> and <b>academicLevels</b> collections used by Create Access. The exact Firestore programme document ID and its <b>name</b> are written to the student record.</div>
- <div class="bulk-actions"><button type="button" id="bulkParseBtn">PARSE &amp; PREVIEW</button><button type="button" id="bulkSampleBtn" class="secondary">LOAD SAMPLE</button><button type="button" id="bulkClearBtn" class="secondary">CLEAR BULK DATA</button></div><div id="bulkMessage" class="message"></div>
+ <div class="bulk-actions"><button type="button" id="bulkParseBtn" onclick="return window.__bulkButton('parse', event)">PARSE &amp; PREVIEW</button><button type="button" id="bulkSampleBtn" class="secondary" onclick="return window.__bulkButton('sample', event)">LOAD SAMPLE</button><button type="button" id="bulkClearBtn" class="secondary" onclick="return window.__bulkButton('clear', event)">CLEAR BULK DATA</button></div><div id="bulkMessage" class="message"></div>
  <section class="panel hidden" id="bulkPreviewPanel" style="margin-top:14px;padding:12px"><div class="identity"><strong>Preview &amp; Validation</strong><span>Review programme and validation before creation.</span></div><div class="bulk-stats"><div class="bulk-stat"><b id="bulkTotal">0</b><span>Total</span></div><div class="bulk-stat"><b id="bulkValid">0</b><span>Valid</span></div><div class="bulk-stat"><b id="bulkInvalid">0</b><span>Invalid</span></div><div class="bulk-stat"><b id="bulkReady">0</b><span>Ready</span></div></div><div class="bulk-table"><table><thead><tr><th>#</th><th>Name</th><th>Student ID</th><th>Admission</th><th>Email</th><th>Programme</th><th>Level</th><th>Status</th><th>Validation</th></tr></thead><tbody id="bulkPreviewRows"></tbody></table></div></section>
  <section class="panel hidden" id="bulkProgressPanel" style="margin-top:14px;padding:12px"><div class="identity"><strong>Bulk Creation Progress</strong><span id="bulkProgressText">Preparing...</span></div><div class="bulk-progress"><i id="bulkBar"></i></div><div class="bulk-stats"><div class="bulk-stat"><b id="bulkCreated">0</b><span>Created</span></div><div class="bulk-stat"><b id="bulkFailed">0</b><span>Failed</span></div><div class="bulk-stat"><b id="bulkRemaining">0</b><span>Remaining</span></div><div class="bulk-stat"><b id="bulkCurrent">—</b><span>Current</span></div></div></section>
  <section class="panel hidden" id="bulkResultPanel" style="margin-top:14px;padding:12px"><div class="identity"><strong>Creation Results</strong><span>Passwords are never stored in Firestore. Export successful credentials if needed.</span></div><div class="bulk-actions"><button type="button" id="bulkDownloadCredentials" type="button">DOWNLOAD SUCCESSFUL CREDENTIALS</button><button type="button" id="bulkDownloadErrors" type="button" class="secondary">DOWNLOAD ERROR REPORT</button></div><div class="bulk-table"><table><thead><tr><th>Name</th><th>Email</th><th>Admission</th><th>Programme</th><th>Level</th><th>UID</th><th>Result</th></tr></thead><tbody id="bulkResultRows"></tbody></table></div></section>
@@ -374,9 +374,11 @@ function handleBulkClear(e){
   $("bulkReady").textContent="0";
 }
 
-$("bulkParseBtn").addEventListener("click",handleBulkParse);
-$("bulkSampleBtn").addEventListener("click",handleBulkSample);
-$("bulkClearBtn").addEventListener("click",handleBulkClear);
+
+window.__bulkModuleReady=true;
+window.__bulkParseFromButton=handleBulkParse;
+window.__bulkSampleFromButton=handleBulkSample;
+window.__bulkClearFromButton=handleBulkClear;
 
 $("bulkFile").onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const ext=f.name.toLowerCase().split('.').pop();if(ext==='xlsx'||ext==='xls'){if(!window.XLSX)await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});const w=XLSX.read(await f.arrayBuffer(),{type:'array'});$("bulkSeparator").value=',';$("bulkInput").value=XLSX.utils.sheet_to_csv(w.Sheets[w.SheetNames[0]])}else{$("bulkSeparator").value=ext==='tsv'?'\t':',';$("bulkInput").value=await f.text()}$("bulkMessage").textContent=`${f.name} loaded. Click PARSE & PREVIEW.`;$("bulkMessage").className="message ok";}catch(err){$("bulkMessage").textContent="Could not read file: "+err.message;$("bulkMessage").className="message bad";}};
 function bulkCsv(rows,keys){const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;return [keys.join(','),...rows.map(r=>keys.map(k=>q(r[k])).join(','))].join('\n');}function bulkDownload(name,data){const blob=new Blob([data],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(a.href);}
@@ -483,5 +485,66 @@ async function toggleAccountStatus(userId, uid, currentStatus){
 setCategory("student");
 setCategory("student"); initializeCreateAccess();
 </script>
+
+<script>
+(function(){
+  function el(id){ return document.getElementById(id); }
+
+  window.__bulkButton = async function(action, ev){
+    if(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+
+    const message = el("bulkMessage");
+
+    try{
+      if(action === "sample"){
+        el("bulkSeparator").value = "|";
+        el("bulkInput").value =
+`Full Name | Student ID | Admission Number | Email | Password | Programme | Level | Status
+Musa Garba | GGCHST/2026/001 | ADM/001 | musa.garba@example.com | Musa@123 | Medical Laboratory Technician | Level 1 | Active
+Aisha Bello | GGCHST/2026/002 | ADM/002 | aisha.bello@example.com | Aisha@123 | Community Health Extension Worker (CHEW) | Level 2 | Active`;
+        message.textContent = "Sample loaded. Click PARSE & PREVIEW.";
+        message.className = "message ok";
+        return false;
+      }
+
+      if(action === "clear"){
+        el("bulkInput").value = "";
+        el("bulkFile").value = "";
+        if(window.bulkRows) window.bulkRows = [];
+        const ids = ["bulkPreviewPanel","bulkProgressPanel","bulkResultPanel"];
+        ids.forEach(id => { if(el(id)) el(id).classList.add("hidden"); });
+        ["bulkTotal","bulkValid","bulkInvalid","bulkReady","bulkCreated","bulkFailed","bulkRemaining"].forEach(id=>{
+          if(el(id)) el(id).textContent = "0";
+        });
+        if(el("createBtn")) el("createBtn").disabled = true;
+        message.textContent = "";
+        message.className = "message";
+        return false;
+      }
+
+      if(action === "parse"){
+        if(typeof window.__bulkParseFromButton === "function"){
+          await window.__bulkParseFromButton(ev);
+          return false;
+        }
+        message.textContent = "Bulk registration script is still loading. Please wait a moment and press PARSE & PREVIEW again.";
+        message.className = "message bad";
+        return false;
+      }
+    }catch(err){
+      console.error(err);
+      if(message){
+        message.textContent = "Bulk action failed: " + (err && err.message ? err.message : String(err));
+        message.className = "message bad";
+      }
+    }
+    return false;
+  };
+})();
+</script>
+
 </body>
 </html>
