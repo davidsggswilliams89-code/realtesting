@@ -49,7 +49,7 @@ tr:last-child td{border-bottom:0}
 .payment-part{background:#e8f0ff;color:#225aa0}
 .payment-notpaid{background:#fde8e8;color:#a51d1d}
 .actions{display:flex;gap:6px}
-.view{border:0;background:#e8f0ff;color:#225aa0;border-radius:7px;padding:7px 9px;font-weight:700;cursor:pointer}.edit{border:0;background:#e3f6ea;color:#11733f;border-radius:7px;padding:7px 9px;font-weight:700;cursor:pointer}
+.view{border:0;background:#e8f0ff;color:#225aa0;border-radius:7px;padding:7px 9px;font-weight:700;cursor:pointer}
 .empty{text-align:center;padding:35px;color:#718078}
 .loading{padding:35px;text-align:center;color:#68756f}
 .mobile-list{display:none}
@@ -227,7 +227,7 @@ tr:last-child td{border-bottom:0}
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {
-  getFirestore, collection, onSnapshot
+  getFirestore, collection, onSnapshot, getDocs
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -254,6 +254,8 @@ const table = $("studentTable");
 const mobileList = $("mobileList");
 
 let students = [];
+let programmeCatalog = [];
+let levelCatalog = [];
 
 function val(x, keys, fallback="") {
   for (const key of keys) {
@@ -293,11 +295,39 @@ function admissionNo(s) {
 }
 
 function programme(s) {
-  return val(s,["programmeName","programme","courseOfStudy"],"—");
+  const direct = val(s,[
+    "programmeName","programme","courseOfStudy","programName","program","programmeTitle"
+  ],"");
+  if (direct) return direct;
+
+  const pid = val(s,["programmeId","programId"],"");
+  if (pid) {
+    const p = programmeCatalog.find(x =>
+      norm(x.id) === norm(pid) ||
+      norm(x.code) === norm(pid) ||
+      norm(x.programmeId) === norm(pid)
+    );
+    if (p) return val(p,["name","programmeName","title","programName","code"],"—");
+  }
+  return "—";
 }
 
 function level(s) {
-  return val(s,["levelName","level"],"—");
+  const direct = val(s,[
+    "levelName","level","academicLevelName","academicLevel","levelTitle"
+  ],"");
+  if (direct) return direct;
+
+  const lid = val(s,["levelId","academicLevelId"],"");
+  if (lid) {
+    const l = levelCatalog.find(x =>
+      norm(x.id) === norm(lid) ||
+      norm(x.code) === norm(lid) ||
+      norm(x.levelId) === norm(lid)
+    );
+    if (l) return val(l,["name","levelName","title","code"],"—");
+  }
+  return "—";
 }
 
 function semester(s) {
@@ -430,7 +460,7 @@ function render() {
       <td>${esc(session(s))}</td>
       <td><span class="badge ${norm(status(s)) === "active" ? "active" : "inactive"}">${esc(status(s))}</span></td>
       <td><span class="badge payment-${paymentClass(paymentStatus(s))}">${esc(paymentStatus(s))}</span></td>
-      <td><div class="actions"><button class="view" data-view="${esc(s.id)}">View</button><button class="edit" data-edit="${esc(s.id)}">Edit</button></div></td>
+      <td><div class="actions"><button class="view" data-view="${esc(s.id)}">View</button></div></td>
     </tr>
   `).join("");
 
@@ -453,7 +483,7 @@ function render() {
         <div><small>Admission No.</small><b>${esc(admissionNo(s))}</b></div>
       </div>
       <div style="margin-top:10px">
-        <button class="view" data-view="${esc(s.id)}">View Student</button> <button class="edit" data-edit="${esc(s.id)}">Edit Student</button>
+        <button class="view" data-view="${esc(s.id)}">View Student</button>
       </div>
     </div>
   `).join("");
@@ -479,44 +509,50 @@ function viewStudent(id) {
   const s = students.find(x => x.id === id);
   if (!s) return;
 
-  // Opens the existing student page.
+  // Opens the existing admin student page when available.
+  // Student ID is passed so the master record can be resolved there.
   const sid = studentId(s);
   const url = `student.html?studentId=${encodeURIComponent(sid)}`;
   window.location.href = url;
 }
 
-function editStudent(id) {
-  const s = students.find(x => x.id === id);
-  if (!s) return;
+document.addEventListener("click", e => {
+  const btn = e.target.closest("[data-view]");
+  if (btn) viewStudent(btn.dataset.view);
+});
 
-  // Opens the separate Admin Edit Student Profile page.
-  const sid = studentId(s);
-  const url = `student-profile-admin-edit.html?studentId=${encodeURIComponent(sid)}`;
-  window.location.href = url;
+async function loadReferenceData(){
+  try{
+    const [pSnap,lSnap] = await Promise.all([
+      getDocs(collection(db,"programmes")),
+      getDocs(collection(db,"academicLevels"))
+    ]);
+    programmeCatalog = pSnap.docs.map(d => ({id:d.id,...d.data()}));
+    levelCatalog = lSnap.docs.map(d => ({id:d.id,...d.data()}));
+  }catch(err){
+    console.warn("Could not load programme/level reference data:",err);
+    programmeCatalog = [];
+    levelCatalog = [];
+  }
 }
 
-document.addEventListener("click", e => {
-  const viewBtn = e.target.closest("[data-view]");
-  if (viewBtn) {
-    viewStudent(viewBtn.dataset.view);
-    return;
-  }
+async function startStudentList(){
+  await loadReferenceData();
 
-  const editBtn = e.target.closest("[data-edit]");
-  if (editBtn) editStudent(editBtn.dataset.edit);
-});
+  onSnapshot(collection(db,"students"), snap => {
+    students = snap.docs.map(d => ({id:d.id,...d.data()}));
+    refreshFilters();
+    render();
+  }, err => {
+    console.error(err);
+    table.innerHTML = '<tr><td colspan="10" class="empty">Could not load students.</td></tr>';
+    mobileList.innerHTML = '<div class="empty">Could not load students from Firebase. Check Firestore permissions.</div>';
+    $("message").textContent = "Could not load student records from Firebase. Check your Firestore Security Rules.";
+    $("message").style.display = "block";
+  });
+}
 
-onSnapshot(collection(db,"students"), snap => {
-  students = snap.docs.map(d => ({id:d.id,...d.data()}));
-  refreshFilters();
-  render();
-}, err => {
-  console.error(err);
-  table.innerHTML = '<tr><td colspan="10" class="empty">Could not load students.</td></tr>';
-  mobileList.innerHTML = '<div class="empty">Could not load students from Firebase. Check Firestore permissions.</div>';
-  $("message").textContent = "Could not load student records from Firebase. Check your Firestore Security Rules.";
-  $("message").style.display = "block";
-});
+startStudentList();
 </script>
 </body>
 </html>
