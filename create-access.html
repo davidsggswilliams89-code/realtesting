@@ -530,8 +530,78 @@ Aisha Bello | GGCHST/2026/002 | ADM/002 | aisha.bello@example.com | Aisha@123 | 
           await window.__bulkParseFromButton(ev);
           return false;
         }
-        message.textContent = "Bulk registration script is still loading. Please wait a moment and press PARSE & PREVIEW again.";
-        message.className = "message bad";
+
+        // Fallback parser: the button must not depend on the module event
+        // binding. Dynamically load Firebase and resolve programmes/levels
+        // directly if the main module has not exposed its handler yet.
+        message.textContent = "Parsing bulk students…";
+        message.className = "message ok";
+
+        const [fbApp, fbStore] = await Promise.all([
+          import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"),
+          import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js")
+        ]);
+        const cfg={
+          apiKey:"AIzaSyAoT3LGcdw3A0FzHDrPEuhTNCnfiTklGXY",
+          authDomain:"ggchst-sms-new.firebaseapp.com",
+          projectId:"ggchst-sms-new",
+          storageBucket:"ggchst-sms-new.firebasestorage.app",
+          messagingSenderId:"942770190211",
+          appId:"1:942770190211:web:aa9a085a38aaa517b368b6"
+        };
+        const app=fbApp.getApps().length?fbApp.getApp():fbApp.initializeApp(cfg);
+        const db=fbStore.getFirestore(app);
+        const norm2=v=>String(v??"").trim().toLowerCase();
+        const esc2=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+        const sep=el("bulkSeparator").value;
+        const lines=el("bulkInput").value.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
+        if(!lines.length){
+          el("bulkMessage").textContent="Enter or load bulk student data first.";
+          el("bulkMessage").className="message bad";
+          return false;
+        }
+        const splitRow=(row)=>{
+          if(sep!==",") return row.split(sep).map(x=>x.trim());
+          const a=[];let v="",q=false;
+          for(let i=0;i<row.length;i++){const c=row[i];if(c==='"'){if(q&&row[i+1]==='"'){v+='"';i++;}else q=!q;}else if(c===','&&!q){a.push(v.trim());v="";}else v+=c;}a.push(v.trim());return a;
+        };
+        let rows=lines.map(splitRow);
+        const head=rows[0].map(norm2);
+        if(head.includes("email")&&head.includes("password")) rows.shift();
+        const [ps,ls,us,ss]=await Promise.all([
+          fbStore.getDocs(fbStore.collection(db,"programmes")),
+          fbStore.getDocs(fbStore.collection(db,"academicLevels")),
+          fbStore.getDocs(fbStore.collection(db,"users")),
+          fbStore.getDocs(fbStore.collection(db,"students"))
+        ]);
+        const programmes=ps.docs.map(d=>({id:d.id,...d.data()}));
+        const levels=ls.docs.map(d=>({id:d.id,...d.data()}));
+        const emailSet=new Set(us.docs.map(d=>d.data()).map(x=>norm2(x.email||x.authEmail)).filter(Boolean));
+        const sidSet=new Set(ss.docs.map(d=>d.data()).map(x=>norm2(x.studentId||x.studentID||x.matricNo||x.schoolId)).filter(Boolean));
+        const admSet=new Set(ss.docs.map(d=>d.data()).map(x=>norm2(x.admissionNumber||x.admissionNo||x.admission)).filter(Boolean));
+        const key=v=>norm2(v).replace(/[^a-z0-9]+/g,"");
+        const findRef=(value,list)=>{
+          const n=norm2(value); if(!n)return null;
+          let x=list.find(p=>[p.id,p.code,p.name,p.programmeName,p.levelName,p.title].some(v=>norm2(v)===n));
+          if(x)return x;
+          const k=key(value), hits=list.filter(p=>[p.id,p.code,p.name,p.programmeName,p.levelName,p.title].some(v=>key(v)===k));
+          return hits.length===1?hits[0]:null;
+        };
+        const seenE=new Set(),seenS=new Set(),seenA=new Set();
+        const parsed=rows.map((x,i)=>{
+          const p=findRef(x[5],programmes), l=findRef(x[6],levels);
+          const r={row:i+1,name:(x[0]||"").trim(),studentId:(x[1]||"").trim(),admissionNumber:(x[2]||"").trim(),email:(x[3]||"").trim(),password:(x[4]||"").trim(),programmeInput:(x[5]||"").trim(),levelInput:(x[6]||"").trim(),status:(x[7]||el("bulkDefaultStatus").value).trim(),programme:p,level:l,programmeId:p?.id||"",programmeName:p?.name||p?.programmeName||p?.title||"",levelId:l?.id||"",levelName:l?.name||l?.levelName||l?.title||l?.code||"",errors:[]};
+          if(!r.name)r.errors.push("Full name required"); if(!/\S+@\S+\.\S+/.test(r.email))r.errors.push("Valid email required"); if(r.password.length<6)r.errors.push("Password must be at least 6 characters"); if(!r.studentId)r.errors.push("Student ID required"); if(!r.admissionNumber)r.errors.push("Admission number required"); if(!p)r.errors.push("Programme not found in programmes collection"); if(!l)r.errors.push("Academic level not found in academicLevels collection");
+          const e=norm2(r.email),sid=norm2(r.studentId),ad=norm2(r.admissionNumber); if(e){if(seenE.has(e))r.errors.push("Duplicate email in upload");seenE.add(e);if(emailSet.has(e))r.errors.push("Email already exists");} if(sid){if(seenS.has(sid))r.errors.push("Duplicate Student ID in upload");seenS.add(sid);if(sidSet.has(sid))r.errors.push("Student ID already exists");} if(ad){if(seenA.has(ad))r.errors.push("Duplicate admission number in upload");seenA.add(ad);if(admSet.has(ad))r.errors.push("Admission number already exists");}
+          return r;
+        });
+        const valid=parsed.filter(r=>!r.errors.length).length;
+        el("bulkPreviewRows").innerHTML=parsed.length?parsed.map(r=>`<tr><td>${r.row}</td><td>${esc2(r.name)}</td><td>${esc2(r.studentId||"—")}</td><td>${esc2(r.admissionNumber||"—")}</td><td>${esc2(r.email)}</td><td>${esc2(r.programmeName||r.programmeInput||"—")}</td><td>${esc2(r.levelName||r.levelInput||"—")}</td><td>${esc2(r.status)}</td><td class="${r.errors.length?'bad':'good'}">${r.errors.length?esc2(r.errors.join('; ')):"VALID"}</td></tr>`).join(""): '<tr><td colspan="9" style="text-align:center;padding:25px">No rows.</td></tr>';
+        el("bulkPreviewPanel").classList.remove("hidden"); el("bulkTotal").textContent=parsed.length; el("bulkValid").textContent=valid; el("bulkInvalid").textContent=parsed.length-valid; el("bulkReady").textContent=valid; el("createBtn").disabled=!valid;
+        // Pass the parsed records to the module if it becomes available.
+        window.__fallbackBulkRows=parsed;
+        message.textContent=`${parsed.length} row(s) parsed. ${valid} valid and ready for creation.`;
+        message.className=valid?"message ok":"message bad";
         return false;
       }
     }catch(err){
