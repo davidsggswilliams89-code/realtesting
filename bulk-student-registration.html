@@ -39,7 +39,7 @@ Musa Garba | GGCHST/2026/001 | ADM/001 | musa@example.com | Musa@123 | Medical L
 <section class="panel hidden" id="resultPanel"><div class="identity"><strong>Creation Results</strong><span>Passwords are never stored in Firestore. Successful credentials remain only in this browser session until exported.</span></div><div class="actions"><button id="downloadCredentials" type="button">DOWNLOAD SUCCESSFUL CREDENTIALS</button><button id="downloadErrors" type="button" class="secondary">DOWNLOAD ERROR REPORT</button></div><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Admission</th><th>Programme</th><th>Level</th><th>UID</th><th>Result</th></tr></thead><tbody id="resultRows"></tbody></table></div></section>
 <section class="panel"><h2 style="margin:0;color:var(--dark);font-size:17px">Recommended Format</h2><pre>Full Name | Student ID | Admission Number | Email | Password | Programme | Level | Status
 Musa Garba | GGCHST/2026/001 | ADM/001 | Musa@2026 | Musa@123 | Medical Laboratory Technician | Level 1 | Active
-Aisha Bello | GGCHST/2026/002 | ADM/002 | aisha@example.com | Aisha@123 | Community Health Extension Worker (CHEW) | Level 2 | Active</pre><div class="hint"><b>Important:</b> This file uses the same Student structure as Create Access. It writes the same student fields used by Create Access: <b>studentId, admissionNumber, fullName/name, email, programmeId/programmeName, levelId/levelName, status/accountStatus, accountLinked, profileCompleted, authUid/studentUid/firebaseUid/authEmail</b>, and the same linked <b>users</b> record fields.</div></section>
+Aisha Bello | GGCHST/2026/002 | ADM/002 | aisha@example.com | Aisha@123 | Community Health Extension Worker (CHEW) | Level 2 | Active</pre><div class="hint"><b>Important:</b> This file uses the same Student structure as Create Access. It writes the same student fields used by Create Access: <b>studentId, admissionNumber, fullName/name, email, programmeId/programme/programmeName/programmeCode/programmeType, levelId/level/levelName, status/accountStatus, accountLinked, profileCompleted, authUid/studentUid/firebaseUid/authEmail</b>, and the same linked <b>users</b> record fields.</div></section>
 </main><div style="max-width:1200px;margin:-4px auto 18px;padding:0 14px;color:#667c73;font-size:10px;text-align:center">Bulk registration structure synchronized with Create Access.</div><div id="toast" class="toast"></div>
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -121,17 +121,54 @@ async function createStudent(r){
     fullName:r.name,
     name:r.name,
     email:r.email,
+
+    // Programme is read from the `name` field of the selected document
+    // in the Firestore `programmes` collection shown in your screenshot.
     programmeId:r.programme.id,
+    programme:r.programme.name||"",
     programmeName:r.programme.name||"",
+    programmeCode:r.programme.code||r.programme.programmeCode||"",
+    programmeType:r.programme.programmeType||"",
+
     levelId:r.level.id,
+    level:r.level.name||r.level.code||"",
     levelName:r.level.name||r.level.code||"",
+
     status:r.status,
     accountStatus:r.status,
     accountLinked:false,
     profileCompleted:false
   };
   const studentRef=await addDoc(collection(db,"students"),{...profileData,authUid:uid,studentUid:uid,firebaseUid:uid,authEmail:r.email,createdAt:now,updatedAt:now});
-  await addDoc(collection(db,"users"),{uid,authUid:uid,authEmail:r.email,email:r.email,name:r.name,accountType:"Student",role:"Student",status:r.status,permissions:["student-dashboard","profile","my-courses","timetable","assignments","results","attendance","my-payment"],schoolId:r.studentId,studentId:r.studentId,admissionNumber:r.admissionNumber,lecturerId:"",staffId:"",programmeId:r.programme.id,programmeName:r.programme.name||"",levelId:r.level.id,levelName:r.level.name||r.level.code||"",profileId:studentRef.id,profileCompleted:false,createdAt:now,updatedAt:now});
+  await addDoc(collection(db,"users"),{
+    uid,
+    authUid:uid,
+    authEmail:r.email,
+    email:r.email,
+    name:r.name,
+    accountType:"Student",
+    role:"Student",
+    status:r.status,
+    accountStatus:r.status,
+    permissions:["student-dashboard","profile","my-courses","timetable","assignments","results","attendance","my-payment"],
+    schoolId:r.studentId,
+    studentId:r.studentId,
+    admissionNumber:r.admissionNumber,
+    lecturerId:"",
+    staffId:"",
+    programmeId:r.programme.id,
+    programme:r.programme.name||"",
+    programmeName:r.programme.name||"",
+    programmeCode:r.programme.code||r.programme.programmeCode||"",
+    programmeType:r.programme.programmeType||"",
+    levelId:r.level.id,
+    level:r.level.name||r.level.code||"",
+    levelName:r.level.name||r.level.code||"",
+    profileId:studentRef.id,
+    profileCompleted:false,
+    createdAt:now,
+    updatedAt:now
+  });
   await addDoc(collection(db,"auditLogs"),{action:"bulk_create_access",module:"users",entityType:"student",entityId:studentRef.id,uid,email:r.email,name:r.name,role:"Student",accountType:"Student",timestamp:now,result:"success"});
   await signOut(auth);return uid;
  }catch(e){
